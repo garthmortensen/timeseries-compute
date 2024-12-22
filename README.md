@@ -4,6 +4,8 @@ Build a py production-level model pipeline from scratch, deployed on the cloud.
 
 Take pdf writings and convert entirely. Then add supplementary generalized code.
 
+archive source: https://github.com/garthmortensen/finance/tree/master/15_thesis
+
 ## tech stack
 
 - py + django + docker + github actions  
