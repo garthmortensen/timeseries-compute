@@ -10,11 +10,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # cp everything in
 COPY . .
 
-# create dir structure
-RUN mkdir -p logs results
-# just in case
-RUN chmod -R 777 ./logs ./results
+# Make port 5000 available to the host
+EXPOSE 5000
 
 # go
 ENTRYPOINT [ "python" ]
-# CMD ["401k.py"]
+CMD ["app.py"]
+
