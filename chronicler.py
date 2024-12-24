@@ -43,4 +43,10 @@ class Chronicler:
             handlers=handlers,
         )
 
+        ascii_banner = """\n
+        >  ┓       • ┓     <
+        > ┏┣┓┏┓┏┓┏┓┓┏┃┏┓┏┓ <
+        > ┗┛┗┛ ┗┛┛┗┗┗┗┗ ┛  <
+        """
+        logging.info(ascii_banner)
         logging.info(f"Logging initialized for {script_path}")
