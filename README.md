@@ -20,6 +20,7 @@ Take pdf writings and convert entirely. Then add supplementary generalized code.
 
 ### amazon api mandate
 - use api gateway + lambda/ecs/eks  
+- implement api with Django REST Framework, which "seamlessly integrates" with Django
 - handle auto-scaling and load balancing (auto-scaling groups)
 
 ### environment & secrets management
@@ -99,3 +100,37 @@ Take pdf writings and convert entirely. Then add supplementary generalized code.
 1. keep environment-specific configs (dev/test/prod)  
 2. plan a clear deployment strategy (staging vs prod using aws ecs)  
 3. automate everything possible (lint, build, test, security scans)...  
+
+
+## great idea
+
+oh this is exciting. i should generalize to time series in general. and give it the ability to generate price series. danger - scope creep.
+
+https://editor.plantuml.com/uml/VP0zQm9148Rx-HKlMbmbrdU5Q0eXS5L84x0PTyTpOPsvxEuf_lki5mWHGjgPv_sOsUR2gKoNIEoA9RpO4SiadXgydmMcyGuVJYT9eavmb78JKSmmDQmUOzK75qRMWf1HgiedlWKTwFTg5uEJfydY5MU-2XX9ECRxGQFf0EMBBC0PFPPjkz-tBQqRVDW4npKuPeCN5pb9Hy1JVF-G_MlxOmaqQwAvr6fJZ-wmcsfrhLvSWYdUv7EINAZkLfkP-mF9escMRwRlqDk0abXpVKy5Q2lg7w_z0W00
+
+
+```pseudocode
+class GeneralizedTimeSeriesModel:
+    Attributes:
+        - data: input price series
+        - model_type: define model type (GARCH, ARIMA, VAR)
+        - model_params: model parames
+        - fitted_model: fitted model instance
+        - diagnostics: model diagnostics
+
+    Methods:
+        - __init__(data, model_type, **kwargs): initialize object
+        - preprocess_data(): prep data (e.g. stationarity checks)
+        - specify_model(): given model type, dynamically select and configure
+        - fit_model(): fit model
+        - diagnose_model(): perform model diagnostics (e.g. residuals)
+        - forecast(steps): forecast
+        - validate_model(): compare model performance metrics
+        - visualize_results(): plot data, residuals, and forecasts
+        - save_model(filepath): save a model
+        - load_model(filepath): load a model
+
+class ModelFactory:
+    Methods:
+        - create_model(data, model_type, **kwargs): factory method to create a specific model instance
+```
