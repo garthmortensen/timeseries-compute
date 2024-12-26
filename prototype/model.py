@@ -7,5 +7,3 @@ series_1_path = os.path.join(script_dir, "../input/data/series_1.csv")
 series_2_path = os.path.join(script_dir, "../input/data/series_2.csv")
 series_1 = pd.read_csv(series_1_path)
 series_2 = pd.read_csv(series_2_path)
-
-

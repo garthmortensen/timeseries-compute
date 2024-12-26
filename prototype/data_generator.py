@@ -6,10 +6,12 @@ from tabulate import tabulate  # pretty print dfs
 # handle relative directory imports for chronicler
 import logging as l
 from chronicler_loader import init_chronicler
+
 chronicler = init_chronicler()
 
 # load config
 from config_loader import load_config
+
 config = load_config("config.yml")
 start_date = config["data_generator"]["start_date"]
 end_date = config["data_generator"]["end_date"]
@@ -30,7 +32,9 @@ class PriceSeriesGenerator:
 
         self.start_date = start_date
         self.end_date = end_date
-        self.dates = pd.date_range(start=start_date, end=end_date, freq="B")  # weekdays only
+        self.dates = pd.date_range(
+            start=start_date, end=end_date, freq="B"
+        )  # weekdays only
 
     def generate_prices(self, ticker_initial_prices: dict):
         """
@@ -59,8 +63,9 @@ class PriceSeriesGenerator:
 
 
 generator = PriceSeriesGenerator(start_date=start_date, end_date=end_date)
-price_dict, price_df = generator.generate_prices(ticker_initial_prices=ticker_initial_prices)
+price_dict, price_df = generator.generate_prices(
+    ticker_initial_prices=ticker_initial_prices
+)
 
 l.info("generated prices:")
 l.info(tabulate(price_df.head(5), headers="keys", tablefmt="fancy_grid"))
-

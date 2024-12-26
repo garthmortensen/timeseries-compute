@@ -12,10 +12,11 @@ class Chronicler:
 
     Attributes:
         log_file (str): The path to the log file being written.
-    
+
     Methods:
         __init__(script_path): Initializes the logging  config.
     """
+
     def __init__(self, script_path):
         # for log filename and print filepath
         script_name = os.path.splitext(os.path.basename(script_path))[0]
@@ -28,14 +29,12 @@ class Chronicler:
 
         handlers = [
             # aws cloudwatch monitors stdout and stderr and can auto pick them up
-            logging.StreamHandler(sys.stdout),  
+            logging.StreamHandler(sys.stdout),
             logging.FileHandler(filename=self.log_file, mode="w"),  # write to file
         ]
 
         # 20240202_154449 INFO practice.py:56 log_meta| pid:    10629
-        log_format = (
-            "%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(funcName)s| %(message)s"
-        )
+        log_format = "%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(funcName)s| %(message)s"
         logging.basicConfig(
             level=logging.INFO,
             format=log_format,

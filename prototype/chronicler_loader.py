@@ -6,9 +6,10 @@ import os
 import sys
 
 # handles relative logger dir
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from chronicler import Chronicler
+
 
 def init_chronicler():
     current_script_path = os.path.abspath(__file__)  # "/myproject/run.py"
