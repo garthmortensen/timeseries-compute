@@ -1,21 +1,20 @@
-# script specific imports
-import pandas as pd
-import random
-from tabulate import tabulate  # pretty print dfs
-
 # handle relative directory imports for chronicler
 import logging as l
 from chronicler_loader import init_chronicler
-
 chronicler = init_chronicler()
 
 # load config
 from config_loader import load_config
-
 config = load_config("config.yml")
-start_date = config["data_generator"]["start_date"]
-end_date = config["data_generator"]["end_date"]
-ticker_initial_prices = config["data_generator"]["ticker_initial_prices"]
+config_sub = config["data_generator"]
+start_date = config_sub.get("start_date", "2023-01-01")
+end_date = config_sub.get("end_date", "2023-12-31")
+ticker_initial_prices = config_sub.get("ticker_initial_prices", {"AAPL": 100.0})
+
+# script specific imports
+import pandas as pd
+import random
+from tabulate import tabulate  # pretty print dfs
 
 
 class PriceSeriesGenerator:
@@ -48,6 +47,7 @@ class PriceSeriesGenerator:
             pd.DataFrame: df of all series
         """
         data = {}
+        l.info("generating prices...")
         for ticker, initial_price in ticker_initial_prices.items():
             prices = [initial_price]
             for _ in range(1, len(self.dates)):

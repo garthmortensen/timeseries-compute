@@ -5,4 +5,5 @@ data_generator:
     GME: 150.0
     BYND: 200.0
     BP: 15.0
-
+data_processor:
+  
