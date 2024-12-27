@@ -1,9 +1,0 @@
-data_generator:
-  start_date: "2023-01-01"
-  end_date: "2023-12-31"
-  ticker_initial_prices:
-    GME: 150.0
-    BYND: 200.0
-    BP: 15.0
-data_processor:
-  

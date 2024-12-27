@@ -134,3 +134,52 @@ class ModelFactory:
     Methods:
         - create_model(data, model_type, **kwargs): factory method to create a specific model instance
 ```
+
+
+DataProcessor:
+- log returns
+- stationarity checks
+- outlier filtering for robust analysis
+- PCA for dimensionality reduction
+
+DataScaler:
+- Data normalization and scaling for compatibility across datasets
+    - % changes
+    - standardization
+
+MissingDataHandler:
+- Handle missing data
+    - interpolation
+    - forward-fill
+    - drop
+
+- volatility measures
+    - simple moving averages
+    - exponentially weighted moving averages
+- "Risk Factors and Their Sensitivities" - volatility decomposition
+
+Perform simple tests
+- ADF for stationarity
+- KPSS
+- Shapiro-Wilk for normality
+- basic descriptives
+    - mean
+    - variance
+    - skewness
+    - kurtosis
+    - quantiles
+- distribution fits to assess if time series conforms
+    - normal
+    - Student-t
+    - lognormal
+
+Modeling
+- GARCH or EGARCH can handle volatility clustering
+- factor models or PCA can help decompose risk drivers
+- linear regression for factor exposures
+- check residuals for autocorrelation or heteroscedasticity
+
+Backtesting
+- coverage/backtesting of VaR to ensure realistic forecasts
+
+

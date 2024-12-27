@@ -1,15 +1,8 @@
 # handle relative directory imports for chronicler
 import logging as l
 from chronicler_loader import init_chronicler
-chronicler = init_chronicler()
 
-# load config
-from config_loader import load_config
-config = load_config("config.yml")
-config_sub = config["data_generator"]
-start_date = config_sub.get("start_date", "2023-01-01")
-end_date = config_sub.get("end_date", "2023-12-31")
-ticker_initial_prices = config_sub.get("ticker_initial_prices", {"AAPL": 100.0})
+chronicler = init_chronicler()
 
 # script specific imports
 import pandas as pd
@@ -59,13 +52,7 @@ class PriceSeriesGenerator:
 
         df = pd.DataFrame(data, index=self.dates).round(4)  # strictly 4
 
+        l.info("generated prices:")
+        l.info(tabulate(df.head(5), headers="keys", tablefmt="fancy_grid"))
+
         return data, df
-
-
-generator = PriceSeriesGenerator(start_date=start_date, end_date=end_date)
-price_dict, price_df = generator.generate_prices(
-    ticker_initial_prices=ticker_initial_prices
-)
-
-l.info("generated prices:")
-l.info(tabulate(price_df.head(5), headers="keys", tablefmt="fancy_grid"))
