@@ -11,7 +11,6 @@ import numpy as np
 from statsmodels.tsa.stattools import adfuller
 from tabulate import tabulate  # pretty print dfs
 
-
 class MissingDataHandler:
     """TODO: fill_missing_values_with_mean, fill_missing_values_with_mode, interpolation"""
     def __init__(self,):  # this is a constructor
@@ -66,7 +65,10 @@ class StationaryReturnsProcessor:
         return data
 
     def check_stationarity(self, data):
-        """Augmented Dickey-Fuller test for stationarity."""
+        """Augmented Dickey-Fuller test for stationarity.
+        Stationary time series have constant mean, variance, and autocorrelation. 
+        Null H = series is non-stationary (has a unit root). Alt H = series is stationary.
+        """
         l.info("Augmented Dickey-Fuller test for stationarity")
         results = {}
         numeric_columns = data.select_dtypes(include=[np.number]).columns
@@ -80,20 +82,23 @@ class StationaryReturnsProcessor:
         l.info(f"results: {results}")
         return results
     
-    def log_adf_results(data):
-        """logs interpreted ADF test results."""
+    def log_adf_results(self, data, p_value_threshold):
+        """logs interpreted ADF test results.
+        # TODO: plot for visual inspection that series is stationary"""
         for series_name, result in data.items():
             adf_stat = result['ADF Statistic']
             p_value = result['p-value']
-            if p_value < 0.05:
-                interpretation = "Stationary (reject null hypothesis)"
+            if p_value < p_value_threshold:
+                interpretation = f"p_value {p_value:.2e} < p_value_threshold {p_value_threshold}. Data is stationary (reject null hypothesis that series is non-stationary)"
             else:
-                interpretation = "Non-stationary (fail to reject null hypothesis)"
+                interpretation = f"p_value {p_value:.2e} >= p_value_threshold {p_value_threshold}. Data is non-stationary (fail to reject null hypothesis that series is non-stationary)"
             
+            # If ADF is more negative than the critical value, reject the null H. The series is stationary
+            # If p-value is less than the chosen significance level (0.05), reject null H that the series is stationary
             l.info(
                 f"series_name: {series_name}\n"
-                f"   adf_stat: {adf_stat:.4f}\n"
-                f"   p_value: {p_value:.4e}\n"
+                f"   adf_stat: {adf_stat:.2f}\n"  # More negative suggests stronger stationarity evidence
+                f"   p_value: {p_value:.2e}\n"
                 f"   interpretation: {interpretation}\n"
             )
 

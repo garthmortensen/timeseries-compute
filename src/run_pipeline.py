@@ -31,6 +31,9 @@ l.info("Configuring: data processor")
 missing_data_strategy = config_sub.get("missing_data_handler", {}).get(
     "strategy", "drop"
 )
+p_value_threshold = config_sub.get("stationarity_test", {}).get(
+    "p_value_threshold", 0.05
+)
 handler_missing = MissingDataHandlerFactory.create_handler(missing_data_strategy)
 filled_df = handler_missing(price_df)
 
@@ -44,4 +47,5 @@ scaled_df = handler_scaler(filled_df)
 stationary_returns_processor = StationaryReturnsProcessor()
 diffed_df = stationary_returns_processor.transform_to_stationary_returns(scaled_df)
 adf_results = stationary_returns_processor.check_stationarity(diffed_df)
-# stationary_returns_processor.log_adf_results(adf_results)
+stationary_returns_processor.log_adf_results(adf_results, p_value_threshold)
+
