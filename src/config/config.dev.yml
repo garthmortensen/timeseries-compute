@@ -11,7 +11,7 @@ data_processor:
   missing_data_handler:
     strategy: "forward_fill"  # options: drop, forward_fill
   stationarity_test:
-    p_value_threshold: 0.05
+    p_value_threshold: 0.05  # Significance level: p-value below this means the series is stationary
   scaler:
     method: "minmax"  # options: standardize, minmax
   
