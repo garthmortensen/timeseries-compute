@@ -49,3 +49,8 @@ diffed_df = stationary_returns_processor.transform_to_stationary_returns(scaled_
 adf_results = stationary_returns_processor.check_stationarity(diffed_df)
 stationary_returns_processor.log_adf_results(adf_results, p_value_threshold)
 
+# GARCH models, like ARMA models, predict volatility rather than values. 
+# Volatility = changes in variance over time, making it a function of time. 
+# GARCH handles uneven variance (heteroskedasticity).
+# GARCH models assume stationarity, similar to ARMA models, and include both AR and MA components.
+# Since volatility often clusters, GARCH is designed to capture and leverage this behavior.
