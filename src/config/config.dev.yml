@@ -7,6 +7,7 @@ data_generator:
     GME: 150.0
     BYND: 200.0
     BP: 15.0
+
 data_processor:
   missing_data_handler:
     strategy: "forward_fill"  # options: drop, forward_fill
@@ -14,4 +15,10 @@ data_processor:
     p_value_threshold: 0.05  # Significance level: p-value below this means the series is stationary
   scaler:
     method: "minmax"  # options: standardize, minmax
-  
+
+model_specification:
+  model_type: "GARCH"  # options: ARIMA, GARCH
+  model_params:
+    p: 1
+    q: 1
+    dist: "t"  # options: normal, t
