@@ -21,6 +21,17 @@ config_sub = config["data_generator"]
 start_date = config_sub.get("start_date", "2023-01-01")
 end_date = config_sub.get("end_date", "2023-12-31")
 ticker_initial_prices = config_sub.get("ticker_initial_prices", {"AAPL": 100.0})
+scaling_data_strategy = config_sub.get("scaler", {}).get(
+    "method", "standardize"
+)
+missing_data_strategy = config_sub.get("missing_data_handler", {}).get(
+    "strategy", "drop"
+)
+# TODO: update this to use the config file
+p_value_threshold = config_sub.get("stationarity_test", {}).get(    
+    "p_value_threshold", 0.05
+)
+make_stationarity
 
 generator = PriceSeriesGenerator(start_date=start_date, end_date=end_date)
 price_dict, price_df = generator.generate_prices(
@@ -28,24 +39,13 @@ price_dict, price_df = generator.generate_prices(
 )
 
 l.info("Configuring: data processor")
-missing_data_strategy = config_sub.get("missing_data_handler", {}).get(
-    "strategy", "drop"
-)
-p_value_threshold = config_sub.get("stationarity_test", {}).get(
-    "p_value_threshold", 0.05
-)
 handler_missing = MissingDataHandlerFactory.create_handler(missing_data_strategy)
 filled_df = handler_missing(price_df)
 
-scaling_data_strategy = config_sub.get("scaler", {}).get(
-    "method", "standardize"
-)
 handler_scaler = DataScalerFactory.create_handler("standardize")
 scaled_df = handler_scaler(filled_df)
-
-
 stationary_returns_processor = StationaryReturnsProcessor()
-diffed_df = stationary_returns_processor.transform_to_stationary_returns(scaled_df)
+diffed_df = stationary_returns_processor.make_stationary(scaled_df)
 adf_results = stationary_returns_processor.check_stationarity(diffed_df)
 stationary_returns_processor.log_adf_results(adf_results, p_value_threshold)
 

@@ -1,5 +1,6 @@
 # config.dev.yml
 # validate with pydantic
+version: 1.0
 data_generator:
   start_date: "2023-01-01"
   end_date: "2023-12-31"
@@ -11,14 +12,21 @@ data_generator:
 data_processor:
   missing_data_handler:
     strategy: "forward_fill"  # options: drop, forward_fill
-  stationarity_test:
+  make_stationarity:
+    method: "difference"  # options: difference, log
+  test_stationarity:
+    test: "ADF"
     p_value_threshold: 0.05  # Significance level: p-value below this means the series is stationary
   scaler:
     method: "minmax"  # options: standardize, minmax
 
-model_specification:
-  model_type: "GARCH"  # options: ARIMA, GARCH
-  model_params:
+model_specifications:
+  run_ARIMA: True
+    p: 1
+    d: 1
+    q: 1
+  run_GARCH: True
     p: 1
     q: 1
     dist: "t"  # options: normal, t
+

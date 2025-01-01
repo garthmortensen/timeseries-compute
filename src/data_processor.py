@@ -53,38 +53,47 @@ class MissingDataHandlerFactory:
             raise ValueError(f"Unknown missing data strategy: {strategy}")
 
 class StationaryReturnsProcessor:
-    def transform_to_stationary_returns(self, data):
-        """apply differencing to make data stationary.
-        That is, diff to convert prices to zero-mean returns"""
-        l.info("Differencing for stationarity")
+    def make_stationary(self, data, method):
+        """Apply the chosen method to make the data stationary."""
+        l.info(f"applying stationarity method: {method}")
         numeric_columns = data.select_dtypes(include=[np.number]).columns
-        for column in numeric_columns:
-            data[f"{column}_diff"] = data[column].diff().dropna()
-            data = data.dropna()  # drop NaNs created by differencing
+
+        if method == "difference":
+            for column in numeric_columns:
+                data[f"{column}_diff"] = data[column].diff()
+            data = data.dropna()
+        else:
+            raise ValueError(f"unknown make_stationary method: {method}")
+
         l.info(tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+
         return data
 
-    def check_stationarity(self, data):
+    def check_stationarity(self, data, test):
         """Augmented Dickey-Fuller test for stationarity.
         Stationary time series have constant mean, variance, and autocorrelation. 
         Null H = series is non-stationary (has a unit root). Alt H = series is stationary.
         """
-        l.info("Augmented Dickey-Fuller test for stationarity")
-        results = {}
-        numeric_columns = data.select_dtypes(include=[np.number]).columns
-        for column in numeric_columns:
-            # NaN and Infs will break ADF
-            if data[column].isnull().any() or not np.isfinite(data[column]).all():
-                l.warning(f"Column {column} contains NaN or Inf values. Skipping ADF test.")
-                continue
-            result = adfuller(data[column])
-            results[column] = {"ADF Statistic": result[0], "p-value": result[1]}
-        l.info(f"results: {results}")
+        if test != "ADF":
+            raise ValueError(f"Unsupported stationarity test: {test}")
+        else:
+            l.info(f"check_stationarity: {test} test for stationarity")
+            results = {}
+            numeric_columns = data.select_dtypes(include=[np.number]).columns
+            for column in numeric_columns:
+                # NaN and Infs will break ADF
+                if data[column].isnull().any() or not np.isfinite(data[column]).all():
+                    l.warning(f"Column {column} contains NaN or Inf values. Skipping ADF test.")
+                    continue
+                result = adfuller(data[column])
+                results[column] = {"ADF Statistic": result[0], "p-value": result[1]}
+            l.info(f"results: {results}")
         return results
     
     def log_adf_results(self, data, p_value_threshold):
         """logs interpreted ADF test results.
-        # TODO: plot for visual inspection that series is stationary"""
+        # TODO: plot for visual inspection that series is stationary
+        # TODO: rename from log, bc i think logorithm when i see log here. interpert_adf_results?"""
         for series_name, result in data.items():
             adf_stat = result['ADF Statistic']
             p_value = result['p-value']
