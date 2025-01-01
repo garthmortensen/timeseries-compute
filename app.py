@@ -1,5 +1,5 @@
 from flask import Flask
-from chronicler import Chronicler
+from src.chronicler import Chronicler
 import os
 import logging as l
 

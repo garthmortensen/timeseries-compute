@@ -1,3 +1,4 @@
+# config.dev.yml
 # validate with pydantic
 data_generator:
   start_date: "2023-01-01"
@@ -8,12 +9,9 @@ data_generator:
     BP: 15.0
 data_processor:
   missing_data_handler:
-    interpolation_method: "linear"
-    strategy: "forward_fill"  # Options: drop, forward_fill, fill_mean, fill_mode, interpolate
+    strategy: "forward_fill"  # options: drop, forward_fill
   stationarity_processor:
     p_value_threshold: 0.05
-    default_column: "price"
   scaler:
-    method: "minmax"  # Options: standardize, minmax, pct_change, log
-    columns: ["price", "volume"]
-    minmax_range: [0, 1]  # For MinMax scaling
+    method: "minmax"  # options: standardize, minmax
+  

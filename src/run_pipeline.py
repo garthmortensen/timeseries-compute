@@ -1,7 +1,17 @@
+#!/usr/bin/env python3
+
+# run_pipeline.py
+
+# handle relative directory imports for chronicler
 import logging as l
+from chronicler_loader import init_chronicler
+chronicler = init_chronicler()
+
 from config_loader import load_config
 from data_generator import PriceSeriesGenerator
-from data_processor import MissingDataHandler
+from data_processor import MissingDataHandlerFactory
+from data_processor import DataScalerFactory
+from data_processor import StationaryReturnsProcessor
 
 l.info("Loading configuration")
 config = load_config("config.dev.yml")
@@ -18,22 +28,20 @@ price_dict, price_df = generator.generate_prices(
 )
 
 l.info("Configuring: data processor")
-config_sub = config["data_processor"]
-
-# Extract configuration for each component with defaults
 missing_data_strategy = config_sub.get("missing_data_handler", {}).get(
     "strategy", "drop"
 )
+handler_missing = MissingDataHandlerFactory.create_handler(missing_data_strategy)
+filled_df = handler_missing(price_df)
 
-l.info("Configuring: data processor")
-handler = MissingDataHandler(config)
+scaling_data_strategy = config_sub.get("scaler", {}).get(
+    "method", "standardize"
+)
+handler_scaler = DataScalerFactory.create_handler("standardize")
+scaled_df = handler_scaler(filled_df)
 
-# Use the match statement to process missing data based on the strategy
-match missing_data_strategy:
-    case "forward_fill":
-        price_df = handler.forward_fill(price_df)
-    case "drop":
-        price_df = handler.drop_na(price_df)
-    case _:
-        raise ValueError(f"Unknown missing data strategy: {missing_data_strategy}")
 
+stationary_returns_processor = StationaryReturnsProcessor()
+diffed_df = stationary_returns_processor.transform_to_stationary_returns(scaled_df)
+adf_results = stationary_returns_processor.check_stationarity(diffed_df)
+# stationary_returns_processor.log_adf_results(adf_results)

@@ -1,8 +1,5 @@
 # handle relative directory imports for chronicler
 import logging as l
-from chronicler_loader import init_chronicler
-
-chronicler = init_chronicler()
 
 # script specific imports
 import pandas as pd
