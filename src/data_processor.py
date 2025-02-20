@@ -45,7 +45,7 @@ class MissingDataHandlerFactory:
         handler = MissingDataHandler()
         l.info(f"Creating handler for strategy: {strategy}")
         # centralize logic to choose method
-        if strategy == "drop":
+        if strategy.lower() == "drop":
             return handler.drop_na
         elif strategy == "forward_fill":
             return handler.forward_fill
@@ -58,7 +58,7 @@ class StationaryReturnsProcessor:
         l.info(f"applying stationarity method: {method}")
         numeric_columns = data.select_dtypes(include=[np.number]).columns
 
-        if method == "difference":
+        if method.lower() == "difference":
             for column in numeric_columns:
                 data[f"{column}_diff"] = data[column].diff()
             data = data.dropna()
@@ -74,7 +74,7 @@ class StationaryReturnsProcessor:
         Stationary time series have constant mean, variance, and autocorrelation. 
         Null H = series is non-stationary (has a unit root). Alt H = series is stationary.
         """
-        if test != "ADF":
+        if test.lower() != "adf":
             raise ValueError(f"Unsupported stationarity test: {test}")
         else:
             l.info(f"check_stationarity: {test} test for stationarity")
@@ -119,9 +119,9 @@ class StationaryReturnsProcessorFactory:
         """Return the appropriate processing function based on strategy."""
         processor = StationaryReturnsProcessor()
         l.info(f"Creating processor for strategy: {strategy}")
-        if strategy == "transform_to_stationary_returns":
+        if strategy.lower() == "transform_to_stationary_returns":
             return processor.transform_to_stationary_returns
-        elif strategy == "check_stationarity":
+        elif strategy.lower() == "check_stationarity":
             return processor.check_stationarity
         else:
             raise ValueError(f"Unknown stationary returns processing strategy: {strategy}")
@@ -158,9 +158,9 @@ class DataScalerFactory:
         """Return the appropriate scaling function based on strategy."""
         scaler = DataScaler()
         l.info(f"creating scaler for strategy: {strategy}")
-        if strategy == "standardize":
+        if strategy.lower() == "standardize":
             return scaler.scale_data_standardize
-        elif strategy == "minmax":
+        elif strategy.lower() == "minmax":
             return scaler.scale_data_minmax
         else:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")

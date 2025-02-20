@@ -40,8 +40,8 @@ filled_df = handler_missing(price_df)
 handler_scaler = DataScalerFactory.create_handler("standardize")
 scaled_df = handler_scaler(filled_df)
 stationary_returns_processor = StationaryReturnsProcessor()
-diffed_df = stationary_returns_processor.make_stationary(scaled_df)
-adf_results = stationary_returns_processor.check_stationarity(diffed_df)
+diffed_df = stationary_returns_processor.make_stationary(scaled_df, "difference")
+adf_results = stationary_returns_processor.check_stationarity(diffed_df, "ADF")
 stationary_returns_processor.log_adf_results(adf_results, data_processor_p_value_threshold)
 
 # GARCH models, like ARMA models, predict volatility rather than values. 
