@@ -21,12 +21,16 @@ data_processor:
     method: "minmax"  # options: standardize, minmax
 
 model_specifications:
-  run_ARIMA: True
-    p: 1
-    d: 1
-    q: 1
-  run_GARCH: True
-    p: 1
-    q: 1
-    dist: "t"  # options: normal, t
+  ARIMA:
+    run: True
+    parameters:
+      p: 1
+      d: 1
+      q: 1
+  GARCH:
+    run: True
+    parameters:
+      p: 1
+      q: 1
+      dist: "t"  # options: normal, t
 
