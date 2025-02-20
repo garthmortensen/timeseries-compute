@@ -16,30 +16,25 @@ from data_processor import StationaryReturnsProcessor
 l.info("Loading configuration")
 config = load_config("config.dev.yml")
 
-l.info("Configuring: data generator")
-config_sub = config["data_generator"]
-start_date = config_sub.get("start_date", "2023-01-01")
-end_date = config_sub.get("end_date", "2023-12-31")
-ticker_initial_prices = config_sub.get("ticker_initial_prices", {"AAPL": 100.0})
-scaling_data_strategy = config_sub.get("scaler", {}).get(
-    "method", "standardize"
-)
-missing_data_strategy = config_sub.get("missing_data_handler", {}).get(
-    "strategy", "drop"
-)
-# TODO: update this to use the config file
-p_value_threshold = config_sub.get("stationarity_test", {}).get(    
-    "p_value_threshold", 0.05
-)
-make_stationarity
+l.info("Configuring: data_generator")
+config_data_generator = config["data_generator"]
+data_generator_start_date = config_data_generator.get("start_date", "2023-01-01")
+data_generator_end_date = config_data_generator.get("end_date", "2023-12-31")
+data_generator_ticker_initial_prices = config_data_generator.get("ticker_initial_prices", {"AAPL": 100.0})
 
-generator = PriceSeriesGenerator(start_date=start_date, end_date=end_date)
+l.info("Configuring: data_processor")
+config_data_processor = config["data_processor"]
+data_processor_missing_data_strategy = config_data_processor.get("missing_data_handler", {}).get("strategy", "drop")
+data_processor_scaling_strategy = config_data_processor.get("scaler", {}).get("method", "standardize")
+data_processor_stationarity_method = config_data_processor.get("make_stationarity", {}).get("method", "difference")
+data_processor_p_value_threshold = config_data_processor.get("stationarity_test", {}).get("p_value_threshold", 0.05)
+
+generator = PriceSeriesGenerator(start_date=data_generator_start_date, end_date=data_generator_end_date)
 price_dict, price_df = generator.generate_prices(
-    ticker_initial_prices=ticker_initial_prices
+    ticker_initial_prices=data_generator_ticker_initial_prices
 )
 
-l.info("Configuring: data processor")
-handler_missing = MissingDataHandlerFactory.create_handler(missing_data_strategy)
+handler_missing = MissingDataHandlerFactory.create_handler(data_processor_missing_data_strategy)
 filled_df = handler_missing(price_df)
 
 handler_scaler = DataScalerFactory.create_handler("standardize")
@@ -47,7 +42,7 @@ scaled_df = handler_scaler(filled_df)
 stationary_returns_processor = StationaryReturnsProcessor()
 diffed_df = stationary_returns_processor.make_stationary(scaled_df)
 adf_results = stationary_returns_processor.check_stationarity(diffed_df)
-stationary_returns_processor.log_adf_results(adf_results, p_value_threshold)
+stationary_returns_processor.log_adf_results(adf_results, data_processor_p_value_threshold)
 
 # GARCH models, like ARMA models, predict volatility rather than values. 
 # Volatility = changes in variance over time, making it a function of time. 

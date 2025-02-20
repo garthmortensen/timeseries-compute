@@ -27,8 +27,6 @@ res2 = model2.fit()
 res2.summary()
 
 
-
-
 # The arguments mean="Zero", vol="GARCH" specify the GARCH model
 model = arch_model(returns, mean="Zero", vol="GARCH", p=1, q=1)
 res = model.fit(disp="off")
