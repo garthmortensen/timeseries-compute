@@ -7,7 +7,7 @@ import logging as l
 from chronicler_loader import init_chronicler
 chronicler = init_chronicler()
 
-from config_loader import load_config
+from configurator import load_configuration
 from data_generator import PriceSeriesGenerator
 from data_processor import MissingDataHandlerFactory
 from data_processor import DataScalerFactory
@@ -15,43 +15,9 @@ from data_processor import StationaryReturnsProcessor
 from stats_model import ModelFactory
 
 
-config_file = "config.dev.yml"
-l.info(f"# Loading config_file: {config_file}")
-config = load_config(config_file)
-
-l.info("# Configuring: data_generator")
-config_data_generator = config["data_generator"]
-data_generator_start_date = config_data_generator.get("start_date", "2023-01-01")
-data_generator_end_date = config_data_generator.get("end_date", "2023-12-31")
-data_generator_ticker_initial_prices = config_data_generator.get("ticker_initial_prices", {"AAPL": 100.0})
-
-l.info("# Configuring: data_processor")
-config_data_processor = config["data_processor"]
-data_processor_missing_data_strategy = config_data_processor.get("missing_data_handler", {}).get("strategy", "drop")
-data_processor_scaling_strategy = config_data_processor.get("scaler", {}).get("method", "standardize")
-data_processor_stationarity_method = config_data_processor.get("make_stationarity", {}).get("method", "difference")
-data_processor_p_value_threshold = config_data_processor.get("stationarity_test", {}).get("p_value_threshold", 0.05)
-
-config_stats_model = config["stats_model"]
-l.info("# Configuring: stats_model ARIMA")
-arima_config = config_stats_model.get("ARIMA", {})
-arima_run = arima_config.get("run", False)
-arima_parameters_fit = arima_config.get("parameters_fit", {})
-arima_order = (arima_parameters_fit.get("p", 1), arima_parameters_fit.get("d", 1), arima_parameters_fit.get("q", 1))
-arima_parameters_predict = arima_config.get("parameters_predict", {})
-arima_steps = arima_parameters_predict.get("steps", 5)
-l.info("ARIMA configured as follows:")
-l.info(f"arima_run: {arima_run}")
-l.info(f"arima_order: {arima_order}")
-l.info(f"arima_steps: {arima_steps}")
-
-l.info("# Configuring: stats_model GARCH")
-garch_config = config_stats_model.get("GARCH", {})
-garch_run = garch_config.get("run", False)
-garch_parameters_fit = garch_config.get("parameters", {})
-garch_p = garch_parameters_fit.get("p", 1)
-garch_q = garch_parameters_fit.get("q", 1)
-garch_dist = garch_parameters_fit.get("dist", "normal")
+# TODO: bad idea to include .dev in file name
+config_file = "config.yml"
+config = load_configuration(config_file)
 
 l.info("# Generating: price series data")
 generator = PriceSeriesGenerator(start_date=data_generator_start_date, end_date=data_generator_end_date)
@@ -74,13 +40,8 @@ l.info("# Testing: stationarity")
 adf_results = stationary_returns_processor.check_stationarity(diffed_df, "ADF")
 stationary_returns_processor.log_adf_results(adf_results, data_processor_p_value_threshold)
 
-# GARCH models, like ARMA models, predict volatility rather than values. 
-# Volatility = changes in variance over time, making it a function of time. 
-# GARCH handles uneven variance (heteroskedasticity).
-# GARCH models assume stationarity, similar to ARMA models, and include both AR and MA components.
-# Since volatility often clusters, GARCH is designed to capture and leverage this behavior.
-
 l.info("# Modeling")
+
 if arima_run:
     l.info("## Running ARIMA")
     model_arima = ModelFactory.create_model("ARIMA", data=diffed_df, order=arima_order, steps=arima_steps)
@@ -91,4 +52,13 @@ if arima_run:
     arima_forecast = model_arima.forecast()  # dont include steps arg here bc its already in object initialization
     l.info(f"arima_forecast: {arima_forecast}")
 
+if garch_run:
+    l.info("## Running GARCH")
+    # model_garch = ModelFactory.create_model("GARCH", data=diffed_df, p=garch_p, q=garch_q, dist=garch_dist)
 
+
+# GARCH models, like ARMA models, predict volatility rather than values. 
+# Volatility = changes in variance over time, making it a function of time. 
+# GARCH handles uneven variance (heteroskedasticity).
+# GARCH models assume stationarity, similar to ARMA models, and include both AR and MA components.
+# Since volatility often clusters, GARCH is designed to capture and leverage this behavior.

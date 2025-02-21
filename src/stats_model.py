@@ -14,7 +14,8 @@ from tabulate import tabulate  # pretty print dfs
 from statsmodels.tsa.arima.model import ARIMA
 from arch import arch_model
 
-
+# import garch
+from arch.univariate import GARCH
 
 class ModelARIMA:
     """It's a bit strange to apply ARIMA on all df columns...but i'm going with it for lack of a better (simple) idea"""
@@ -45,6 +46,13 @@ class ModelARIMA:
         for column, fit in self.fits.items():
             forecasts[column] = fit.forecast(steps=self.steps)[0]
         return forecasts
+
+
+class ModelGARCH:
+    """GARCH model stub - not implemented yet"""
+
+    def __init__(self):
+        raise NotImplementedError("GARCH model coming soon")
 
 
 class ModelFactory:

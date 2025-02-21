@@ -1,6 +1,9 @@
-# config.dev.yml
+# config.yml
 # validate with pydantic
-version: 1.0
+metadata:
+  version: 1.0
+  env: "dev"
+
 data_generator:
   start_date: "2023-01-01"
   end_date: "2023-12-31"
