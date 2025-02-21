@@ -11,42 +11,51 @@ import numpy as np
 from tabulate import tabulate  # pretty print dfs
 
 # import model specific libraries
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA
 from arch import arch_model
 
 
 
-class ARIMA:
-    def __init__(self, data, order):
+class ModelARIMA:
+    """It's a bit strange to apply ARIMA on all df columns...but i'm going with it for lack of a better (simple) idea"""
+    def __init__(self, data, order, steps):
         ascii_banner = """\n\n\t> ARIMA <\n"""
         l.info(ascii_banner)
         self.data = data
         self.order = order
+        self.steps = steps
+        self.models = {}  # store models for each column
+        self.fits = {}  # store fits for each column
 
-    def fit(self,):
-        model = ARIMA(self.data, order=self.order)
-        return model.fit()
+    def fit(self):
+        for column in self.data.columns:
+            model = ARIMA(self.data[column], order=self.order)
+            self.fits[column] = model.fit()
+        return self.fits
     
-    def summary(self,):
-        """Return the model summary."""
-        return self.fit().summary()
+    def summary(self):
+        """Return the model summaries for all columns."""
+        summaries = {}
+        for column, fit in self.fits.items():
+            summaries[column] = fit.summary()
+        return summaries
 
-    def forecast(self, steps):
-        return self.fit().forecast(steps=steps)[0]
+    def forecast(self):
+        forecasts = {}
+        for column, fit in self.fits.items():
+            forecasts[column] = fit.forecast(steps=self.steps)[0]
+        return forecasts
 
 
+class ModelFactory:
+    """Factory for creating model instances."""
+    @staticmethod
+    def create_model(model_type, **kwargs):
+        l.info(f"Creating model type: {model_type}")
+        if model_type.lower() == "arima":
+            return ModelARIMA(**kwargs)
+        # elif model_type.lower() == "garch":
+        #     return GARCH(**kwargs)
+        else:
+            raise ValueError(f"Unknown model type: {model_type}")
 
-
-# The arguments mean="Zero", vol="GARCH" specify the GARCH model
-# model = arch_model(returns, mean="Zero", vol="GARCH", p=1, q=1)
-# res = model.fit(disp="off")
-# res.summary()
-
-# # predict volatility
-# forecast_horizon = 5
-# forecasts = res.forecast(start='2019-12-08', horizon=forecast_horizon)
-
-# # plot volatility forecast
-# intermediate = np.sqrt(forecasts.variance * 252)
-# final = intermediate.dropna().T
-# final.plot()

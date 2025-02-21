@@ -23,13 +23,15 @@ data_processor:
 stats_model:
   ARIMA:
     run: True
-    parameters:
+    parameters_fit:
       p: 2
       d: 1
       q: 4
+    parameters_predict:
+      steps: 3
   GARCH:
     run: True
-    parameters:
+    parameters_fit:
       p: 1
       q: 1
       dist: "t"  # options: normal, t

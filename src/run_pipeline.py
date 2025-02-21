@@ -12,7 +12,8 @@ from data_generator import PriceSeriesGenerator
 from data_processor import MissingDataHandlerFactory
 from data_processor import DataScalerFactory
 from data_processor import StationaryReturnsProcessor
-from stats_model import ARIMA
+from stats_model import ModelFactory
+
 
 config_file = "config.dev.yml"
 l.info(f"# Loading config_file: {config_file}")
@@ -35,16 +36,22 @@ config_stats_model = config["stats_model"]
 l.info("# Configuring: stats_model ARIMA")
 arima_config = config_stats_model.get("ARIMA", {})
 arima_run = arima_config.get("run", False)
-arima_parameters = arima_config.get("parameters", {})
-arima_order = (arima_parameters.get("p", 1), arima_parameters.get("d", 1), arima_parameters.get("q", 1))
+arima_parameters_fit = arima_config.get("parameters_fit", {})
+arima_order = (arima_parameters_fit.get("p", 1), arima_parameters_fit.get("d", 1), arima_parameters_fit.get("q", 1))
+arima_parameters_predict = arima_config.get("parameters_predict", {})
+arima_steps = arima_parameters_predict.get("steps", 5)
+l.info("ARIMA configured as follows:")
+l.info(f"arima_run: {arima_run}")
+l.info(f"arima_order: {arima_order}")
+l.info(f"arima_steps: {arima_steps}")
 
 l.info("# Configuring: stats_model GARCH")
 garch_config = config_stats_model.get("GARCH", {})
 garch_run = garch_config.get("run", False)
-garch_parameters = garch_config.get("parameters", {})
-garch_p = garch_parameters.get("p", 1)
-garch_q = garch_parameters.get("q", 1)
-garch_dist = garch_parameters.get("dist", "t")
+garch_parameters_fit = garch_config.get("parameters", {})
+garch_p = garch_parameters_fit.get("p", 1)
+garch_q = garch_parameters_fit.get("q", 1)
+garch_dist = garch_parameters_fit.get("dist", "normal")
 
 l.info("# Generating: price series data")
 generator = PriceSeriesGenerator(start_date=data_generator_start_date, end_date=data_generator_end_date)
@@ -73,4 +80,15 @@ stationary_returns_processor.log_adf_results(adf_results, data_processor_p_value
 # GARCH models assume stationarity, similar to ARMA models, and include both AR and MA components.
 # Since volatility often clusters, GARCH is designed to capture and leverage this behavior.
 
-l.info("# Modeling: ARIMA")
+l.info("# Modeling")
+if arima_run:
+    l.info("## Running ARIMA")
+    model_arima = ModelFactory.create_model("ARIMA", data=diffed_df, order=arima_order, steps=arima_steps)
+    arima_fit = model_arima.fit()
+    l.info("## ARIMA summary")
+    l.info(model_arima.summary())
+    l.info("## ARIMA forecast")
+    arima_forecast = model_arima.forecast()  # dont include steps arg here bc its already in object initialization
+    l.info(f"arima_forecast: {arima_forecast}")
+
+
