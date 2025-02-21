@@ -18,7 +18,7 @@ class MissingDataHandler:
         l.info(ascii_banner)
         # dependency injection
         # instead of creating objects in class or function, you inject/pass as args
-        # why? easier to test, easier to change, easier to understand
+        # why? easier to test, easier to change, easier to understand (someday!)
 
     def drop_na(self, data):
         """Drop rows with missing values."""
@@ -160,7 +160,7 @@ class DataScalerFactory:
         l.info(f"creating scaler for strategy: {strategy}")
         if strategy.lower() == "standardize":
             return scaler.scale_data_standardize
-        elif strategy.lower() == "minmax":
+        elif strategy == "minmax":
             return scaler.scale_data_minmax
         else:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")

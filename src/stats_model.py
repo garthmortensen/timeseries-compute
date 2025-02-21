@@ -15,28 +15,38 @@ from statsmodels.tsa.arima_model import ARIMA
 from arch import arch_model
 
 
-model = ARIMA(df['NumberPassengers'], order=(2, 1, 2))
-results = model.fit()
-results.summary()
-# 3 day forecast
-pd.DataFrame(results.forecast(steps=3)[0]).plot(title="Passenger Travel Forecast")
 
-# A second model with a different order
-model2 = ARIMA(df['NumberPassengers'], order=(2, 1, 4))
-res2 = model2.fit()
-res2.summary()
+class ARIMA:
+    def __init__(self, data, order):
+        ascii_banner = """\n\n\t> ARIMA <\n"""
+        l.info(ascii_banner)
+        self.data = data
+        self.order = order
+
+    def fit(self,):
+        model = ARIMA(self.data, order=self.order)
+        return model.fit()
+    
+    def summary(self,):
+        """Return the model summary."""
+        return self.fit().summary()
+
+    def forecast(self, steps):
+        return self.fit().forecast(steps=steps)[0]
+
+
 
 
 # The arguments mean="Zero", vol="GARCH" specify the GARCH model
-model = arch_model(returns, mean="Zero", vol="GARCH", p=1, q=1)
-res = model.fit(disp="off")
-res.summary()
+# model = arch_model(returns, mean="Zero", vol="GARCH", p=1, q=1)
+# res = model.fit(disp="off")
+# res.summary()
 
-# predict volatility
-forecast_horizon = 5
-forecasts = res.forecast(start='2019-12-08', horizon=forecast_horizon)
+# # predict volatility
+# forecast_horizon = 5
+# forecasts = res.forecast(start='2019-12-08', horizon=forecast_horizon)
 
-# plot volatility forecast
-intermediate = np.sqrt(forecasts.variance * 252)
-final = intermediate.dropna().T
-final.plot()
+# # plot volatility forecast
+# intermediate = np.sqrt(forecasts.variance * 252)
+# final = intermediate.dropna().T
+# final.plot()

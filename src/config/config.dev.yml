@@ -20,13 +20,13 @@ data_processor:
   scaler:
     method: "minmax"  # options: standardize, minmax
 
-model_specifications:
+stats_model:
   ARIMA:
     run: True
     parameters:
-      p: 1
+      p: 2
       d: 1
-      q: 1
+      q: 4
   GARCH:
     run: True
     parameters:
