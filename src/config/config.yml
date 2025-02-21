@@ -18,7 +18,7 @@ data_processor:
   make_stationarity:
     method: "difference"  # options: difference, log
   test_stationarity:
-    test: "ADF"
+    method: "ADF"
     p_value_threshold: 0.05  # Significance level: p-value below this means the series is stationary
   scaler:
     method: "minmax"  # options: standardize, minmax
