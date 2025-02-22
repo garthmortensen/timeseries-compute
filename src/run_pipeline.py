@@ -77,9 +77,17 @@ try:
         arima_forecast = model_arima.forecast()  # dont include steps arg here bc its already in object initialization
         l.info(f"arima_forecast: {arima_forecast}")
 
-    # if garch_run:
-    #     l.info("## Running GARCH")
-    #     # model_garch = ModelFactory.create_model("GARCH", data=diffed_df, p=garch_p, q=garch_q, dist=garch_dist)
+    if config.stats_model.GARCH.run:
+        l.info("\n## Running GARCH")
+        model_garch = ModelFactory.create_model(
+            model_type="GARCH", 
+            data=diffed_df,
+            order=(
+                config.stats_model.GARCH.parameters_fit.p,
+                config.stats_model.GARCH.parameters_fit.q,
+                config.stats_model.GARCH.parameters_fit.dist
+                )
+            )
 
 
     # GARCH models, like ARMA models, predict volatility rather than values. 

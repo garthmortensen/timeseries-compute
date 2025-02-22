@@ -25,7 +25,7 @@ data_processor:
 
 stats_model:
   ARIMA:
-    run: True
+    run: False
     parameters_fit:
       p: 2
       d: 1

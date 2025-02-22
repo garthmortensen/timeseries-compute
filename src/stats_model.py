@@ -49,10 +49,17 @@ class ModelARIMA:
 
 
 class ModelGARCH:
-    """GARCH model stub - not implemented yet"""
-
-    def __init__(self):
-        raise NotImplementedError("GARCH model coming soon")
+    def __init__(self, data, order, dist):
+        ascii_banner = """\n\n\t> GARCH <\n"""
+        l.info(ascii_banner)
+        self.data = data
+        self.order = order
+        self.dist = dist
+    
+    def fit(self):
+        model = arch_model(self.data, vol="GARCH", p=self.order["p"], q=self.order["q"], dist=self.dist)
+        fit = model.fit()
+        return fit
 
 
 class ModelFactory:
@@ -62,8 +69,8 @@ class ModelFactory:
         l.info(f"Creating model type: {model_type}")
         if model_type.lower() == "arima":
             return ModelARIMA(**kwargs)
-        # elif model_type.lower() == "garch":
-        #     return GARCH(**kwargs)
+        elif model_type.lower() == "garch":
+            return GARCH(**kwargs)
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
