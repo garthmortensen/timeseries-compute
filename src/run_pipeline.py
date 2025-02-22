@@ -36,16 +36,18 @@ filled_df = handler_missing(price_df)
 
 l.info("# Processing: scaling data")
 handler_scaler = DataScalerFactory.create_handler(
-    strategy=config.data_processor.scaler.method
+    strategy=config.data_processor.scaler_method
     )
 scaled_df = handler_scaler(filled_df)
 stationary_returns_processor = StationaryReturnsProcessor()
 
 l.info("# Processing: making data stationary")
-diffed_df = stationary_returns_processor.make_stationary(scaled_df, "difference")
+diffed_df = stationary_returns_processor.make_stationary(scaled_df, config.data_processor.make_stationarity_method)
+
 l.info("# Testing: stationarity")
-adf_results = stationary_returns_processor.check_stationarity(diffed_df, "ADF")
-stationary_returns_processor.log_adf_results(adf_results, data_processor_p_value_threshold)
+adf_results = stationary_returns_processor.check_stationarity(diffed_df, config.data_processor.test_stationarity_method)
+stationary_returns_processor.log_adf_results(adf_results, config.data_processor.test_stationarity_p_value_threshold)
+
 
 l.info("# Modeling")
 
