@@ -44,7 +44,7 @@ class ModelARIMA:
     def forecast(self):
         forecasts = {}
         for column, fit in self.fits.items():
-            forecasts[column] = fit.forecast(steps=self.steps)[0]
+            forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
 
