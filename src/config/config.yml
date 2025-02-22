@@ -6,7 +6,7 @@ metadata:
 
 data_generator:
   start_date: "2023-01-01"
-  end_date: "2023-12-31"
+  end_date: "2023-01-10"
   ticker_initial_prices:
     GME: 150.0
     BYND: 200.0
@@ -14,7 +14,7 @@ data_generator:
 
 data_processor:
   missing_data_handler:
-    strategy: "forward_fill"  # options: drop, forward_fill
+    strategy: "drop"  # options: drop, forward_fill
   make_stationarity:
     method: "difference"  # options: difference, log
   test_stationarity:

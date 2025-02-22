@@ -50,6 +50,6 @@ class PriceSeriesGenerator:
         df = pd.DataFrame(data, index=self.dates).round(4)  # strictly 4
 
         l.info("generated prices:")
-        l.info(tabulate(df.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(df.head(5), headers="keys", tablefmt="fancy_grid"))
 
         return data, df

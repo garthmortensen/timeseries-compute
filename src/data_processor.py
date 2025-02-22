@@ -24,7 +24,7 @@ class MissingDataHandler:
         """Drop rows with missing values."""
         l.info(f"Dropping rows with missing values")
         l.info("df filled:")
-        l.info(tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
 
         return data.dropna()
 
@@ -32,7 +32,7 @@ class MissingDataHandler:
         """Use the last known value to fill missing values."""
         l.info(f"Filling missing values with forward fill")
         l.info("df filled:")
-        l.info(tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
         return data.fillna(method="ffill")
 
 class MissingDataHandlerFactory:
@@ -65,7 +65,7 @@ class StationaryReturnsProcessor:
         else:
             raise ValueError(f"unknown make_stationary method: {method}")
 
-        l.info(tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
 
         return data
 
@@ -135,7 +135,7 @@ class DataScaler:
             data[column] = (data[column] - data[column].mean()) / data[column].std()
         l.info(f"Scaling data using standardization")
         l.info("df scaled:")
-        l.info(tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
         return data
 
     def scale_data_minmax(self, data):
@@ -147,7 +147,7 @@ class DataScaler:
             )
         l.info(f"Scaling data using minmax")
         l.info("df scaled:")
-        l.info(tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
         return data
 
 
@@ -160,7 +160,7 @@ class DataScalerFactory:
         l.info(f"creating scaler for strategy: {strategy}")
         if strategy.lower() == "standardize":
             return scaler.scale_data_standardize
-        elif strategy == "minmax":
+        elif strategy == "minmax":  # TODO: fixme. This turns everything into a constant
             return scaler.scale_data_minmax
         else:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")

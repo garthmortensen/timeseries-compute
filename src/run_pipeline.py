@@ -30,26 +30,35 @@ price_dict, price_df = generator.generate_prices(
 
 l.info("# Processing: handling missing data")
 handler_missing = MissingDataHandlerFactory.create_handler(
-    strategy=config.data_processor.missing_data_handler_strategy
+    strategy=config.data_processor.missing_data_handler.strategy
 )
 filled_df = handler_missing(price_df)
 
 l.info("# Processing: scaling data")
 handler_scaler = DataScalerFactory.create_handler(
-    strategy=config.data_processor.scaler_method
+    strategy=config.data_processor.scaler.method
     )
 scaled_df = handler_scaler(filled_df)
-stationary_returns_processor = StationaryReturnsProcessor()
 
+stationary_returns_processor = StationaryReturnsProcessor()
 l.info("# Processing: making data stationary")
-diffed_df = stationary_returns_processor.make_stationary(scaled_df, config.data_processor.make_stationarity_method)
+diffed_df = stationary_returns_processor.make_stationary(
+    data=scaled_df,
+    method=config.data_processor.make_stationarity.method
+    )
 
 l.info("# Testing: stationarity")
-adf_results = stationary_returns_processor.check_stationarity(diffed_df, config.data_processor.test_stationarity_method)
-stationary_returns_processor.log_adf_results(adf_results, config.data_processor.test_stationarity_p_value_threshold)
+adf_results = stationary_returns_processor.check_stationarity(
+    data=diffed_df,
+    test=config.data_processor.test_stationarity.method
+    )
+stationary_returns_processor.log_adf_results(
+    data=adf_results,
+    p_value_threshold=config.data_processor.test_stationarity.p_value_threshold
+    )
 
 
-l.info("# Modeling")
+# l.info("# Modeling")
 
 # if arima_run:
 #     l.info("## Running ARIMA")
