@@ -2,12 +2,12 @@
 # validate with pydantic
 metadata:
   version: 1.0
-  env: "dev"
+  environment: "dev"
 
 data_generator:
   start_date: "2023-01-01"
   end_date: "2023-02-01"
-  ticker_initial_prices:
+  anchor_prices:
     GME: 150.0
     BYND: 200.0
     BP: 15.0
@@ -20,19 +20,19 @@ data_processor:
   test_stationarity:
     method: "ADF"
     p_value_threshold: 0.05  # Significance level: p-value below this means the series is stationary
-  scale:
+  scaling:
     method: "standardize"  # options: standardize, minmax
 
 stats_model:
   ARIMA:
-    run: False
+    enabled: False
     parameters_fit:
       p: 2
       d: 1
       q: 4
     parameters_predict_steps: 3
   GARCH:
-    run: True
+    enabled: True
     parameters_fit:
       p: 1
       q: 1

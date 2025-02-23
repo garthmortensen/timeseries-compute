@@ -102,7 +102,7 @@ class DataScalerFactory:
 def scale_data(df, config):
     l.info("\n# Processing: scaling data")
     handler_scaler = DataScalerFactory.create_handler(
-        strategy=config.data_processor.scale.method
+        strategy=config.data_processor.scaling.method
         )
     df_scaled = handler_scaler(df)
     return df_scaled

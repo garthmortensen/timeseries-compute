@@ -47,11 +47,11 @@ try:
     log_stationarity(df=adf_results, config=config)
 
     l.info("\n\n+++++pipeline: modeling+++++")
-    if config.stats_model.ARIMA.run:
+    if config.stats_model.ARIMA.enabled:
         l.info("\n\n+++++pipeline: run_arima()+++++")
         arima_fit, arima_forecast = run_arima(df_stationary, config)
 
-    if config.stats_model.GARCH.run:
+    if config.stats_model.GARCH.enabled:
         l.info("\n\n+++++pipeline: run_garch()+++++")
         garch_fit, garch_forecast = run_garch(df_stationary, config)
 

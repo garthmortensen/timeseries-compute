@@ -25,12 +25,12 @@ class PriceSeriesGenerator:
             start=start_date, end=end_date, freq="B"
         )  # weekdays only
 
-    def generate_prices(self, ticker_initial_prices: dict):
+    def generate_prices(self, anchor_prices: dict):
         """
         create price series for given tickers with initial prices
 
         Args:
-            ticker_initial_prices (dict): keys = tickers, values = initial prices
+            anchor_prices (dict): keys = tickers, values = initial prices
 
         Returns:
             dict: keys = tickers, values = prices
@@ -38,7 +38,7 @@ class PriceSeriesGenerator:
         """
         data = {}
         l.info("generating prices...")
-        for ticker, initial_price in ticker_initial_prices.items():
+        for ticker, initial_price in anchor_prices.items():
             prices = [initial_price]
             for _ in range(1, len(self.dates)):
                 # create price changes using gaussian distribution
@@ -62,6 +62,6 @@ def generate_price_series(config):
         end_date=config.data_generator.end_date
     )
     price_dict, price_df = generator.generate_prices(
-        ticker_initial_prices=config.data_generator.ticker_initial_prices
+        anchor_prices=config.data_generator.anchor_prices
     )
     return price_dict, price_df
