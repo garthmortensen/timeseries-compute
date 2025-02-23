@@ -124,7 +124,7 @@ class StationaryReturnsProcessor:
 
         return data
 
-    def check_stationarity(self, data, test):
+    def test_stationarity(self, data, test):
         """Augmented Dickey-Fuller test for stationarity.
         Stationary time series have constant mean, variance, and autocorrelation. 
         Null H = series is non-stationary (has a unit root). Alt H = series is stationary.
@@ -132,7 +132,7 @@ class StationaryReturnsProcessor:
         if test.lower() != "adf":
             raise ValueError(f"Unsupported stationarity test: {test}")
         else:
-            l.info(f"check_stationarity: {test} test for stationarity")
+            l.info(f"test_stationarity: {test} test for stationarity")
             results = {}
             numeric_columns = data.select_dtypes(include=[np.number]).columns
             for column in numeric_columns:
@@ -165,17 +165,24 @@ class StationaryReturnsProcessor:
                 f"   p_value: {p_value:.2e}\n"
                 f"   interpretation: {interpretation}\n"
             )
+
 class StationaryReturnsProcessorFactory:
-    """Factory for handling StationaryReturnsProcessor strategies."""
+    """Factory for handling StationaryReturnsProcessor strategies.
+    Factories typically return objects, but here we return functions.
+    This is because the processing functions are stateless and don't need to be instantiated.
+    `staticmethod` is used to define a method that doesn't operate on an instance.
+    """
     @staticmethod
     def create_handler(strategy):
         """Return the appropriate processing function based on strategy."""
-        processor = StationaryReturnsProcessor()
+        stationary_returns_processor = StationaryReturnsProcessor()
         l.info(f"Creating processor for strategy: {strategy}")
         if strategy.lower() == "transform_to_stationary_returns":
-            return processor.transform_to_stationary_returns
-        elif strategy.lower() == "check_stationarity":
-            return processor.check_stationarity
+            return stationary_returns_processor
+        elif strategy.lower() == "test_stationarity":
+            return stationary_returns_processor
+        elif strategy.lower() == "log_stationarity":
+            return stationary_returns_processor
         else:
             raise ValueError(f"Unknown stationary returns processing strategy: {strategy}")
 
@@ -191,8 +198,8 @@ def stationarize_data(df, config):
 
 def test_stationarity(df, config):
     l.info("\n# Testing: stationarity")
-    stationary_returns_processor = StationaryReturnsProcessorFactory()  # repeat
-    adf_results = stationary_returns_processor.check_stationarity(
+    stationary_returns_processor = StationaryReturnsProcessorFactory.create_handler("test_stationarity")
+    adf_results = stationary_returns_processor.test_stationarity(
         data=df,
         test=config.data_processor.test_stationarity.method
         )
@@ -201,7 +208,7 @@ def test_stationarity(df, config):
 
 def log_stationarity(df, config):
     l.info("\n# Logging: stationarity")
-    stationary_returns_processor = StationaryReturnsProcessorFactory()  # repeat
+    stationary_returns_processor = StationaryReturnsProcessorFactory.create_handler("log_stationarity")
     stationary_returns_processor.log_adf_results(
         data=df,
         p_value_threshold=config.data_processor.test_stationarity.p_value_threshold
