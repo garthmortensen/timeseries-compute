@@ -49,18 +49,34 @@ class ModelARIMA:
 
 
 class ModelGARCH:
-    def __init__(self, data, order, dist):
+    def __init__(self, data, p, q, dist):
         ascii_banner = """\n\n\t> GARCH <\n"""
         l.info(ascii_banner)
         self.data = data
-        self.order = order
+        self.p = p
+        self.q = q
         self.dist = dist
+        self.models = {}  # store models for each column
+        self.fits = {}  # store fits for each column
     
     def fit(self):
-        model = arch_model(self.data, vol="GARCH", p=self.order["p"], q=self.order["q"], dist=self.dist)
-        fit = model.fit()
-        return fit
+        for column in self.data.columns:
+            model = arch_model(self.data[column], vol="Garch", p=self.p, q=self.q, dist=self.dist)
+            self.fits[column] = model.fit(disp="off")
+        return self.fits
 
+    def summary(self):
+        """Return the model summaries for all columns."""
+        summaries = {}
+        for column, fit in self.fits.items():
+            summaries[column] = fit.summary()
+        return summaries
+
+    def forecast(self, steps):
+        forecasts = {}
+        for column, fit in self.fits.items():
+            forecasts[column] = fit.forecast(horizon=steps).variance.iloc[-1]
+        return forecasts
 
 class ModelFactory:
     """Factory for creating model instances."""

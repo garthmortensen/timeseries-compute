@@ -88,7 +88,12 @@ try:
                 config.stats_model.GARCH.parameters_fit.dist
                 )
             )
-
+        garch_fit = model_garch.fit()
+        l.info("\n## GARCH summary")
+        l.info(model_garch.summary())
+        l.info("\n## GARCH forecast")
+        garch_forecast = model_garch.forecast()  # dont include steps arg here bc its already in object initialization
+        l.info(f"garch_forecast: {garch_forecast}")
 
     # GARCH models, like ARMA models, predict volatility rather than values. 
     # Volatility = changes in variance over time, making it a function of time. 
