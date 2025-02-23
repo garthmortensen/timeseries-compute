@@ -86,7 +86,7 @@ class ModelFactory:
         if model_type.lower() == "arima":
             return ModelARIMA(**kwargs)
         elif model_type.lower() == "garch":
-            return GARCH(**kwargs)
+            return ModelGARCH(**kwargs)
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 

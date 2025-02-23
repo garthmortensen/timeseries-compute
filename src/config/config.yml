@@ -37,4 +37,5 @@ stats_model:
       p: 1
       q: 1
       dist: "t"  # options: normal, t
+    parameters_predict_steps: 3
 

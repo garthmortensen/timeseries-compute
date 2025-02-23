@@ -82,24 +82,16 @@ try:
         model_garch = ModelFactory.create_model(
             model_type="GARCH", 
             data=diffed_df,
-            order=(
-                config.stats_model.GARCH.parameters_fit.p,
-                config.stats_model.GARCH.parameters_fit.q,
-                config.stats_model.GARCH.parameters_fit.dist
-                )
+            p=config.stats_model.GARCH.parameters_fit.p,
+            q=config.stats_model.GARCH.parameters_fit.q,
+            dist=config.stats_model.GARCH.parameters_fit.dist
             )
         garch_fit = model_garch.fit()
         l.info("\n## GARCH summary")
         l.info(model_garch.summary())
         l.info("\n## GARCH forecast")
-        garch_forecast = model_garch.forecast()  # dont include steps arg here bc its already in object initialization
+        garch_forecast = model_garch.forecast(steps=config.stats_model.GARCH.parameters_predict_steps)
         l.info(f"garch_forecast: {garch_forecast}")
-
-    # GARCH models, like ARMA models, predict volatility rather than values. 
-    # Volatility = changes in variance over time, making it a function of time. 
-    # GARCH handles uneven variance (heteroskedasticity).
-    # GARCH models assume stationarity, similar to ARMA models, and include both AR and MA components.
-    # Since volatility often clusters, GARCH is designed to capture and leverage this behavior.
 
 except Exception as e:
     l.exception(f"\nError in pipeline:\n{e}")
