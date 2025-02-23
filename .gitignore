@@ -9,3 +9,4 @@ manage.py
 missfont.log
 tests/
 
+./config
