@@ -64,4 +64,4 @@ l.info("\n\n+++++pipeline: complete+++++")
 execution_time = time.perf_counter() - t1
 hours, remainder = divmod(execution_time, 3600)
 minutes, seconds = divmod(remainder, 60)
-l.info(f"\nExecution Time (HH:MM:SS): {int(hours):02}:{int(minutes):02}:{int(seconds):02}")
+l.info(f"\nexecution time (HH:MM:SS): {int(hours):02}:{int(minutes):02}:{int(seconds):02}")
