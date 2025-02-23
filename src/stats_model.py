@@ -14,9 +14,6 @@ from tabulate import tabulate  # pretty print dfs
 from statsmodels.tsa.arima.model import ARIMA
 from arch import arch_model
 
-# import garch
-from arch.univariate import GARCH
-
 class ModelARIMA:
     """It's a bit strange to apply ARIMA on all df columns...but i'm going with it for lack of a better (simple) idea"""
     def __init__(self, data, order, steps):
@@ -66,6 +63,8 @@ def run_arima(df_stationary, config):
         arima_forecast = model_arima.forecast()  # dont include steps arg here bc its already in object initialization
         l.info(f"arima_forecast: {arima_forecast}")
 
+        return arima_fit, arima_forecast
+
 
 class ModelGARCH:
     def __init__(self, data, p, q, dist):
@@ -109,3 +108,20 @@ class ModelFactory:
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
+def run_garch(df_stationary, config):
+        l.info("\n## Running GARCH")
+        model_garch = ModelFactory.create_model(
+            model_type="GARCH", 
+            data=df_stationary,
+            p=config.stats_model.GARCH.parameters_fit.p,
+            q=config.stats_model.GARCH.parameters_fit.q,
+            dist=config.stats_model.GARCH.parameters_fit.dist
+            )
+        garch_fit = model_garch.fit()
+        l.info("\n## GARCH summary")
+        l.info(model_garch.summary())
+        l.info("\n## GARCH forecast")
+        garch_forecast = model_garch.forecast(steps=config.stats_model.GARCH.parameters_predict_steps)
+        l.info(f"garch_forecast: {garch_forecast}")
+
+        return garch_fit, garch_forecast
