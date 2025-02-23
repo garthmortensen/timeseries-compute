@@ -1,3 +1,11 @@
 venv/
 __pycache__/
 
+api/
+config/
+docs/
+logs/
+manage.py
+missfont.log
+src/configurator.py
+tests/
