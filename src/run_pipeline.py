@@ -8,7 +8,7 @@ from chronicler_loader import init_chronicler
 chronicler = init_chronicler()
 
 from configurator import load_configuration
-from data_generator import PriceSeriesGenerator
+from data_generation import generate_price_series
 from data_processor import MissingDataHandlerFactory
 from data_processor import DataScalerFactory
 from data_processor import StationaryReturnsProcessor
@@ -18,14 +18,8 @@ try:
     config_file = "config.yml"
     config = load_configuration(config_file)
 
-    l.info("\n# Generating: price series data")
-    generator = PriceSeriesGenerator(
-        start_date=config.data_generator.start_date,
-        end_date=config.data_generator.end_date
-        )
-    price_dict, price_df = generator.generate_prices(
-        ticker_initial_prices=config.data_generator.ticker_initial_prices
-    )
+    # Generate price data
+    price_dict, price_df = generate_price_series(config)
 
     l.info("\n# Processing: handling missing data")
     handler_missing = MissingDataHandlerFactory.create_handler(
