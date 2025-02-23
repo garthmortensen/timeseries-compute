@@ -47,6 +47,25 @@ class ModelARIMA:
             forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
+def run_arima(df_stationary, config):
+        l.info("\n## Running ARIMA")
+        model_arima = ModelFactory.create_model(
+            model_type="ARIMA", 
+            data=df_stationary, 
+            order=(
+                config.stats_model.ARIMA.parameters_fit.get("p",),
+                config.stats_model.ARIMA.parameters_fit.get("d"),
+                config.stats_model.ARIMA.parameters_fit.get("q")
+                ),
+            steps=config.stats_model.ARIMA.parameters_predict_steps
+            )
+        arima_fit = model_arima.fit()
+        l.info("\n## ARIMA summary")
+        l.info(model_arima.summary())
+        l.info("\n## ARIMA forecast")
+        arima_forecast = model_arima.forecast()  # dont include steps arg here bc its already in object initialization
+        l.info(f"arima_forecast: {arima_forecast}")
+
 
 class ModelGARCH:
     def __init__(self, data, p, q, dist):
