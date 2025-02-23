@@ -13,14 +13,14 @@ data_generator:
     BP: 15.0
 
 data_processor:
-  missing_data_handler:
+  handle_missing_values:
     strategy: "drop"  # options: drop, forward_fill
-  make_stationarity:
+  make_stationary:
     method: "difference"  # options: difference, log
   test_stationarity:
     method: "ADF"
     p_value_threshold: 0.05  # Significance level: p-value below this means the series is stationary
-  scaler:
+  scale:
     method: "standardize"  # options: standardize, minmax
 
 stats_model:

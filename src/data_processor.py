@@ -52,6 +52,61 @@ class MissingDataHandlerFactory:
         else:
             raise ValueError(f"Unknown missing data strategy: {strategy}")
 
+def fill_data(df, config):
+    l.info("\n# Processing: handling missing values")
+    handler_missing = MissingDataHandlerFactory.create_handler(
+        strategy=config.data_processor.handle_missing_values.strategy
+    )
+    df_filled = handler_missing(df)
+    return df_filled
+
+class DataScaler:
+    """TODO: scale_data_percent, scale_data_log"""
+    def scale_data_standardize(self, data):
+        """Standardize all numeric columns except the index."""
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        for column in numeric_columns:
+            data[column] = (data[column] - data[column].mean()) / data[column].std()
+        l.info(f"Scaling data using standardization")
+        l.info("df scaled:")
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        return data
+
+    def scale_data_minmax(self, data):
+        """Scale all numeric columns using MinMaxScaler."""
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        for column in numeric_columns:
+            data[column] = (data[column].min()) / (
+                data[column].max() - data[column].min()
+            )
+        l.info(f"Scaling data using minmax")
+        l.info("df scaled:")
+        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        return data
+
+class DataScalerFactory:
+    """Factory for handling DataScaler strategies."""
+    @staticmethod
+    def create_handler(strategy):
+        """Return the appropriate scaling function based on strategy."""
+        scaler = DataScaler()
+        l.info(f"creating scaler for strategy: {strategy}")
+        if strategy.lower() == "standardize":
+            return scaler.scale_data_standardize
+        elif strategy == "minmax":  # TODO: fixme. This turns everything into a constant
+            return scaler.scale_data_minmax
+        else:
+            raise ValueError(f"Unknown data scaling strategy: {strategy}")
+
+
+def scale_data(df, config):
+    l.info("\n# Processing: scaling data")
+    handler_scaler = DataScalerFactory.create_handler(
+        strategy=config.data_processor.scale.method
+        )
+    df_scaled = handler_scaler(df)
+    return df_scaled
+
 class StationaryReturnsProcessor:
     def make_stationary(self, data, method):
         """Apply the chosen method to make the data stationary."""
@@ -110,8 +165,6 @@ class StationaryReturnsProcessor:
                 f"   p_value: {p_value:.2e}\n"
                 f"   interpretation: {interpretation}\n"
             )
-
-
 class StationaryReturnsProcessorFactory:
     """Factory for handling StationaryReturnsProcessor strategies."""
     @staticmethod
@@ -126,43 +179,31 @@ class StationaryReturnsProcessorFactory:
         else:
             raise ValueError(f"Unknown stationary returns processing strategy: {strategy}")
 
-class DataScaler:
-    """TODO: scale_data_percent, scale_data_log"""
-    def scale_data_standardize(self, data):
-        """Standardize all numeric columns except the index."""
-        numeric_columns = data.select_dtypes(include=[np.number]).columns
-        for column in numeric_columns:
-            data[column] = (data[column] - data[column].mean()) / data[column].std()
-        l.info(f"Scaling data using standardization")
-        l.info("df scaled:")
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
-        return data
+def stationarize_data(df, config):
+    l.info("\n# Processing: making data stationary")
+    # recreating the object each time is not efficient, but it's simple
+    stationary_returns_processor = StationaryReturnsProcessor()
+    df_stationary = stationary_returns_processor.make_stationary(
+        data=df,
+        method=config.data_processor.make_stationary.method
+        )
+    return df_stationary
 
-    def scale_data_minmax(self, data):
-        """Scale all numeric columns using MinMaxScaler."""
-        numeric_columns = data.select_dtypes(include=[np.number]).columns
-        for column in numeric_columns:
-            data[column] = (data[column].min()) / (
-                data[column].max() - data[column].min()
-            )
-        l.info(f"Scaling data using minmax")
-        l.info("df scaled:")
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
-        return data
+def test_stationarity(df, config):
+    l.info("\n# Testing: stationarity")
+    stationary_returns_processor = StationaryReturnsProcessorFactory()  # repeat
+    adf_results = stationary_returns_processor.check_stationarity(
+        data=df,
+        test=config.data_processor.test_stationarity.method
+        )
 
+    return adf_results
 
-class DataScalerFactory:
-    """Factory for handling DataScaler strategies."""
-    @staticmethod
-    def create_handler(strategy):
-        """Return the appropriate scaling function based on strategy."""
-        scaler = DataScaler()
-        l.info(f"creating scaler for strategy: {strategy}")
-        if strategy.lower() == "standardize":
-            return scaler.scale_data_standardize
-        elif strategy == "minmax":  # TODO: fixme. This turns everything into a constant
-            return scaler.scale_data_minmax
-        else:
-            raise ValueError(f"Unknown data scaling strategy: {strategy}")
-
+def log_stationarity(df, config):
+    l.info("\n# Logging: stationarity")
+    stationary_returns_processor = StationaryReturnsProcessorFactory()  # repeat
+    stationary_returns_processor.log_adf_results(
+        data=df,
+        p_value_threshold=config.data_processor.test_stationarity.p_value_threshold
+        )
 
