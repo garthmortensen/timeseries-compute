@@ -1,3 +1,6 @@
+![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_pytest.yml/badge.svg)
+
+
 # Productionalize Thesis Project
 
 Build a py production-level model pipeline from scratch, deployed on the cloud.
