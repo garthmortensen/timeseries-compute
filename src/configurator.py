@@ -28,36 +28,52 @@ def read_config_from_fs(config_filename: str) -> Dict[str, Any]:
             l.info(f"Validation error: {e}")
         return contents
 
+
 class DataGeneratorConfig(BaseModel):
     start_date: str = Field(default="2023-01-01")
     end_date: str = Field(default="2023-12-31")
     # Dict[str, float] bc the ticker symbol is a string and the price is a float
     anchor_prices: Dict[str, float] = Field(default_factory=dict)
 
+
 class MissingDataHandlerConfig(BaseModel):
     strategy: str = Field(default="forward_fill")
+
 
 class ScalingConfig(BaseModel):
     method: str = Field(default="standardize")
 
+
 class MakeStationarityConfig(BaseModel):
     method: str = Field(default="difference")
+
 
 class TestStationarityConfig(BaseModel):
     method: str = Field(default="ADF")
     p_value_threshold: float = Field(default=0.05)
 
+
 class DataProcessorConfig(BaseModel):
-    handle_missing_values: MissingDataHandlerConfig = Field(default_factory=MissingDataHandlerConfig)
-    make_stationary: MakeStationarityConfig = Field(default_factory=MakeStationarityConfig)
-    test_stationarity: TestStationarityConfig = Field(default_factory=TestStationarityConfig)
+    handle_missing_values: MissingDataHandlerConfig = Field(
+        default_factory=MissingDataHandlerConfig
+    )
+    make_stationary: MakeStationarityConfig = Field(
+        default_factory=MakeStationarityConfig
+    )
+    test_stationarity: TestStationarityConfig = Field(
+        default_factory=TestStationarityConfig
+    )
     scaling: ScalingConfig = Field(default_factory=ScalingConfig)
+
 
 class ARIMAConfig(BaseModel):
     # lambda used to set default dictionary values
     enabled: bool = Field(default=False)
-    parameters_fit: Dict[str, int] = Field(default_factory=lambda: {"p": 1, "d": 1, "q": 1})
+    parameters_fit: Dict[str, int] = Field(
+        default_factory=lambda: {"p": 1, "d": 1, "q": 1}
+    )
     parameters_predict_steps: int = Field(default=5)
+
 
 # because this section is nested in the json, we need to define a separate class for it
 class GARCHParametersFitConfig(BaseModel):
@@ -65,14 +81,19 @@ class GARCHParametersFitConfig(BaseModel):
     q: int = Field(default=1)
     dist: str = Field(default="normal")
 
+
 class GARCHConfig(BaseModel):
     enabled: bool = Field(default=False)
-    parameters_fit: GARCHParametersFitConfig = Field(default_factory=GARCHParametersFitConfig)
+    parameters_fit: GARCHParametersFitConfig = Field(
+        default_factory=GARCHParametersFitConfig
+    )
     parameters_predict_steps: int = Field(default=5)
+
 
 class StatsModelConfig(BaseModel):
     ARIMA: ARIMAConfig = Field(default_factory=ARIMAConfig)
     GARCH: GARCHConfig = Field(default_factory=GARCHConfig)
+
 
 class Config(BaseModel):
     """
@@ -81,9 +102,11 @@ class Config(BaseModel):
     `data_generator` becomes part of the drill down to access the start_date, end_date, and anchor_prices.
     `default_factory` is pydantic field simpy for specifying default values.
     """
+
     data_generator: DataGeneratorConfig = Field(default_factory=DataGeneratorConfig)
     data_processor: DataProcessorConfig = Field(default_factory=DataProcessorConfig)
     stats_model: StatsModelConfig = Field(default_factory=StatsModelConfig)
+
 
 def load_configuration(config_file):
     l.info(f"# Loading config_file: {config_file}")

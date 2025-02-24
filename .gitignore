@@ -1,11 +1,16 @@
-venv/
+.vscode/
 __pycache__/
-src/config/.env
 
+venv/
+
+# django
 api/
 docs/
 logs/
 manage.py
 missfont.log
+config/
 
-./config
+# hidden
+src/config/.env
+

@@ -2,16 +2,24 @@
 # run_pipeline.py
 
 import time  # stopwatch
+
 t1 = time.perf_counter()
 
 # handle relative directory imports for chronicler
 import logging as l
 from chronicler import init_chronicler
+
 chronicler = init_chronicler()
 
 from configurator import load_configuration
 from data_generator import generate_price_series
-from data_processor import fill_data, scale_data, stationarize_data, test_stationarity, log_stationarity
+from data_processor import (
+    fill_data,
+    scale_data,
+    stationarize_data,
+    test_stationarity,
+    log_stationarity,
+)
 from stats_model import run_arima, run_garch
 
 l.info("\n\n+++++pipeline: start+++++")
@@ -40,7 +48,7 @@ try:
     # Test stationarity
     l.info("\n\n+++++pipeline: test_stationarity()+++++")
     adf_results = test_stationarity(df=df_stationary, config=config)
-    
+
     # Log stationarity results
     l.info("\n\n+++++pipeline: log_stationarity()+++++")
     log_stationarity(df=adf_results, config=config)
@@ -63,4 +71,6 @@ l.info("\n\n+++++pipeline: complete+++++")
 execution_time = time.perf_counter() - t1
 hours, remainder = divmod(execution_time, 3600)
 minutes, seconds = divmod(remainder, 60)
-l.info(f"\nexecution time (HH:MM:SS): {int(hours):02}:{int(minutes):02}:{int(seconds):02}")
+l.info(
+    f"\nexecution time (HH:MM:SS): {int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+)

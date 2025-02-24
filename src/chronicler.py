@@ -30,10 +30,14 @@ class GitInfo:
     def refresh(self):
         """Refreshes the Git branch, commit hash, and repo state."""
         # branch name
-        self.branch = self._run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        self.branch = self._run_git_command(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"]
+        )
         # short hash
-        self.commit_hash = self._run_git_command(["git", "rev-parse", "--short", "HEAD"])
-        
+        self.commit_hash = self._run_git_command(
+            ["git", "rev-parse", "--short", "HEAD"]
+        )
+
         # check if clean, no uncommitted changes
         status_output = self._run_git_command(["git", "status", "--porcelain"])
         if status_output:  # uncommitted changes
@@ -48,6 +52,7 @@ class GitInfo:
             "commit_hash": self.commit_hash,
             "is_clean": self.is_clean,
         }
+
 
 class Chronicler:
     """
@@ -100,8 +105,9 @@ class Chronicler:
         git_meta = git_info.get_info()
         logging.info(f"git branch: {git_meta['branch']}")
         logging.info(f"git rev-parse HEAD: {git_meta['commit_hash']}")
-        logging.info(f"git status --porcelain: {'is_clean' if git_meta['is_clean'] else 'is_dirty'}")
-
+        logging.info(
+            f"git status --porcelain: {'is_clean' if git_meta['is_clean'] else 'is_dirty'}"
+        )
 
 
 def init_chronicler():

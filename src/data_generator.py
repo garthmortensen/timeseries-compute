@@ -62,7 +62,7 @@ def generate_price_series(config):
     l.info("Generating price series data")
     generator = PriceSeriesGenerator(
         start_date=config.data_generator.start_date,
-        end_date=config.data_generator.end_date
+        end_date=config.data_generator.end_date,
     )
     price_dict, price_df = generator.generate_prices(
         anchor_prices=config.data_generator.anchor_prices
