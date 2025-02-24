@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# data_generator.py
+
 # handle relative directory imports for chronicler
 import logging as l
 

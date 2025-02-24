@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+# configurator.py
+
 import os
 import yaml
 import logging as l
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from typing import Dict, Any
 
 
@@ -18,8 +21,11 @@ def read_config_from_fs(config_filename: str) -> Dict[str, Any]:
     """
     config_path = os.path.join(os.path.dirname(__file__), "config", config_filename)
     with open(config_path, "r") as f:
-        contents = yaml.safe_load(f)
-        l.info(f"yml contents:\n{contents}")
+        try:
+            contents = yaml.safe_load(f)
+            l.info(f"yml contents:\n{contents}")
+        except ValidationError as e:  # if the yml is not valid
+            l.info(f"Validation error: {e}")
         return contents
 
 class DataGeneratorConfig(BaseModel):

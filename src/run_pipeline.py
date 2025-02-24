@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # run_pipeline.py
 
 import time  # stopwatch
@@ -7,7 +6,7 @@ t1 = time.perf_counter()
 
 # handle relative directory imports for chronicler
 import logging as l
-from chronicler_loader import init_chronicler
+from chronicler import init_chronicler
 chronicler = init_chronicler()
 
 from configurator import load_configuration

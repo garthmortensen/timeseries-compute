@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # data_processor.py
 
 # handle relative directory imports for chronicler

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # stats_model.py
 
 # handle relative directory imports for chronicler

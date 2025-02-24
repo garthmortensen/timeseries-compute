@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # chronicler.py
 
 import logging
@@ -103,3 +102,8 @@ class Chronicler:
         logging.info(f"git rev-parse HEAD: {git_meta['commit_hash']}")
         logging.info(f"git status --porcelain: {'is_clean' if git_meta['is_clean'] else 'is_dirty'}")
 
+
+
+def init_chronicler():
+    current_script_path = os.path.abspath(__file__)  # "/myproject/run.py"
+    return Chronicler(current_script_path)
