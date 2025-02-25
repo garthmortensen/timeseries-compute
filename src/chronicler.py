@@ -21,6 +21,8 @@ class GitInfo:
         self.is_clean = None
         self.refresh()
 
+    # FIXME: When running this in a container that lacks .git/, this code throws error.
+
     def _run_git_command(self, command):
         """Run a Git command and return the output."""
         try:
