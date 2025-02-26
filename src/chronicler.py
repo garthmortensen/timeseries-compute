@@ -14,7 +14,7 @@ class GitInfo:
     A class to retrieve Git branch, commit hash, and repo state.
     """
 
-    def __init__(self, repo_path="."):
+    def __init__(self, repo_path="./"):
         self.repo_path = repo_path
         self.branch = None
         self.commit_hash = None
@@ -23,23 +23,27 @@ class GitInfo:
 
     # FIXME: When running this in a container that lacks .git/, this code throws error.
 
-    def _run_git_command(self, command):
+    def run_git_command(self, command):
         """Run a Git command and return the output."""
         try:
             return subprocess.check_output(command, cwd=self.repo_path).strip().decode()
         except subprocess.CalledProcessError:
-            return None
+            return "Not a repo"
+        except FileNotFoundError:
+            return "Not a repo"
 
     def refresh(self):
         """Refreshes the Git branch, commit hash, and repo state."""
         # branch name
-        self.branch = self._run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        self.branch = self.run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
         # short hash
-        self.commit_hash = self._run_git_command(["git", "rev-parse", "--short", "HEAD"])
+        self.commit_hash = self.run_git_command(["git", "rev-parse", "--short", "HEAD"])
         
         # check if clean, no uncommitted changes
-        status_output = self._run_git_command(["git", "status", "--porcelain"])
-        if status_output:  # uncommitted changes
+        status_output = self.run_git_command(["git", "status", "--porcelain"])
+        if status_output == "Not a repo":
+            self.is_clean = "Not a repo"
+        elif status_output:  # uncommitted changes
             self.is_clean = False
         else:  # no uncommitted changes
             self.is_clean = True
@@ -99,7 +103,7 @@ class Chronicler:
         logging.info(f"Logging initialized for {script_path}")
 
         # get git info
-        git_info = GitInfo()
+        git_info = GitInfo(repo_path="./")
         git_meta = git_info.get_info()
         logging.info(f"git branch: {git_meta['branch']}")
         logging.info(f"git rev-parse HEAD: {git_meta['commit_hash']}")
