@@ -51,7 +51,7 @@ class GitInfo:
         self.branch = self.run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
         self.commit_hash = self.run_git_command(["git", "rev-parse", "--short", "HEAD"])
         status_output = self.run_git_command(["git", "status", "--porcelain"])
-        
+
         if status_output == "Not a repo":
             self.is_clean = "Not a repo"
         elif status_output:
@@ -76,7 +76,7 @@ class GitInfo:
 class Chronicler:
     """
     A logging utility class to initialize and manage logging configuration.
-    
+
     Writes logs to both `stdout` (for AWS CloudWatch) and a timestamped log file in `./logs`.
     """
 

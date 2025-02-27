@@ -29,7 +29,9 @@ class ModelARIMA:
         fits (Dict[str, ARIMA]): A dictionary to store fitted ARIMA models for each column.
     """
 
-    def __init__(self, data: pd.DataFrame, order: Tuple[int, int, int], steps: int) -> None:
+    def __init__(
+        self, data: pd.DataFrame, order: Tuple[int, int, int], steps: int
+    ) -> None:
         """
         Initializes the ARIMA model with the given data, order, and steps.
 
@@ -86,7 +88,10 @@ class ModelARIMA:
             forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
-def run_arima(df_stationary: pd.DataFrame, config) -> Tuple[Dict[str, object], Dict[str, float]]:
+
+def run_arima(
+    df_stationary: pd.DataFrame, config
+) -> Tuple[Dict[str, object], Dict[str, float]]:
     """
     Runs the ARIMA model on the provided stationary DataFrame using the given configuration.
 
@@ -115,10 +120,14 @@ def run_arima(df_stationary: pd.DataFrame, config) -> Tuple[Dict[str, object], D
     l.info("\n## ARIMA summary")
     l.info(model_arima.summary())
     l.info("\n## ARIMA forecast")
-    arima_forecast = model_arima.forecast()  # Steps arg is already in object initialization
+    arima_forecast = (
+        model_arima.forecast()
+    )  # Steps arg is already in object initialization
     l.info(f"arima_forecast: {arima_forecast}")
 
     return arima_fit, arima_forecast
+
+
 import logging as l
 import pandas as pd
 import numpy as np
@@ -170,7 +179,9 @@ class ModelGARCH:
                 are the fitted GARCH models.
         """
         for column in self.data.columns:
-            model = arch_model(self.data[column], vol="Garch", p=self.p, q=self.q, dist=self.dist)
+            model = arch_model(
+                self.data[column], vol="Garch", p=self.p, q=self.q, dist=self.dist
+            )
             self.fits[column] = model.fit(disp="off")
         return self.fits
 
@@ -200,6 +211,7 @@ class ModelGARCH:
         for column, fit in self.fits.items():
             forecasts[column] = fit.forecast(horizon=steps).variance.iloc[-1]
         return forecasts
+
 
 class ModelFactory:
     """
@@ -234,7 +246,9 @@ class ModelFactory:
             raise ValueError(f"Unknown model type: {model_type}")
 
 
-def run_garch(df_stationary: pd.DataFrame, config) -> Tuple[Dict[str, Any], Dict[str, float]]:
+def run_garch(
+    df_stationary: pd.DataFrame, config
+) -> Tuple[Dict[str, Any], Dict[str, float]]:
     """
     Runs the GARCH model on the provided stationary DataFrame using the given configuration.
 

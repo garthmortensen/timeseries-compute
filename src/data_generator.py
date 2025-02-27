@@ -29,6 +29,7 @@ class PriceSeriesGenerator:
                 dict: A dictionary where keys are tickers and values are lists of generated prices.
                 pd.DataFrame: A DataFrame containing the generated price series for all tickers.
     """
+
     def __init__(self, start_date: str, end_date: str):
         """
         Given data range, initialize the generator

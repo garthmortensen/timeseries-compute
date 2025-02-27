@@ -113,7 +113,7 @@ class DataScaler:
     Methods:
         scale_data_standardize(data: pd.DataFrame) -> pd.DataFrame:
             Standardizes all numeric columns except the index by subtracting the mean and dividing by the standard deviation.
-        
+
         scale_data_minmax(data: pd.DataFrame) -> pd.DataFrame:
             Scales all numeric columns using MinMaxScaler by dividing each value by the range (max - min) of the column.
     """
@@ -194,10 +194,13 @@ class DataScalerFactory:
         l.info(f"Creating scaler for strategy: {strategy}")
         if strategy.lower() == "standardize":
             return scaler.scale_data_standardize
-        elif strategy.lower() == "minmax":  # TODO: fixme. This turns everything into a constant
+        elif (
+            strategy.lower() == "minmax"
+        ):  # TODO: fixme. This turns everything into a constant
             return scaler.scale_data_minmax
         else:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")
+
 
 def scale_data(df: pd.DataFrame, config) -> pd.DataFrame:
     """
@@ -217,6 +220,7 @@ def scale_data(df: pd.DataFrame, config) -> pd.DataFrame:
     df_scaled = handler_scaler(df)
     return df_scaled
 
+
 class StationaryReturnsProcessor:
     """
     A class to process and test the stationarity of time series data.
@@ -224,10 +228,10 @@ class StationaryReturnsProcessor:
     Methods:
         make_stationary(data: pd.DataFrame, method: str) -> pd.DataFrame:
             Apply the chosen method to make the data stationary.
-        
+
         test_stationarity(data: pd.DataFrame, test: str) -> Dict[str, Dict[str, float]]:
             Perform the Augmented Dickey-Fuller test to check for stationarity.
-        
+
         log_adf_results(data: Dict[str, Dict[str, float]], p_value_threshold: float) -> None:
             Log the interpreted results of the ADF test.
     """
@@ -259,7 +263,9 @@ class StationaryReturnsProcessor:
         l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
         return data
 
-    def test_stationarity(self, data: pd.DataFrame, test: str) -> Dict[str, Dict[str, float]]:
+    def test_stationarity(
+        self, data: pd.DataFrame, test: str
+    ) -> Dict[str, Dict[str, float]]:
         """
         Perform the Augmented Dickey-Fuller (ADF) test for stationarity on the given data.
 
@@ -285,14 +291,18 @@ class StationaryReturnsProcessor:
             numeric_columns = data.select_dtypes(include=[np.number]).columns
             for column in numeric_columns:
                 if data[column].isnull().any() or not np.isfinite(data[column]).all():
-                    l.warning(f"Column {column} contains NaN or Inf values. Skipping ADF test.")
+                    l.warning(
+                        f"Column {column} contains NaN or Inf values. Skipping ADF test."
+                    )
                     continue
                 result = adfuller(data[column])
                 results[column] = {"ADF Statistic": result[0], "p-value": result[1]}
             l.info(f"Results: {results}")
         return results
 
-    def log_adf_results(self, data: Dict[str, Dict[str, float]], p_value_threshold: float) -> None:
+    def log_adf_results(
+        self, data: Dict[str, Dict[str, float]], p_value_threshold: float
+    ) -> None:
         """
         Logs interpreted Augmented Dickey-Fuller (ADF) test results.
 
@@ -318,6 +328,7 @@ class StationaryReturnsProcessor:
                 f"   p_value: {p_value:.2e}\n"
                 f"   interpretation: {interpretation}\n"
             )
+
 
 class StationaryReturnsProcessorFactory:
     """
@@ -355,7 +366,9 @@ class StationaryReturnsProcessorFactory:
         elif strategy.lower() == "log_stationarity":
             return stationary_returns_processor
         else:
-            raise ValueError(f"Unknown stationary returns processing strategy: {strategy}")
+            raise ValueError(
+                f"Unknown stationary returns processing strategy: {strategy}"
+            )
 
 
 def stationarize_data(df: pd.DataFrame, config) -> pd.DataFrame:
