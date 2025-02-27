@@ -6,14 +6,17 @@ import time
 import os
 import sys
 import subprocess
+from typing import List, Dict, Union
 
 
 class GitInfo:
-    """A class to retrieve Git branch, commit hash, and repo state.
+    """
+    A class to retrieve Git branch, commit hash, and repo state.
     """
 
-    def __init__(self, repo_path="./"):
-        """Initializes the GitInfo class.
+    def __init__(self, repo_path: str = "./") -> None:
+        """
+        Initializes the GitInfo class.
 
         Args:
             repo_path (str, optional): Path to the Git repository. Defaults to "./".
@@ -24,14 +27,15 @@ class GitInfo:
         self.is_clean = None
         self.update_git_info()
 
-    def run_git_command(self, command):
-        """Run a Git command in the repo.
+    def run_git_command(self, command: List[str]) -> str:
+        """
+        Runs a Git command in the repository.
 
         Args:
-            command (list): A list of command arguments.
+            command (List[str]): A list of command arguments.
 
         Returns:
-            str: Git output.
+            str: Output from the Git command or an error message if the command fails.
         """
         try:
             return subprocess.check_output(command, cwd=self.repo_path).strip().decode()
@@ -40,28 +44,27 @@ class GitInfo:
         except FileNotFoundError:
             return "Not a repo"
 
-    def update_git_info(self):
-        """Gets Updated Git branch, commit hash, and repo state.
+    def update_git_info(self) -> None:
         """
-        # branch name
+        Updates the Git branch, commit hash, and repository state.
+        """
         self.branch = self.run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-        # short hash
         self.commit_hash = self.run_git_command(["git", "rev-parse", "--short", "HEAD"])
-
-        # check if clean, no uncommitted changes
         status_output = self.run_git_command(["git", "status", "--porcelain"])
+        
         if status_output == "Not a repo":
             self.is_clean = "Not a repo"
-        elif status_output:  # uncommitted changes
+        elif status_output:
             self.is_clean = False
-        else:  # no uncommitted changes
+        else:
             self.is_clean = True
 
-    def get_info(self) -> dict:
-        """Return Git information as a dictionary
+    def get_info(self) -> Dict[str, Union[str, bool, None]]:
+        """
+        Returns Git information as a dictionary.
 
         Returns:
-            dict: Git information
+            Dict[str, Union[str, bool, None]]: Git information including branch, commit hash, and cleanliness status.
         """
         return {
             "branch": self.branch,
@@ -72,39 +75,24 @@ class GitInfo:
 
 class Chronicler:
     """
-    A logging utility class to initialize and manage logging config.
-
-    Writes to both `stdout` (for  aws cloudwatch) and a timestamped log file in `./logs`.
-
-    Attributes:
-        log_file (str): The path to the log file being written.
-
-    Methods:
-        __init__(script_path): Initializes the logging  config.
+    A logging utility class to initialize and manage logging configuration.
+    
+    Writes logs to both `stdout` (for AWS CloudWatch) and a timestamped log file in `./logs`.
     """
 
-    def __init__(self, script_path):
+    def __init__(self, script_path: str) -> None:
         """
-        Initialize the Chronicler class. Method sets up logging for the script.
+        Initializes the Chronicler class and sets up logging for the script.
 
         Args:
-            script_path (str): Script path for which logging is being initialized.
-
-        Attributes:
-            log_file (str): Log file path.
+            script_path (str): Path of the script for which logging is being initialized.
         """
-
-        # for log filename and print filepath
         script_name = os.path.splitext(os.path.basename(script_path))[0]
-
         timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         self.log_file = f"./logs/{timestamp}_{script_name}.log"
-
-        # ensure exists
         os.makedirs("./logs", exist_ok=True)
 
         handlers = [
-            # aws cloudwatch monitors stdout and stderr and can auto pick them up
             logging.StreamHandler(sys.stdout),
             logging.FileHandler(filename=self.log_file, mode="w"),  # write to file
         ]
@@ -126,7 +114,6 @@ class Chronicler:
         logging.info(ascii_banner)
         logging.info(f"Logging initialized for {script_path}")
 
-        # get git info
         git_info = GitInfo(repo_path="./")
         git_meta = git_info.get_info()
         logging.info(f"git branch: {git_meta['branch']}")
@@ -136,11 +123,12 @@ class Chronicler:
         )
 
 
-def init_chronicler():
-    """Initializes the Chronicler class.
+def init_chronicler() -> Chronicler:
+    """
+    Initializes and returns an instance of the Chronicler class.
 
     Returns:
-        Chronicler: A Chronicler instance
+        Chronicler: An instance of the Chronicler class.
     """
     current_script_path = os.path.abspath(__file__)  # "/myproject/run.py"
     return Chronicler(current_script_path)
