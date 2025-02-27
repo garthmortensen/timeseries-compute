@@ -11,6 +11,24 @@ from tabulate import tabulate  # pretty print dfs
 
 
 class PriceSeriesGenerator:
+    """
+    Class generates a series of prices for given tickers over a specified date range.
+
+    Attributes:
+        start_date (str): The start date of the price series in YYYY-MM-DD format.
+        end_date (str): The end date of the price series in YYYY-MM-DD format.
+        dates (pd.DatetimeIndex): A range of dates from start_date to end_date, including only weekdays.
+
+    Methods:
+        __init__(start_date: str, end_date: str):
+            Initializes the PriceSeriesGenerator with the given date range.
+
+        generate_prices(anchor_prices: dict) -> Tuple[dict, pd.DataFrame]:
+            Generates a series of prices for the given tickers with initial prices.
+                anchor_prices (dict): A dictionary where keys are tickers and values are initial prices.
+                dict: A dictionary where keys are tickers and values are lists of generated prices.
+                pd.DataFrame: A DataFrame containing the generated price series for all tickers.
+    """
     def __init__(self, start_date: str, end_date: str):
         """
         Given data range, initialize the generator
@@ -30,7 +48,7 @@ class PriceSeriesGenerator:
 
     def generate_prices(self, anchor_prices: dict):
         """
-        create price series for given tickers with initial prices
+        Create price series for given tickers with initial prices.
 
         Args:
             anchor_prices (dict): keys = tickers, values = initial prices
@@ -59,6 +77,20 @@ class PriceSeriesGenerator:
 
 
 def generate_price_series(config):
+    """
+    Generates a series of price data based on the provided configuration.
+
+    Args:
+        config (object): Configuration object containing the following attributes:
+            - data_generator.start_date (str): The start date for the price series.
+            - data_generator.end_date (str): The end date for the price series.
+            - data_generator.anchor_prices (list): A list of anchor prices to base the generation on.
+
+    Returns:
+        tuple: A tuple containing:
+            - price_dict (dict): A dictionary of generated prices.
+            - price_df (pandas.DataFrame): A DataFrame of generated prices.
+    """
     l.info("Generating price series data")
     generator = PriceSeriesGenerator(
         start_date=config.data_generator.start_date,

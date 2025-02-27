@@ -9,21 +9,30 @@ import subprocess
 
 
 class GitInfo:
-    """
-    A class to retrieve Git branch, commit hash, and repo state.
+    """A class to retrieve Git branch, commit hash, and repo state.
     """
 
     def __init__(self, repo_path="./"):
+        """Initializes the GitInfo class.
+
+        Args:
+            repo_path (str, optional): Path to the Git repository. Defaults to "./".
+        """
         self.repo_path = repo_path
         self.branch = None
         self.commit_hash = None
         self.is_clean = None
-        self.refresh()
-
-    # FIXME: When running this in a container that lacks .git/, this code throws error.
+        self.update_git_info()
 
     def run_git_command(self, command):
-        """Run a Git command and return the output."""
+        """Run a Git command in the repo.
+
+        Args:
+            command (list): A list of command arguments.
+
+        Returns:
+            str: Git output.
+        """
         try:
             return subprocess.check_output(command, cwd=self.repo_path).strip().decode()
         except subprocess.CalledProcessError:
@@ -31,8 +40,9 @@ class GitInfo:
         except FileNotFoundError:
             return "Not a repo"
 
-    def refresh(self):
-        """Refreshes the Git branch, commit hash, and repo state."""
+    def update_git_info(self):
+        """Gets Updated Git branch, commit hash, and repo state.
+        """
         # branch name
         self.branch = self.run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
         # short hash
@@ -47,8 +57,12 @@ class GitInfo:
         else:  # no uncommitted changes
             self.is_clean = True
 
-    def get_info(self):
-        """Return Git information as a dictionary."""
+    def get_info(self) -> dict:
+        """Return Git information as a dictionary
+
+        Returns:
+            dict: Git information
+        """
         return {
             "branch": self.branch,
             "commit_hash": self.commit_hash,
@@ -70,6 +84,16 @@ class Chronicler:
     """
 
     def __init__(self, script_path):
+        """
+        Initialize the Chronicler class. Method sets up logging for the script.
+
+        Args:
+            script_path (str): Script path for which logging is being initialized.
+
+        Attributes:
+            log_file (str): Log file path.
+        """
+
         # for log filename and print filepath
         script_name = os.path.splitext(os.path.basename(script_path))[0]
 
@@ -113,5 +137,10 @@ class Chronicler:
 
 
 def init_chronicler():
+    """Initializes the Chronicler class.
+
+    Returns:
+        Chronicler: A Chronicler instance
+    """
     current_script_path = os.path.abspath(__file__)  # "/myproject/run.py"
     return Chronicler(current_script_path)
