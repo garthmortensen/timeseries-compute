@@ -10,14 +10,14 @@ from typing import Dict, Any
 
 # Dict[str, Any] bc the config file's structure is unknown
 def read_config_from_fs(config_filename: str) -> Dict[str, Any]:
-    """Load a yml config file from the config directory.
-    #TODO: Add yml validation.
+    """
+    Load a YAML configuration file from the config directory.
 
     Args:
-        config_filename (str): name of the config file
+        config_filename (str): The name of the configuration file.
 
     Returns:
-        dict: config file as a dictionary
+        Dict[str, Any]: The parsed configuration file as a dictionary.
     """
     config_path = os.path.join(os.path.dirname(__file__), "config", config_filename)
     with open(config_path, "r") as f:
@@ -108,8 +108,16 @@ class Config(BaseModel):
     stats_model: StatsModelConfig = Field(default_factory=StatsModelConfig)
 
 
-def load_configuration(config_file):
+def load_configuration(config_file: str) -> Config:
+    """
+    Load and validate the YAML configuration file.
+
+    Args:
+        config_file (str): The name of the configuration file.
+
+    Returns:
+        Config: The validated configuration object.
+    """
     l.info(f"# Loading config_file: {config_file}")
-    config_dict = read_config_from_fs(config_file)
-    config = Config(**config_dict)  # links yml to classes through inheritance
-    return config
+    config_dict: Dict[str, Any] = read_config_from_fs(config_file)
+    return Config(**config_dict)  # ** unpacks the dictionary into keyword args

@@ -37,7 +37,7 @@ class GitInfo:
         self.branch = self.run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
         # short hash
         self.commit_hash = self.run_git_command(["git", "rev-parse", "--short", "HEAD"])
-        
+
         # check if clean, no uncommitted changes
         status_output = self.run_git_command(["git", "status", "--porcelain"])
         if status_output == "Not a repo":
