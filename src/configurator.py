@@ -30,23 +30,25 @@ def read_config_from_fs(config_filename: str) -> Dict[str, Any]:
 
 
 class DataGeneratorConfig(BaseModel):
+    enabled: bool = Field(default=True)  # New field to capture "enabled" parameter
     start_date: str = Field(default="2023-01-01")
     end_date: str = Field(default="2023-12-31")
-    # Dict[str, float] bc the ticker symbol is a string and the price is a float
     anchor_prices: Dict[str, float] = Field(default_factory=dict)
 
 
 class MissingDataHandlerConfig(BaseModel):
+    enabled: bool = Field(default=True)
     strategy: str = Field(default="forward_fill")
 
 
 class ScalingConfig(BaseModel):
+    enabled: bool = Field(default=True)
     method: str = Field(default="standardize")
 
 
 class MakeStationarityConfig(BaseModel):
+    enabled: bool = Field(default=True)
     method: str = Field(default="difference")
-
 
 class TestStationarityConfig(BaseModel):
     method: str = Field(default="ADF")
@@ -64,7 +66,6 @@ class DataProcessorConfig(BaseModel):
         default_factory=TestStationarityConfig
     )
     scaling: ScalingConfig = Field(default_factory=ScalingConfig)
-
 
 class ARIMAConfig(BaseModel):
     # lambda used to set default dictionary values

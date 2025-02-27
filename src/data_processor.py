@@ -94,6 +94,10 @@ def fill_data(df: pd.DataFrame, config) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The DataFrame with missing values handled according to the specified strategy.
     """
+    if not config.data_processor.handle_missing_values.enabled:
+        l.info("Skipping missing data handling as it is disabled in config.")
+        return df  # Return original data without modification
+
     l.info("\n# Processing: handling missing values")
     handler_missing = MissingDataHandlerFactory.create_handler(
         strategy=config.data_processor.handle_missing_values.strategy
@@ -236,13 +240,14 @@ class StationaryReturnsProcessor:
             Log the interpreted results of the ADF test.
     """
 
-    def make_stationary(self, data: pd.DataFrame, method: str) -> pd.DataFrame:
+    def make_stationary(self, data: pd.DataFrame, method: str, config) -> pd.DataFrame:
         """
         Apply the chosen method to make the data stationary.
 
         Args:
             data (pd.DataFrame): The input data to be made stationary.
             method (str): The method to use for making the data stationary. Currently supported method is "difference".
+            config (Any): Configuration object containing parameters for making the data stationary.
 
         Returns:
             pd.DataFrame: The transformed data with the applied stationarity method.
@@ -250,6 +255,10 @@ class StationaryReturnsProcessor:
         Raises:
             ValueError: If an unknown method is provided.
         """
+        if not config.data_processor.make_stationary.enabled:
+            l.info("Skipping stationarity transformation as it is disabled in config.")
+            return data
+
         l.info(f"Applying stationarity method: {method}")
         numeric_columns = data.select_dtypes(include=[np.number]).columns
 
@@ -385,7 +394,7 @@ def stationarize_data(df: pd.DataFrame, config) -> pd.DataFrame:
     l.info("\n# Processing: making data stationary")
     stationary_returns_processor = StationaryReturnsProcessor()
     df_stationary = stationary_returns_processor.make_stationary(
-        data=df, method=config.data_processor.make_stationary.method
+        data=df, method=config.data_processor.make_stationary.method, config=config
     )
     return df_stationary
 

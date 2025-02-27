@@ -5,6 +5,7 @@ metadata:
   environment: "dev"
 
 data_generator:
+  enabled: True
   start_date: "2023-01-01"
   end_date: "2023-02-01"
   anchor_prices:
@@ -14,8 +15,10 @@ data_generator:
 
 data_processor:
   handle_missing_values:
+    enabled: True
     strategy: "drop"  # options: drop, forward_fill
   make_stationary:
+    enabled: True
     method: "difference"  # options: difference, log
   test_stationarity:
     method: "ADF"

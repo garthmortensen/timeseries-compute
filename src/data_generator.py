@@ -83,15 +83,20 @@ def generate_price_series(config):
 
     Args:
         config (object): Configuration object containing the following attributes:
+            - data_generator.enabled (bool): Whether data generation is enabled.
             - data_generator.start_date (str): The start date for the price series.
             - data_generator.end_date (str): The end date for the price series.
-            - data_generator.anchor_prices (list): A list of anchor prices to base the generation on.
+            - data_generator.anchor_prices (dict): A dictionary of tickers and their initial prices.
 
     Returns:
         tuple: A tuple containing:
-            - price_dict (dict): A dictionary of generated prices.
-            - price_df (pandas.DataFrame): A DataFrame of generated prices.
+            - price_dict (dict): A dictionary of generated prices (empty if disabled).
+            - price_df (pandas.DataFrame): A DataFrame of generated prices (empty if disabled).
     """
+    if not config.data_generator.enabled:
+        l.info("Data generation is disabled. Skipping price series generation.")
+        return {}, pd.DataFrame()  # Return empty results
+
     l.info("Generating price series data")
     generator = PriceSeriesGenerator(
         start_date=config.data_generator.start_date,
