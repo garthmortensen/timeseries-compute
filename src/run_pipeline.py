@@ -79,5 +79,6 @@ def main():
         f"\nexecution time (HH:MM:SS): {int(hours):02}:{int(minutes):02}:{int(seconds):02}"
     )
 
+
 if __name__ == "__main__":
     main()

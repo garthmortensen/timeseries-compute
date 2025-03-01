@@ -50,6 +50,7 @@ class MakeStationarityConfig(BaseModel):
     enabled: bool = Field(default=True)
     method: str = Field(default="difference")
 
+
 class TestStationarityConfig(BaseModel):
     method: str = Field(default="ADF")
     p_value_threshold: float = Field(default=0.05)
@@ -66,6 +67,7 @@ class DataProcessorConfig(BaseModel):
         default_factory=TestStationarityConfig
     )
     scaling: ScalingConfig = Field(default_factory=ScalingConfig)
+
 
 class ARIMAConfig(BaseModel):
     # lambda used to set default dictionary values
