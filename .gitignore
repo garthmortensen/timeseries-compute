@@ -12,3 +12,6 @@ config/
 
 # hidden
 src/config/.env
+
+# sphinx autodoc
+docs/build/
