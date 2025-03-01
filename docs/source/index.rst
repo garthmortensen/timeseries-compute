@@ -6,12 +6,24 @@
 GARCH Project documentation
 ===========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+Welcome to the GARCH Project documentation. This project aims to provide a comprehensive guide to using the GARCH model for financial time series analysis.
 
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   introduction
+   installation
+   usage
+   api
+   modules
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
