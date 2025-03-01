@@ -1,5 +1,5 @@
 # config.yml
-# validate with pydantic
+
 metadata:
   version: 1.0
   environment: "dev"
@@ -28,7 +28,7 @@ data_processor:
 
 stats_model:
   ARIMA:
-    enabled: False
+    enabled: True
     parameters_fit:
       p: 2
       d: 1
