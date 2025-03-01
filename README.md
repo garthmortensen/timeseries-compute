@@ -1,6 +1,6 @@
 ![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_pytest.yml/badge.svg)
 
-![Read the Docs](https://img.shields.io/readthedocs/garch?style=social)
+![Read the Docs](https://img.shields.io/readthedocs/garch)
 
 
 # Productionalize Thesis Project
@@ -10,6 +10,12 @@ Build a py production-level model pipeline from scratch, deployed on the cloud.
 Take pdf writings and convert entirely. Then add supplementary generalized code.
 
 [archive source](https://github.com/garthmortensen/finance/tree/master/15_thesis)
+
+## Documentation
+
+Documentation available at:  
+
+[https://garch.readthedocs.io/en/latest/](https://garch.readthedocs.io/en/latest/)
 
 ## tech stack
 
