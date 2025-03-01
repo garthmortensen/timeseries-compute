@@ -5,7 +5,6 @@ venv/
 
 # django
 api/
-docs/
 logs/
 manage.py
 missfont.log
@@ -13,4 +12,3 @@ config/
 
 # hidden
 src/config/.env
-
