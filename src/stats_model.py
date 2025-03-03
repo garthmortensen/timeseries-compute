@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # stats_model.py
 
-# handle relative directory imports for chronicler
 import logging as l
 
 # handle data transformation and preparation tasks
