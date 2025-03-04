@@ -5,8 +5,6 @@ import logging as l
 
 # handle data transformation and preparation tasks
 import pandas as pd
-import numpy as np
-from tabulate import tabulate  # pretty print dfs
 
 # import model specific libraries
 from statsmodels.tsa.arima.model import ARIMA
@@ -14,7 +12,6 @@ from arch import arch_model
 
 # type hinting
 from typing import Dict, Any, Tuple
-
 
 class ModelARIMA:
     """
@@ -125,15 +122,6 @@ def run_arima(
     l.info(f"arima_forecast: {arima_forecast}")
 
     return arima_fit, arima_forecast
-
-
-import logging as l
-import pandas as pd
-import numpy as np
-from statsmodels.tsa.stattools import adfuller
-from tabulate import tabulate
-from typing import Dict
-from arch import arch_model
 
 
 class ModelGARCH:

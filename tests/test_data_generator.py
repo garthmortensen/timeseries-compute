@@ -2,7 +2,7 @@
 
 import pytest
 import pandas as pd
-from src.data_generator import PriceSeriesGenerator
+from generalized_timeseries.data_generator import PriceSeriesGenerator
 
 
 def test_price_series_generator_initialization():

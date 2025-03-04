@@ -2,7 +2,7 @@
 
 import pytest
 import pandas as pd
-from src.data_processor import MissingDataHandler, MissingDataHandlerFactory
+from generalized_timeseries.data_processor import MissingDataHandler, MissingDataHandlerFactory
 
 @pytest.fixture
 def sample_data():

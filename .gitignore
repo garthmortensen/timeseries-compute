@@ -3,15 +3,7 @@ __pycache__/
 
 venv/
 
-# django
-api/
-logs/
-manage.py
-missfont.log
-config/
-
-# hidden
-src/config/.env
-
 # sphinx autodoc
 docs/build/
+
+logs/

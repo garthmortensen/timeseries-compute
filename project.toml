@@ -1,0 +1,42 @@
+# project metadata
+[project]
+name = "generalized_timeseries"
+version = "0.1.0"
+authors = [
+    { name="Garth Mortensen", email="mortensengarth@hotmail.com" }
+]
+description = "A package for time series data processing and modeling"
+
+requires-python = ">=3.11"
+license = { text="MIT" }
+
+[tool.setuptools]
+packages = { find = {} }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["generalized_timeseries*"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[project.optional-dependencies]
+# dependencies: development
+# pip install generalized_timeseries[dev]
+dev = [
+    "pytest==8.3.4",
+    "black==24.10.0",
+    "coverage==7.6.12"
+]
+
+# dependencies: docs
+# pip install generalized_timeseries[docs]
+docs = [
+    "Sphinx==8.2.1",
+    "sphinx-rtd-theme==3.0.2"
+]
+
+# build system definition
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
