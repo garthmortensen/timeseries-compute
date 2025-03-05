@@ -3,10 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Generalized Timeseries documentation
+Generalized Timeseries Documentation
 ====================================
 
-Welcome to the Generalized Timeseries Project documentation. This project is a pet project of recreating a thesis in python.
+Welcome to the **Generalized Timeseries** project documentation!  
+This project is a pet project for recreating a thesis in Python, focusing on time series modeling using ARIMA and GARCH.
+
+Project Links
+-------------
+- **PyPI package**: `<https://pypi.org/project/generalized-timeseries/>`_
+- **GitHub source code:** `<https://github.com/garthmortensen/generalized-timeseries>`_
+- **ReadTheDocs**: `<https://generalized-timeseries.readthedocs.io/en/latest/>`_
 
 Contents
 --------
@@ -18,7 +25,7 @@ Contents
    api
    modules
 
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`

@@ -50,7 +50,15 @@ print("ARIMA Forecast:", arima_forecast)
 print("GARCH Forecast:", garch_forecast)
 ```
 
-## Publishing to pypi
+## External resources
+
+https://pypi.org/project/generalized-timeseries/
+
+readthedocs
+
+## Publishing Maintenance
+
+### pypi
 
 ```shell
 pip install --upgrade build
@@ -61,3 +69,7 @@ twine upload dist/
 
 rm -rf dist build *.egg-info # restart if needed
 ```
+
+### readthedocs
+
+www.readthedocs.com, and go from there.
