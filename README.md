@@ -1,5 +1,11 @@
 # Generalized Timeseries
 
+![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_pytest.yml/badge.svg)
+
+![Read the Docs](https://img.shields.io/readthedocs/generalized-timeseries)
+
+![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI)
+
 A package for time series data processing and modeling using ARIMA and GARCH models.
 
 ## Features
