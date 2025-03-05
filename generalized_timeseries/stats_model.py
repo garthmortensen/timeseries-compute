@@ -13,6 +13,7 @@ from arch import arch_model
 # type hinting
 from typing import Dict, Any, Tuple
 
+
 class ModelARIMA:
     """
     Applies the ARIMA (AutoRegressive Integrated Moving Average) model on all columns of a DataFrame.
@@ -230,7 +231,7 @@ class ModelFactory:
         elif model_type.lower() == "garch":
             return ModelGARCH(**kwargs)
         else:
-            raise ValueError(f"Unknown model type: {model_type}")
+            raise ValueError(f"Unsupported model type: {model_type}")
 
 
 def run_garch(

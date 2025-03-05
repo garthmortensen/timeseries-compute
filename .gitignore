@@ -7,3 +7,11 @@ venv/
 docs/build/
 
 logs/
+
+generalized_timeseries.egg-info/
+
+dist/
+
+.github/
+.pytest_cache/
+

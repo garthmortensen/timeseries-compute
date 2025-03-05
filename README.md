@@ -16,6 +16,7 @@ python -m venv venv
 source venv/bin/activate
 pip install generalized-timeseries
 ```
+
 ## Usage
 
 ```python
@@ -41,4 +42,16 @@ garch_forecast = stats_model.forecast_garch(garch_model, steps=10)
 
 print("ARIMA Forecast:", arima_forecast)
 print("GARCH Forecast:", garch_forecast)
+```
+
+## Publishing to pypi
+
+```shell
+pip install --upgrade build
+pip install --upgrade twine
+python -m build  # build the package
+twine check dist/  # check it works
+twine upload dist/
+
+rm -rf dist build *.egg-info # restart if needed
 ```

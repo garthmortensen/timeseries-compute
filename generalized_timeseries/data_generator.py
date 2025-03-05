@@ -23,11 +23,11 @@ class PriceSeriesGenerator:
         __init__(start_date: str, end_date: str):
             Initializes the PriceSeriesGenerator with the given date range.
 
-        generate_prices(anchor_prices: dict) -> Tuple[dict, pd.DataFrame]:
-            Generates a series of prices for the given tickers with initial prices.
-                anchor_prices (dict): A dictionary where keys are tickers and values are initial prices.
-                dict: A dictionary where keys are tickers and values are lists of generated prices.
-                pd.DataFrame: A DataFrame containing the generated price series for all tickers.
+    generate_prices(anchor_prices: dict) -> Tuple[dict, pd.DataFrame]:
+        Generates a series of prices for the given tickers with initial prices.
+            anchor_prices (dict): A dictionary where keys are tickers and values are initial prices.
+            dict: A dictionary where keys are tickers and values are lists of generated prices.
+            pd.DataFrame: A DataFrame containing the generated price series for all tickers.
     """
 
     def __init__(self, start_date: str, end_date: str):
