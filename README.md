@@ -52,9 +52,9 @@ print("GARCH Forecast:", garch_forecast)
 
 ## External resources
 
-https://pypi.org/project/generalized-timeseries/
+[pypi repo](https://pypi.org/project/generalized-timeseries/)
 
-readthedocs
+[readthedocs.io](https://generalized-timeseries.readthedocs.io/en/latest/)
 
 ## Publishing Maintenance
 
@@ -70,6 +70,11 @@ twine upload dist/
 rm -rf dist build *.egg-info # restart if needed
 ```
 
-### readthedocs
+## Publishing via Github Actions
 
-www.readthedocs.com, and go from there.
+Pypi publication occurs when pushing a tag:
+
+```shell
+git tag v0.1.4
+git push origin v0.1.4
+```

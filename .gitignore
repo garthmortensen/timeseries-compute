@@ -3,9 +3,6 @@ __pycache__/
 
 venv/
 
-# sphinx autodoc
-docs/build/
-
 logs/
 
 generalized_timeseries.egg-info/
