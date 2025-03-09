@@ -1,0 +1,611 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>generalized_timeseries.data_processor &mdash; Generalized Timeseries 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Generalized Timeseries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#data-generator">Data Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#data-processor">Data Processor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#stats-model">Stats Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#tests">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Generalized Timeseries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">generalized_timeseries.data_processor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for generalized_timeseries.data_processor</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># data_processor.py</span>
+
+<span class="c1"># handle relative directory imports for chronicler</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">l</span>
+
+<span class="c1"># handle data transformation and preparation tasks</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">statsmodels.tsa.stattools</span><span class="w"> </span><span class="kn">import</span> <span class="n">adfuller</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tabulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">tabulate</span>  <span class="c1"># pretty print dfs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<div class="viewcode-block" id="MissingDataHandler">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.MissingDataHandler">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MissingDataHandler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles missing data through various strategies such as dropping or forward filling.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the MissingDataHandler class.</span>
+<span class="sd">        Logs an ASCII banner for initialization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ascii_banner</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        </span><span class="se">\n</span>
+<span class="s2">        </span><span class="se">\t</span><span class="s2">&gt; MissingDataHandler &lt;</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ascii_banner</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MissingDataHandler.drop_na">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.MissingDataHandler.drop_na">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drop_na</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drops rows with missing values from the given DataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The DataFrame from which to drop rows with missing values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A DataFrame with rows containing missing values removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dropping rows with missing values&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;df filled:&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;keys&quot;</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;fancy_grid&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MissingDataHandler.forward_fill">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.MissingDataHandler.forward_fill">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward_fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fills missing values in the DataFrame using the forward fill method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The DataFrame containing missing values to be filled.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: The DataFrame with missing values filled using forward fill.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Filling missing values with forward fill&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;df filled:&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;keys&quot;</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;fancy_grid&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;ffill&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MissingDataHandlerFactory">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.MissingDataHandlerFactory">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MissingDataHandlerFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory for creating missing data handlers based on a specified strategy.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MissingDataHandlerFactory.create_handler">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.MissingDataHandlerFactory.create_handler">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_handler</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a handler function based on the specified strategy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            strategy (str): The strategy to handle missing data. Options are &quot;drop&quot; or &quot;forward_fill&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Callable[[pd.DataFrame], pd.DataFrame]: A function that handles missing data accordingly.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If an unknown strategy is provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">MissingDataHandler</span><span class="p">()</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating handler for strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;drop&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="o">.</span><span class="n">drop_na</span>
+        <span class="k">elif</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;forward_fill&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="o">.</span><span class="n">forward_fill</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown missing data strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="fill_data">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.fill_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fill_data</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fills missing data in the given DataFrame according to the specified configuration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pd.DataFrame): The DataFrame containing the data to be processed.</span>
+<span class="sd">        config: Configuration object containing the strategy for handling missing values.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: The DataFrame with missing values handled according to the specified strategy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">handle_missing_values</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping missing data handling as it is disabled in config.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span>  <span class="c1"># Return original data without modification</span>
+
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Processing: handling missing values&quot;</span><span class="p">)</span>
+    <span class="n">handler_missing</span> <span class="o">=</span> <span class="n">MissingDataHandlerFactory</span><span class="o">.</span><span class="n">create_handler</span><span class="p">(</span>
+        <span class="n">strategy</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">handle_missing_values</span><span class="o">.</span><span class="n">strategy</span>
+    <span class="p">)</span>
+    <span class="n">df_filled</span> <span class="o">=</span> <span class="n">handler_missing</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_filled</span></div>
+
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tabulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+
+
+<div class="viewcode-block" id="DataScaler">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.DataScaler">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DataScaler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides methods to scale numeric data in a pandas DataFrame.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        scale_data_standardize(data: pd.DataFrame) -&gt; pd.DataFrame:</span>
+<span class="sd">            Standardizes all numeric columns except the index by subtracting the mean and dividing by the standard deviation.</span>
+
+<span class="sd">        scale_data_minmax(data: pd.DataFrame) -&gt; pd.DataFrame:</span>
+<span class="sd">            Scales all numeric columns using MinMaxScaler by dividing each value by the range (max - min) of the column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DataScaler.scale_data_standardize">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.DataScaler.scale_data_standardize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scale_data_standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Standardizes all numeric columns in the given DataFrame except the index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The input DataFrame containing numeric columns to be standardized.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: The DataFrame with standardized numeric columns.</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">            - The standardization is performed by subtracting the mean and dividing by the standard deviation for each numeric column.</span>
+<span class="sd">            - The index of the DataFrame is not modified.</span>
+<span class="sd">            - Logs the process of scaling and displays the first 5 rows of the scaled DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">numeric_columns</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">numeric_columns</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scaling data using standardization&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;df scaled:&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;keys&quot;</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;fancy_grid&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="DataScaler.scale_data_minmax">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.DataScaler.scale_data_minmax">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scale_data_minmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scales the numeric columns of the given DataFrame using Min-Max scaling.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The input DataFrame containing the data to be scaled.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: The DataFrame with scaled numeric columns.</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">            - This function scales each numeric column to a range between 0 and 1.</span>
+<span class="sd">            - Non-numeric columns are not affected by this scaling.</span>
+<span class="sd">            - The function logs the scaling process and the first 5 rows of the scaled DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">numeric_columns</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">numeric_columns</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scaling data using minmax&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;df scaled:&quot;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;keys&quot;</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;fancy_grid&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DataScalerFactory">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.DataScalerFactory">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DataScalerFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory class for creating data scaling handlers based on the specified strategy.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        create_handler(strategy: str) -&gt; Callable[[pd.DataFrame], pd.DataFrame]:</span>
+<span class="sd">            Returns the appropriate scaling function based on the provided strategy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DataScalerFactory.create_handler">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.DataScalerFactory.create_handler">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_handler</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the appropriate scaling function based on the provided strategy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            strategy (str): The scaling strategy to use. Supported values are &quot;standardize&quot; and &quot;minmax&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Callable[[pd.DataFrame], pd.DataFrame]: The scaling function corresponding to the specified strategy.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the provided strategy is not recognized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scaler</span> <span class="o">=</span> <span class="n">DataScaler</span><span class="p">()</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating scaler for strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;standardize&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">scaler</span><span class="o">.</span><span class="n">scale_data_standardize</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;minmax&quot;</span>
+        <span class="p">):</span>  <span class="c1"># TODO: fixme. This turns everything into a constant</span>
+            <span class="k">return</span> <span class="n">scaler</span><span class="o">.</span><span class="n">scale_data_minmax</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown data scaling strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="scale_data">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.scale_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">scale_data</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scales the input DataFrame according to the specified configuration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pd.DataFrame): The input data to be scaled.</span>
+<span class="sd">        config: Configuration object containing scaling method details.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: The scaled DataFrame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Processing: scaling data&quot;</span><span class="p">)</span>
+    <span class="n">handler_scaler</span> <span class="o">=</span> <span class="n">DataScalerFactory</span><span class="o">.</span><span class="n">create_handler</span><span class="p">(</span>
+        <span class="n">strategy</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">scaling</span><span class="o">.</span><span class="n">method</span>
+    <span class="p">)</span>
+    <span class="n">df_scaled</span> <span class="o">=</span> <span class="n">handler_scaler</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_scaled</span></div>
+
+
+
+<div class="viewcode-block" id="StationaryReturnsProcessor">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.StationaryReturnsProcessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StationaryReturnsProcessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to process and test the stationarity of time series data.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        make_stationary(data: pd.DataFrame, method: str) -&gt; pd.DataFrame:</span>
+<span class="sd">            Apply the chosen method to make the data stationary.</span>
+
+<span class="sd">        test_stationarity(data: pd.DataFrame, test: str) -&gt; Dict[str, Dict[str, float]]:</span>
+<span class="sd">            Perform the Augmented Dickey-Fuller test to check for stationarity.</span>
+
+<span class="sd">        log_adf_results(data: Dict[str, Dict[str, float]], p_value_threshold: float) -&gt; None:</span>
+<span class="sd">            Log the interpreted results of the ADF test.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StationaryReturnsProcessor.make_stationary">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.StationaryReturnsProcessor.make_stationary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_stationary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the chosen method to make the data stationary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The input data to be made stationary.</span>
+<span class="sd">            method (str): The method to use for making the data stationary. Currently supported method is &quot;difference&quot;.</span>
+<span class="sd">            config (Any): Configuration object containing parameters for making the data stationary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: The transformed data with the applied stationarity method.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If an unknown method is provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">make_stationary</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping stationarity transformation as it is disabled in config.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Applying stationarity method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">numeric_columns</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;difference&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">numeric_columns</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">_diff&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown make_stationary method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;keys&quot;</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;fancy_grid&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="StationaryReturnsProcessor.test_stationarity">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.StationaryReturnsProcessor.test_stationarity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_stationarity</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the Augmented Dickey-Fuller (ADF) test for stationarity on the given data.</span>
+
+<span class="sd">        The null hypothesis (H0) is that the series is non-stationary (has a unit root).</span>
+<span class="sd">        The alternative hypothesis (H1) is that the series is stationary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The input data containing time series to be tested.</span>
+<span class="sd">            test (str): The type of stationarity test to perform. Currently, only &quot;adf&quot; is supported.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Dict[str, float]]: A dictionary where keys are column names and values are dictionaries containing</span>
+<span class="sd">                the ADF Statistic and p-value for each numeric column in the input data.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If an unsupported stationarity test is specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">test</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;adf&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported stationarity test: </span><span class="si">{</span><span class="n">test</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test_stationarity: </span><span class="si">{</span><span class="n">test</span><span class="si">}</span><span class="s2"> test for stationarity&quot;</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">numeric_columns</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">numeric_columns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Column </span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2"> contains NaN or Inf values. Skipping ADF test.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">adfuller</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">])</span>
+                <span class="n">results</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ADF Statistic&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;p-value&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results: </span><span class="si">{</span><span class="n">results</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="StationaryReturnsProcessor.log_adf_results">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.StationaryReturnsProcessor.log_adf_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_adf_results</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">p_value_threshold</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs interpreted Augmented Dickey-Fuller (ADF) test results.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, Dict[str, float]]): A dictionary where keys are series names and values are dictionaries containing ADF test results.</span>
+<span class="sd">                Each value dictionary should have the keys &quot;ADF Statistic&quot; and &quot;p-value&quot;.</span>
+<span class="sd">            p_value_threshold (float): The threshold for the p-value to determine if the series is stationary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">series_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">adf_stat</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;ADF Statistic&quot;</span><span class="p">]</span>
+            <span class="n">p_value</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;p-value&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">p_value</span> <span class="o">&lt;</span> <span class="n">p_value_threshold</span><span class="p">:</span>
+                <span class="n">interpretation</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;p_value </span><span class="si">{</span><span class="n">p_value</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> &lt; p_value_threshold </span><span class="si">{</span><span class="n">p_value_threshold</span><span class="si">}</span><span class="s2">. Data is stationary (reject null hypothesis).&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">interpretation</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;p_value </span><span class="si">{</span><span class="n">p_value</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> &gt;= p_value_threshold </span><span class="si">{</span><span class="n">p_value_threshold</span><span class="si">}</span><span class="s2">. Data is non-stationary (fail to reject null hypothesis).&quot;</span>
+
+            <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;series_name: </span><span class="si">{</span><span class="n">series_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;   adf_stat: </span><span class="si">{</span><span class="n">adf_stat</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;   p_value: </span><span class="si">{</span><span class="n">p_value</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;   interpretation: </span><span class="si">{</span><span class="n">interpretation</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StationaryReturnsProcessorFactory">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.StationaryReturnsProcessorFactory">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StationaryReturnsProcessorFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory class for creating handlers for stationary returns processing strategies.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        create_handler(strategy: str) -&gt; Callable:</span>
+<span class="sd">            Returns the appropriate processing function based on the provided strategy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StationaryReturnsProcessorFactory.create_handler">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.StationaryReturnsProcessorFactory.create_handler">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_handler</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the appropriate processing function based on the provided strategy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            strategy (str): The name of the strategy for which the processing function is to be created.</span>
+<span class="sd">                Supported strategies are:</span>
+<span class="sd">                - &quot;transform_to_stationary_returns&quot;</span>
+<span class="sd">                - &quot;test_stationarity&quot;</span>
+<span class="sd">                - &quot;log_stationarity&quot;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Callable: The appropriate processing function.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If an unknown strategy is provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stationary_returns_processor</span> <span class="o">=</span> <span class="n">StationaryReturnsProcessor</span><span class="p">()</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating processor for strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;transform_to_stationary_returns&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stationary_returns_processor</span>
+        <span class="k">elif</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;test_stationarity&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stationary_returns_processor</span>
+        <span class="k">elif</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;log_stationarity&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stationary_returns_processor</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown stationary returns processing strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="stationarize_data">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.stationarize_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stationarize_data</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processes the given DataFrame to make the data stationary.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pd.DataFrame): The input data to be made stationary.</span>
+<span class="sd">        config: Configuration object containing the method to be used for making the data stationary.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: The stationary version of the input data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Processing: making data stationary&quot;</span><span class="p">)</span>
+    <span class="n">stationary_returns_processor</span> <span class="o">=</span> <span class="n">StationaryReturnsProcessor</span><span class="p">()</span>
+    <span class="n">df_stationary</span> <span class="o">=</span> <span class="n">stationary_returns_processor</span><span class="o">.</span><span class="n">make_stationary</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">make_stationary</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_stationary</span></div>
+
+
+
+<div class="viewcode-block" id="test_stationarity">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.test_stationarity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_stationarity</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tests the stationarity of a given DataFrame using the specified configuration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pd.DataFrame): The DataFrame containing the data to be tested for stationarity.</span>
+<span class="sd">        config: Configuration object containing the method to be used for testing stationarity.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict[str, Dict[str, float]]: Results of the stationarity test.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Testing: stationarity&quot;</span><span class="p">)</span>
+    <span class="n">stationary_returns_processor</span> <span class="o">=</span> <span class="n">StationaryReturnsProcessorFactory</span><span class="o">.</span><span class="n">create_handler</span><span class="p">(</span>
+        <span class="s2">&quot;test_stationarity&quot;</span>
+    <span class="p">)</span>
+    <span class="n">adf_results</span> <span class="o">=</span> <span class="n">stationary_returns_processor</span><span class="o">.</span><span class="n">test_stationarity</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">test_stationarity</span><span class="o">.</span><span class="n">method</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">adf_results</span></div>
+
+
+
+<div class="viewcode-block" id="log_stationarity">
+<a class="viewcode-back" href="../../data_processor.html#generalized_timeseries.data_processor.log_stationarity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">log_stationarity</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Logs the stationarity of the given DataFrame using the Augmented Dickey-Fuller (ADF) test.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pd.DataFrame): The DataFrame containing the data to be tested for stationarity.</span>
+<span class="sd">        config: Configuration object containing the parameters for the stationarity test.</span>
+<span class="sd">            - config.data_processor.test_stationarity.p_value_threshold (float): The p-value threshold for the ADF test.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Logging: stationarity&quot;</span><span class="p">)</span>
+    <span class="n">stationary_returns_processor</span> <span class="o">=</span> <span class="n">StationaryReturnsProcessorFactory</span><span class="o">.</span><span class="n">create_handler</span><span class="p">(</span>
+        <span class="s2">&quot;log_stationarity&quot;</span>
+    <span class="p">)</span>
+    <span class="n">stationary_returns_processor</span><span class="o">.</span><span class="n">log_adf_results</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+        <span class="n">p_value_threshold</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_processor</span><span class="o">.</span><span class="n">test_stationarity</span><span class="o">.</span><span class="n">p_value_threshold</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Garth Mortensen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

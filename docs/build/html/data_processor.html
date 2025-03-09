@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_processor module &mdash; Generalized Timeseries 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="stats_model module" href="stats_model.html" />
+    <link rel="prev" title="data_generator module" href="data_generator.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Generalized Timeseries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#data-generator">Data Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#data-processor">Data Processor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#stats-model">Stats Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#tests">Tests</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data_generator.html">data_generator module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">data_processor module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.DataScaler"><code class="docutils literal notranslate"><span class="pre">DataScaler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.DataScaler.scale_data_minmax"><code class="docutils literal notranslate"><span class="pre">DataScaler.scale_data_minmax()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.DataScaler.scale_data_standardize"><code class="docutils literal notranslate"><span class="pre">DataScaler.scale_data_standardize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.DataScalerFactory"><code class="docutils literal notranslate"><span class="pre">DataScalerFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.DataScalerFactory.create_handler"><code class="docutils literal notranslate"><span class="pre">DataScalerFactory.create_handler()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.MissingDataHandler"><code class="docutils literal notranslate"><span class="pre">MissingDataHandler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.MissingDataHandler.drop_na"><code class="docutils literal notranslate"><span class="pre">MissingDataHandler.drop_na()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.MissingDataHandler.forward_fill"><code class="docutils literal notranslate"><span class="pre">MissingDataHandler.forward_fill()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.MissingDataHandlerFactory"><code class="docutils literal notranslate"><span class="pre">MissingDataHandlerFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.MissingDataHandlerFactory.create_handler"><code class="docutils literal notranslate"><span class="pre">MissingDataHandlerFactory.create_handler()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor"><code class="docutils literal notranslate"><span class="pre">StationaryReturnsProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor.log_adf_results"><code class="docutils literal notranslate"><span class="pre">StationaryReturnsProcessor.log_adf_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor.make_stationary"><code class="docutils literal notranslate"><span class="pre">StationaryReturnsProcessor.make_stationary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor.test_stationarity"><code class="docutils literal notranslate"><span class="pre">StationaryReturnsProcessor.test_stationarity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.StationaryReturnsProcessorFactory"><code class="docutils literal notranslate"><span class="pre">StationaryReturnsProcessorFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.data_processor.StationaryReturnsProcessorFactory.create_handler"><code class="docutils literal notranslate"><span class="pre">StationaryReturnsProcessorFactory.create_handler()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.fill_data"><code class="docutils literal notranslate"><span class="pre">fill_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.log_stationarity"><code class="docutils literal notranslate"><span class="pre">log_stationarity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.scale_data"><code class="docutils literal notranslate"><span class="pre">scale_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.stationarize_data"><code class="docutils literal notranslate"><span class="pre">stationarize_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.data_processor.test_stationarity"><code class="docutils literal notranslate"><span class="pre">test_stationarity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="stats_model.html">stats_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Generalized Timeseries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">data_processor module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data_processor.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-generalized_timeseries.data_processor">
+<span id="data-processor-module"></span><h1>data_processor module<a class="headerlink" href="#module-generalized_timeseries.data_processor" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.DataScaler">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">DataScaler</span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#DataScaler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.DataScaler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Provides methods to scale numeric data in a pandas DataFrame.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">scale_data_standardize(data</span></span></dt>
+<dd><p>pd.DataFrame) -&gt; pd.DataFrame:
+Standardizes all numeric columns except the index by subtracting the mean and dividing by the standard deviation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">scale_data_minmax(data</span></span></dt>
+<dd><p>pd.DataFrame) -&gt; pd.DataFrame:
+Scales all numeric columns using MinMaxScaler by dividing each value by the range (max - min) of the column.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.DataScaler.scale_data_minmax">
+<span class="sig-name descname"><span class="pre">scale_data_minmax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#DataScaler.scale_data_minmax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.DataScaler.scale_data_minmax" title="Link to this definition"></a></dt>
+<dd><p>Scales the numeric columns of the given DataFrame using Min-Max scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pd.DataFrame</em>) – The input DataFrame containing the data to be scaled.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The DataFrame with scaled numeric columns.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>This function scales each numeric column to a range between 0 and 1.</p></li>
+<li><p>Non-numeric columns are not affected by this scaling.</p></li>
+<li><p>The function logs the scaling process and the first 5 rows of the scaled DataFrame.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.DataScaler.scale_data_standardize">
+<span class="sig-name descname"><span class="pre">scale_data_standardize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#DataScaler.scale_data_standardize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.DataScaler.scale_data_standardize" title="Link to this definition"></a></dt>
+<dd><p>Standardizes all numeric columns in the given DataFrame except the index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pd.DataFrame</em>) – The input DataFrame containing numeric columns to be standardized.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The DataFrame with standardized numeric columns.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The standardization is performed by subtracting the mean and dividing by the standard deviation for each numeric column.</p></li>
+<li><p>The index of the DataFrame is not modified.</p></li>
+<li><p>Logs the process of scaling and displays the first 5 rows of the scaled DataFrame.</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.DataScalerFactory">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">DataScalerFactory</span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#DataScalerFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.DataScalerFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Factory class for creating data scaling handlers based on the specified strategy.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">create_handler(strategy</span></span></dt>
+<dd><p>str) -&gt; Callable[[pd.DataFrame], pd.DataFrame]:
+Returns the appropriate scaling function based on the provided strategy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.DataScalerFactory.create_handler">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#DataScalerFactory.create_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.DataScalerFactory.create_handler" title="Link to this definition"></a></dt>
+<dd><p>Returns the appropriate scaling function based on the provided strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>strategy</strong> (<em>str</em>) – The scaling strategy to use. Supported values are “standardize” and “minmax”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The scaling function corresponding to the specified strategy.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable[[pd.DataFrame], pd.DataFrame]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided strategy is not recognized.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.MissingDataHandler">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">MissingDataHandler</span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#MissingDataHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.MissingDataHandler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handles missing data through various strategies such as dropping or forward filling.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.MissingDataHandler.drop_na">
+<span class="sig-name descname"><span class="pre">drop_na</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#MissingDataHandler.drop_na"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.MissingDataHandler.drop_na" title="Link to this definition"></a></dt>
+<dd><p>Drops rows with missing values from the given DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pd.DataFrame</em>) – The DataFrame from which to drop rows with missing values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A DataFrame with rows containing missing values removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.MissingDataHandler.forward_fill">
+<span class="sig-name descname"><span class="pre">forward_fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#MissingDataHandler.forward_fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.MissingDataHandler.forward_fill" title="Link to this definition"></a></dt>
+<dd><p>Fills missing values in the DataFrame using the forward fill method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pd.DataFrame</em>) – The DataFrame containing missing values to be filled.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The DataFrame with missing values filled using forward fill.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.MissingDataHandlerFactory">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">MissingDataHandlerFactory</span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#MissingDataHandlerFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.MissingDataHandlerFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Factory for creating missing data handlers based on a specified strategy.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.MissingDataHandlerFactory.create_handler">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#MissingDataHandlerFactory.create_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.MissingDataHandlerFactory.create_handler" title="Link to this definition"></a></dt>
+<dd><p>Creates a handler function based on the specified strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>strategy</strong> (<em>str</em>) – The strategy to handle missing data. Options are “drop” or “forward_fill”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A function that handles missing data accordingly.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable[[pd.DataFrame], pd.DataFrame]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If an unknown strategy is provided.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.StationaryReturnsProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">StationaryReturnsProcessor</span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#StationaryReturnsProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to process and test the stationarity of time series data.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">make_stationary(data</span></span></dt>
+<dd><p>pd.DataFrame, method: str) -&gt; pd.DataFrame:
+Apply the chosen method to make the data stationary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">test_stationarity(data</span></span></dt>
+<dd><p>pd.DataFrame, test: str) -&gt; Dict[str, Dict[str, float]]:
+Perform the Augmented Dickey-Fuller test to check for stationarity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">log_adf_results(data</span></span></dt>
+<dd><p>Dict[str, Dict[str, float]], p_value_threshold: float) -&gt; None:
+Log the interpreted results of the ADF test.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.StationaryReturnsProcessor.log_adf_results">
+<span class="sig-name descname"><span class="pre">log_adf_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_value_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#StationaryReturnsProcessor.log_adf_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor.log_adf_results" title="Link to this definition"></a></dt>
+<dd><p>Logs interpreted Augmented Dickey-Fuller (ADF) test results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>]</em>) – A dictionary where keys are series names and values are dictionaries containing ADF test results.
+Each value dictionary should have the keys “ADF Statistic” and “p-value”.</p></li>
+<li><p><strong>p_value_threshold</strong> (<em>float</em>) – The threshold for the p-value to determine if the series is stationary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.StationaryReturnsProcessor.make_stationary">
+<span class="sig-name descname"><span class="pre">make_stationary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#StationaryReturnsProcessor.make_stationary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor.make_stationary" title="Link to this definition"></a></dt>
+<dd><p>Apply the chosen method to make the data stationary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – The input data to be made stationary.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – The method to use for making the data stationary. Currently supported method is “difference”.</p></li>
+<li><p><strong>config</strong> (<em>Any</em>) – Configuration object containing parameters for making the data stationary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The transformed data with the applied stationarity method.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If an unknown method is provided.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.StationaryReturnsProcessor.test_stationarity">
+<span class="sig-name descname"><span class="pre">test_stationarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#StationaryReturnsProcessor.test_stationarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.StationaryReturnsProcessor.test_stationarity" title="Link to this definition"></a></dt>
+<dd><p>Perform the Augmented Dickey-Fuller (ADF) test for stationarity on the given data.</p>
+<p>The null hypothesis (H0) is that the series is non-stationary (has a unit root).
+The alternative hypothesis (H1) is that the series is stationary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – The input data containing time series to be tested.</p></li>
+<li><p><strong>test</strong> (<em>str</em>) – The type of stationarity test to perform. Currently, only “adf” is supported.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dictionary where keys are column names and values are dictionaries containing</dt><dd><p>the ADF Statistic and p-value for each numeric column in the input data.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Dict[str, float]]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If an unsupported stationarity test is specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.StationaryReturnsProcessorFactory">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">StationaryReturnsProcessorFactory</span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#StationaryReturnsProcessorFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.StationaryReturnsProcessorFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Factory class for creating handlers for stationary returns processing strategies.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">create_handler(strategy</span></span></dt>
+<dd><p>str) -&gt; Callable:
+Returns the appropriate processing function based on the provided strategy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.StationaryReturnsProcessorFactory.create_handler">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#StationaryReturnsProcessorFactory.create_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.StationaryReturnsProcessorFactory.create_handler" title="Link to this definition"></a></dt>
+<dd><p>Returns the appropriate processing function based on the provided strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>strategy</strong> (<em>str</em>) – The name of the strategy for which the processing function is to be created.
+Supported strategies are:
+- “transform_to_stationary_returns”
+- “test_stationarity”
+- “log_stationarity”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The appropriate processing function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If an unknown strategy is provided.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.fill_data">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">fill_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#fill_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.fill_data" title="Link to this definition"></a></dt>
+<dd><p>Fills missing data in the given DataFrame according to the specified configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The DataFrame containing the data to be processed.</p></li>
+<li><p><strong>config</strong> – Configuration object containing the strategy for handling missing values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The DataFrame with missing values handled according to the specified strategy.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.log_stationarity">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">log_stationarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#log_stationarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.log_stationarity" title="Link to this definition"></a></dt>
+<dd><p>Logs the stationarity of the given DataFrame using the Augmented Dickey-Fuller (ADF) test.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The DataFrame containing the data to be tested for stationarity.</p></li>
+<li><p><strong>config</strong> – Configuration object containing the parameters for the stationarity test.
+- config.data_processor.test_stationarity.p_value_threshold (float): The p-value threshold for the ADF test.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.scale_data">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">scale_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#scale_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.scale_data" title="Link to this definition"></a></dt>
+<dd><p>Scales the input DataFrame according to the specified configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The input data to be scaled.</p></li>
+<li><p><strong>config</strong> – Configuration object containing scaling method details.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The scaled DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.stationarize_data">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">stationarize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#stationarize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.stationarize_data" title="Link to this definition"></a></dt>
+<dd><p>Processes the given DataFrame to make the data stationary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The input data to be made stationary.</p></li>
+<li><p><strong>config</strong> – Configuration object containing the method to be used for making the data stationary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The stationary version of the input data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.data_processor.test_stationarity">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.data_processor.</span></span><span class="sig-name descname"><span class="pre">test_stationarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/data_processor.html#test_stationarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.data_processor.test_stationarity" title="Link to this definition"></a></dt>
+<dd><p>Tests the stationarity of a given DataFrame using the specified configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The DataFrame containing the data to be tested for stationarity.</p></li>
+<li><p><strong>config</strong> – Configuration object containing the method to be used for testing stationarity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Results of the stationarity test.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Dict[str, float]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_generator.html" class="btn btn-neutral float-left" title="data_generator module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="stats_model.html" class="btn btn-neutral float-right" title="stats_model module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Garth Mortensen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

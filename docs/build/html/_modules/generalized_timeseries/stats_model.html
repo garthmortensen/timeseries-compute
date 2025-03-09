@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>generalized_timeseries.stats_model &mdash; Generalized Timeseries 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Generalized Timeseries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#data-generator">Data Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#data-processor">Data Processor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#stats-model">Stats Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#tests">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Generalized Timeseries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">generalized_timeseries.stats_model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for generalized_timeseries.stats_model</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># stats_model.py</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">l</span>
+
+<span class="c1"># handle data transformation and preparation tasks</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># import model specific libraries</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">statsmodels.tsa.arima.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ARIMA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arch</span><span class="w"> </span><span class="kn">import</span> <span class="n">arch_model</span>
+
+<span class="c1"># type hinting</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<div class="viewcode-block" id="ModelARIMA">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelARIMA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelARIMA</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies the ARIMA (AutoRegressive Integrated Moving Average) model on all columns of a DataFrame.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        data (pd.DataFrame): The input data on which ARIMA models will be applied.</span>
+<span class="sd">        order (Tuple[int, int, int]): The (p, d, q) order of the ARIMA model.</span>
+<span class="sd">        steps (int): The number of steps to forecast.</span>
+<span class="sd">        models (Dict[str, ARIMA]): A dictionary to store ARIMA models for each column.</span>
+<span class="sd">        fits (Dict[str, ARIMA]): A dictionary to store fitted ARIMA models for each column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the ARIMA model with the given data, order, and steps.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The input data for the ARIMA model.</span>
+<span class="sd">            order (Tuple[int, int, int]): The (p, d, q) order of the ARIMA model.</span>
+<span class="sd">            steps (int): The number of steps to forecast.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ascii_banner</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        </span><span class="se">\n</span>
+<span class="s2">        </span><span class="se">\t</span><span class="s2">&gt; ARIMA &lt;</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ascii_banner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="n">steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ARIMA</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Store models for each column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ARIMA</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Store fits for each column</span>
+
+<div class="viewcode-block" id="ModelARIMA.fit">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelARIMA.fit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ARIMA</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fits an ARIMA model to each column in the dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, ARIMA]: A dictionary where the keys are column names and the values are the</span>
+<span class="sd">                fitted ARIMA models for each column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">ARIMA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fits</span></div>
+
+
+<div class="viewcode-block" id="ModelARIMA.summary">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelARIMA.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the model summaries for all columns.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, str]: A dictionary containing the model summaries for each column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">summaries</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">fit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">summaries</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">summaries</span></div>
+
+
+<div class="viewcode-block" id="ModelARIMA.forecast">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelARIMA.forecast">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates forecasts for each fitted model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, float]: A dictionary where the keys are the column names and the values</span>
+<span class="sd">                are the forecasted values for the first step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">forecasts</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">fit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">forecasts</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">forecast</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">forecasts</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="run_arima">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.run_arima">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_arima</span><span class="p">(</span>
+    <span class="n">df_stationary</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the ARIMA model on the provided stationary DataFrame using the given configuration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df_stationary (pd.DataFrame): The stationary DataFrame to be used for ARIMA modeling.</span>
+<span class="sd">        config: Configuration object containing ARIMA parameters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple[Dict[str, object], Dict[str, float]]: A tuple containing the fitted ARIMA model and the forecasted values.</span>
+
+<span class="sd">    Logs:</span>
+<span class="sd">        Logs the ARIMA model summary and forecasted values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">## Running ARIMA&quot;</span><span class="p">)</span>
+    <span class="n">model_arima</span> <span class="o">=</span> <span class="n">ModelFactory</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+        <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;ARIMA&quot;</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">df_stationary</span><span class="p">,</span>
+        <span class="n">order</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">ARIMA</span><span class="o">.</span><span class="n">parameters_fit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">),</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">ARIMA</span><span class="o">.</span><span class="n">parameters_fit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">),</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">ARIMA</span><span class="o">.</span><span class="n">parameters_fit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">steps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">ARIMA</span><span class="o">.</span><span class="n">parameters_predict_steps</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">arima_fit</span> <span class="o">=</span> <span class="n">model_arima</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">## ARIMA summary&quot;</span><span class="p">)</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">model_arima</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">## ARIMA forecast&quot;</span><span class="p">)</span>
+    <span class="n">arima_forecast</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">model_arima</span><span class="o">.</span><span class="n">forecast</span><span class="p">()</span>
+    <span class="p">)</span>  <span class="c1"># Steps arg is already in object initialization</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;arima_forecast: </span><span class="si">{</span><span class="n">arima_forecast</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">arima_fit</span><span class="p">,</span> <span class="n">arima_forecast</span></div>
+
+
+
+<div class="viewcode-block" id="ModelGARCH">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelGARCH">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelGARCH</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a GARCH model for time series data.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        data (pd.DataFrame): The input time series data.</span>
+<span class="sd">        p (int): The order of the GARCH model for the lag of the squared residuals.</span>
+<span class="sd">        q (int): The order of the GARCH model for the lag of the conditional variance.</span>
+<span class="sd">        dist (str): The distribution to use for the GARCH model (e.g., &#39;normal&#39;, &#39;t&#39;).</span>
+<span class="sd">        models (Dict[str, arch_model]): A dictionary to store models for each column of the data.</span>
+<span class="sd">        fits (Dict[str, arch_model]): A dictionary to store fitted models for each column of the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dist</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the GARCH model with the given parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.DataFrame): The input data for the GARCH model.</span>
+<span class="sd">            p (int): The order of the GARCH model.</span>
+<span class="sd">            q (int): The order of the ARCH model.</span>
+<span class="sd">            dist (str): The distribution to be used in the model (e.g., &#39;normal&#39;, &#39;t&#39;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ascii_banner</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        </span><span class="se">\n\t</span><span class="s2">&gt; GARCH &lt;</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ascii_banner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">arch_model</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Store models for each column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">arch_model</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Store fits for each column</span>
+
+<div class="viewcode-block" id="ModelGARCH.fit">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelGARCH.fit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">arch_model</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fits a GARCH model to each column of the data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, arch_model]: A dictionary where the keys are column names and the values</span>
+<span class="sd">                are the fitted GARCH models.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">arch_model</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">vol</span><span class="o">=</span><span class="s2">&quot;Garch&quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fits</span></div>
+
+
+<div class="viewcode-block" id="ModelGARCH.summary">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelGARCH.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the model summaries for all columns.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, str]: A dictionary containing the model summaries for each column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">summaries</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">fit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">summaries</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">summaries</span></div>
+
+
+<div class="viewcode-block" id="ModelGARCH.forecast">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelGARCH.forecast">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates forecasted variance for each fitted model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            steps (int): The number of steps ahead to forecast.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, float]: A dictionary where keys are column names and values are the forecasted variances for the specified horizon.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">forecasts</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">fit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">forecasts</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">forecast</span><span class="p">(</span><span class="n">horizon</span><span class="o">=</span><span class="n">steps</span><span class="p">)</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">forecasts</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModelFactory">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelFactory">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory class for creating instances of different statistical models.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        create_model(model_type: str, **kwargs) -&gt; Any:</span>
+<span class="sd">            Static method that creates and returns an instance of a model based on the provided model_type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModelFactory.create_model">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.ModelFactory.create_model">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_model</span><span class="p">(</span><span class="n">model_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates and returns a statistical model based on the specified type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_type (str): The type of model to create. Supported values are &quot;arima&quot; and &quot;garch&quot;.</span>
+<span class="sd">            **kwargs: Additional keyword arguments to pass to the model constructor.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Any: An instance of the specified model type.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the specified model type is not supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating model type: </span><span class="si">{</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;arima&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ModelARIMA</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;garch&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ModelGARCH</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported model type: </span><span class="si">{</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="run_garch">
+<a class="viewcode-back" href="../../stats_model.html#generalized_timeseries.stats_model.run_garch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_garch</span><span class="p">(</span>
+    <span class="n">df_stationary</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">config</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the GARCH model on the provided stationary DataFrame using the given configuration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df_stationary (pd.DataFrame): The stationary time series data to fit the GARCH model on.</span>
+<span class="sd">        config: Configuration object containing parameters for fitting and forecasting with the GARCH model.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple[Dict[str, Any], Dict[str, float]]: A tuple containing the fitted GARCH model and the forecasted values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">## Running GARCH&quot;</span><span class="p">)</span>
+    <span class="n">model_garch</span> <span class="o">=</span> <span class="n">ModelFactory</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+        <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;GARCH&quot;</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">df_stationary</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">GARCH</span><span class="o">.</span><span class="n">parameters_fit</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+        <span class="n">q</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">GARCH</span><span class="o">.</span><span class="n">parameters_fit</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="n">dist</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">GARCH</span><span class="o">.</span><span class="n">parameters_fit</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">garch_fit</span> <span class="o">=</span> <span class="n">model_garch</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">## GARCH summary&quot;</span><span class="p">)</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">model_garch</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">## GARCH forecast&quot;</span><span class="p">)</span>
+    <span class="n">garch_forecast</span> <span class="o">=</span> <span class="n">model_garch</span><span class="o">.</span><span class="n">forecast</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">stats_model</span><span class="o">.</span><span class="n">GARCH</span><span class="o">.</span><span class="n">parameters_predict_steps</span>
+    <span class="p">)</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;garch_forecast: </span><span class="si">{</span><span class="n">garch_forecast</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">garch_fit</span><span class="p">,</span> <span class="n">garch_forecast</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Garth Mortensen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stats_model module &mdash; Generalized Timeseries 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tests package" href="tests.html" />
+    <link rel="prev" title="data_processor module" href="data_processor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Generalized Timeseries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#data-generator">Data Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#data-processor">Data Processor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#stats-model">Stats Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#tests">Tests</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data_generator.html">data_generator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_processor.html">data_processor module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">stats_model module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA"><code class="docutils literal notranslate"><span class="pre">ModelARIMA</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.data"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.order"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.order</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.steps"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.steps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.models"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.fits"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.fits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.fit"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.forecast"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.forecast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelARIMA.summary"><code class="docutils literal notranslate"><span class="pre">ModelARIMA.summary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelFactory"><code class="docutils literal notranslate"><span class="pre">ModelFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelFactory.create_model"><code class="docutils literal notranslate"><span class="pre">ModelFactory.create_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH"><code class="docutils literal notranslate"><span class="pre">ModelGARCH</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.data"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.p"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.p</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.q"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.q</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.dist"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.dist</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.models"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.fits"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.fits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.fit"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.forecast"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.forecast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalized_timeseries.stats_model.ModelGARCH.summary"><code class="docutils literal notranslate"><span class="pre">ModelGARCH.summary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.stats_model.run_arima"><code class="docutils literal notranslate"><span class="pre">run_arima()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generalized_timeseries.stats_model.run_garch"><code class="docutils literal notranslate"><span class="pre">run_garch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Generalized Timeseries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">stats_model module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/stats_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-generalized_timeseries.stats_model">
+<span id="stats-model-module"></span><h1>stats_model module<a class="headerlink" href="#module-generalized_timeseries.stats_model" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.stats_model.</span></span><span class="sig-name descname"><span class="pre">ModelARIMA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelARIMA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Applies the ARIMA (AutoRegressive Integrated Moving Average) model on all columns of a DataFrame.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.data" title="Link to this definition"></a></dt>
+<dd><p>The input data on which ARIMA models will be applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.order">
+<span class="sig-name descname"><span class="pre">order</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.order" title="Link to this definition"></a></dt>
+<dd><p>The (p, d, q) order of the ARIMA model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[int, int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.steps">
+<span class="sig-name descname"><span class="pre">steps</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.steps" title="Link to this definition"></a></dt>
+<dd><p>The number of steps to forecast.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.models">
+<span class="sig-name descname"><span class="pre">models</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.models" title="Link to this definition"></a></dt>
+<dd><p>A dictionary to store ARIMA models for each column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, ARIMA]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.fits">
+<span class="sig-name descname"><span class="pre">fits</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.fits" title="Link to this definition"></a></dt>
+<dd><p>A dictionary to store fitted ARIMA models for each column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, ARIMA]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ARIMA</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelARIMA.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.fit" title="Link to this definition"></a></dt>
+<dd><p>Fits an ARIMA model to each column in the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A dictionary where the keys are column names and the values are the</dt><dd><p>fitted ARIMA models for each column.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, ARIMA]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.forecast">
+<span class="sig-name descname"><span class="pre">forecast</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelARIMA.forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.forecast" title="Link to this definition"></a></dt>
+<dd><p>Generates forecasts for each fitted model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A dictionary where the keys are the column names and the values</dt><dd><p>are the forecasted values for the first step.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelARIMA.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelARIMA.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelARIMA.summary" title="Link to this definition"></a></dt>
+<dd><p>Returns the model summaries for all columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the model summaries for each column.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelFactory">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.stats_model.</span></span><span class="sig-name descname"><span class="pre">ModelFactory</span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Factory class for creating instances of different statistical models.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">create_model(model_type</span></span></dt>
+<dd><p>str, <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs) -&gt; Any:
+Static method that creates and returns an instance of a model based on the provided model_type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelFactory.create_model">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelFactory.create_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelFactory.create_model" title="Link to this definition"></a></dt>
+<dd><p>Creates and returns a statistical model based on the specified type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_type</strong> (<em>str</em>) – The type of model to create. Supported values are “arima” and “garch”.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments to pass to the model constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the specified model type.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the specified model type is not supported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">generalized_timeseries.stats_model.</span></span><span class="sig-name descname"><span class="pre">ModelGARCH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelGARCH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a GARCH model for time series data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.data" title="Link to this definition"></a></dt>
+<dd><p>The input time series data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.p">
+<span class="sig-name descname"><span class="pre">p</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.p" title="Link to this definition"></a></dt>
+<dd><p>The order of the GARCH model for the lag of the squared residuals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.q">
+<span class="sig-name descname"><span class="pre">q</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.q" title="Link to this definition"></a></dt>
+<dd><p>The order of the GARCH model for the lag of the conditional variance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.dist">
+<span class="sig-name descname"><span class="pre">dist</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.dist" title="Link to this definition"></a></dt>
+<dd><p>The distribution to use for the GARCH model (e.g., ‘normal’, ‘t’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.models">
+<span class="sig-name descname"><span class="pre">models</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.models" title="Link to this definition"></a></dt>
+<dd><p>A dictionary to store models for each column of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, arch_model]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.fits">
+<span class="sig-name descname"><span class="pre">fits</span></span><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.fits" title="Link to this definition"></a></dt>
+<dd><p>A dictionary to store fitted models for each column of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, arch_model]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">arch_model</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelGARCH.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.fit" title="Link to this definition"></a></dt>
+<dd><p>Fits a GARCH model to each column of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A dictionary where the keys are column names and the values</dt><dd><p>are the fitted GARCH models.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, arch_model]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.forecast">
+<span class="sig-name descname"><span class="pre">forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelGARCH.forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.forecast" title="Link to this definition"></a></dt>
+<dd><p>Generates forecasted variance for each fitted model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>steps</strong> (<em>int</em>) – The number of steps ahead to forecast.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary where keys are column names and values are the forecasted variances for the specified horizon.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.ModelGARCH.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#ModelGARCH.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.ModelGARCH.summary" title="Link to this definition"></a></dt>
+<dd><p>Returns the model summaries for all columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the model summaries for each column.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.run_arima">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.stats_model.</span></span><span class="sig-name descname"><span class="pre">run_arima</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_stationary</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#run_arima"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.run_arima" title="Link to this definition"></a></dt>
+<dd><p>Runs the ARIMA model on the provided stationary DataFrame using the given configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_stationary</strong> (<em>pd.DataFrame</em>) – The stationary DataFrame to be used for ARIMA modeling.</p></li>
+<li><p><strong>config</strong> – Configuration object containing ARIMA parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the fitted ARIMA model and the forecasted values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Dict[str, object], Dict[str, float]]</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Logs:</dt><dd><p>Logs the ARIMA model summary and forecasted values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generalized_timeseries.stats_model.run_garch">
+<span class="sig-prename descclassname"><span class="pre">generalized_timeseries.stats_model.</span></span><span class="sig-name descname"><span class="pre">run_garch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_stationary</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/generalized_timeseries/stats_model.html#run_garch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generalized_timeseries.stats_model.run_garch" title="Link to this definition"></a></dt>
+<dd><p>Runs the GARCH model on the provided stationary DataFrame using the given configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_stationary</strong> (<em>pd.DataFrame</em>) – The stationary time series data to fit the GARCH model on.</p></li>
+<li><p><strong>config</strong> – Configuration object containing parameters for fitting and forecasting with the GARCH model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the fitted GARCH model and the forecasted values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Dict[str, Any], Dict[str, float]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_processor.html" class="btn btn-neutral float-left" title="data_processor module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tests.html" class="btn btn-neutral float-right" title="tests package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Garth Mortensen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
