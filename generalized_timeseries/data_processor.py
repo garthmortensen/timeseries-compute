@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # data_processor.py
 
-# handle relative directory imports for chronicler
 import logging as l
 
 # handle data transformation and preparation tasks
@@ -9,7 +8,7 @@ import pandas as pd
 import numpy as np
 from statsmodels.tsa.stattools import adfuller
 from tabulate import tabulate  # pretty print dfs
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Tuple, Optional, List, Union
 
 
 class MissingDataHandler:
@@ -83,32 +82,25 @@ class MissingDataHandlerFactory:
             raise ValueError(f"Unknown missing data strategy: {strategy}")
 
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
-def fill_data(df: pd.DataFrame, config) -> pd.DataFrame:
+def fill_data(
+    df: pd.DataFrame, 
+    strategy: str = "forward_fill"
+) -> pd.DataFrame:
     """
-    Fills missing data in the given DataFrame according to the specified configuration.
+    Fills missing data in the given DataFrame according to the specified strategy.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the data to be processed.
-        config: Configuration object containing the strategy for handling missing values.
+        strategy (str, optional): Strategy for handling missing values. 
+            Options are "drop" or "forward_fill". Defaults to "forward_fill".
 
     Returns:
         pd.DataFrame: The DataFrame with missing values handled according to the specified strategy.
     """
-    if not config.data_processor.handle_missing_values.enabled:
-        l.info("Skipping missing data handling as it is disabled in config.")
-        return df  # Return original data without modification
-
     l.info("\n# Processing: handling missing values")
-    handler_missing = MissingDataHandlerFactory.create_handler(
-        strategy=config.data_processor.handle_missing_values.strategy
-    )
+    handler_missing = MissingDataHandlerFactory.create_handler(strategy=strategy)
     df_filled = handler_missing(df)
     return df_filled
-
-
-from tabulate import tabulate
-from typing import Callable
 
 
 class DataScaler:
@@ -199,30 +191,29 @@ class DataScalerFactory:
         l.info(f"Creating scaler for strategy: {strategy}")
         if strategy.lower() == "standardize":
             return scaler.scale_data_standardize
-        elif (
-            strategy.lower() == "minmax"
-        ):  # TODO: fixme. This turns everything into a constant
+        elif strategy.lower() == "minmax":
             return scaler.scale_data_minmax
         else:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")
 
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
-def scale_data(df: pd.DataFrame, config) -> pd.DataFrame:
+def scale_data(
+    df: pd.DataFrame, 
+    method: str = "standardize"
+) -> pd.DataFrame:
     """
-    Scales the input DataFrame according to the specified configuration.
+    Scales the input DataFrame according to the specified method.
 
     Args:
         df (pd.DataFrame): The input data to be scaled.
-        config: Configuration object containing scaling method details.
+        method (str, optional): Scaling method to use. Options are "standardize" or "minmax". 
+            Defaults to "standardize".
 
     Returns:
         pd.DataFrame: The scaled DataFrame.
     """
     l.info("\n# Processing: scaling data")
-    handler_scaler = DataScalerFactory.create_handler(
-        strategy=config.data_processor.scaling.method
-    )
+    handler_scaler = DataScalerFactory.create_handler(strategy=method)
     df_scaled = handler_scaler(df)
     return df_scaled
 
@@ -242,15 +233,18 @@ class StationaryReturnsProcessor:
             Log the interpreted results of the ADF test.
     """
 
-    # FIXME: replace usage of config object with explicit parameters for clear input/output contract
-    def make_stationary(self, data: pd.DataFrame, method: str, config) -> pd.DataFrame:
+    def make_stationary(
+        self, 
+        data: pd.DataFrame, 
+        method: str = "difference"
+    ) -> pd.DataFrame:
         """
         Apply the chosen method to make the data stationary.
 
         Args:
             data (pd.DataFrame): The input data to be made stationary.
-            method (str): The method to use for making the data stationary. Currently supported method is "difference".
-            config (Any): Configuration object containing parameters for making the data stationary.
+            method (str, optional): The method to use for making the data stationary. 
+                Currently supported method is "difference". Defaults to "difference".
 
         Returns:
             pd.DataFrame: The transformed data with the applied stationarity method.
@@ -258,10 +252,6 @@ class StationaryReturnsProcessor:
         Raises:
             ValueError: If an unknown method is provided.
         """
-        if not config.data_processor.make_stationary.enabled:
-            l.info("Skipping stationarity transformation as it is disabled in config.")
-            return data
-
         l.info(f"Applying stationarity method: {method}")
         numeric_columns = data.select_dtypes(include=[np.number]).columns
 
@@ -276,7 +266,7 @@ class StationaryReturnsProcessor:
         return data
 
     def test_stationarity(
-        self, data: pd.DataFrame, test: str
+        self, data: pd.DataFrame, test: str = "adf"
     ) -> Dict[str, Dict[str, float]]:
         """
         Perform the Augmented Dickey-Fuller (ADF) test for stationarity on the given data.
@@ -286,7 +276,8 @@ class StationaryReturnsProcessor:
 
         Args:
             data (pd.DataFrame): The input data containing time series to be tested.
-            test (str): The type of stationarity test to perform. Currently, only "adf" is supported.
+            test (str, optional): The type of stationarity test to perform. 
+                Currently, only "adf" is supported. Defaults to "adf".
 
         Returns:
             Dict[str, Dict[str, float]]: A dictionary where keys are column names and values are dictionaries containing
@@ -313,7 +304,7 @@ class StationaryReturnsProcessor:
         return results
 
     def log_adf_results(
-        self, data: Dict[str, Dict[str, float]], p_value_threshold: float
+        self, data: Dict[str, Dict[str, float]], p_value_threshold: float = 0.05
     ) -> None:
         """
         Logs interpreted Augmented Dickey-Fuller (ADF) test results.
@@ -321,7 +312,8 @@ class StationaryReturnsProcessor:
         Args:
             data (Dict[str, Dict[str, float]]): A dictionary where keys are series names and values are dictionaries containing ADF test results.
                 Each value dictionary should have the keys "ADF Statistic" and "p-value".
-            p_value_threshold (float): The threshold for the p-value to determine if the series is stationary.
+            p_value_threshold (float, optional): The threshold for the p-value to determine if the series is stationary.
+                Defaults to 0.05.
 
         Returns:
             None
@@ -352,7 +344,7 @@ class StationaryReturnsProcessorFactory:
     """
 
     @staticmethod
-    def create_handler(strategy: str) -> Callable:
+    def create_handler(strategy: str) -> StationaryReturnsProcessor:
         """
         Returns the appropriate processing function based on the provided strategy.
 
@@ -364,7 +356,7 @@ class StationaryReturnsProcessorFactory:
                 - "log_stationarity"
 
         Returns:
-            Callable: The appropriate processing function.
+            StationaryReturnsProcessor: A processor instance for the specified strategy.
 
         Raises:
             ValueError: If an unknown strategy is provided.
@@ -383,14 +375,17 @@ class StationaryReturnsProcessorFactory:
             )
 
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
-def stationarize_data(df: pd.DataFrame, config) -> pd.DataFrame:
+def stationarize_data(
+    df: pd.DataFrame, 
+    method: str = "difference"
+) -> pd.DataFrame:
     """
     Processes the given DataFrame to make the data stationary.
 
     Args:
         df (pd.DataFrame): The input data to be made stationary.
-        config: Configuration object containing the method to be used for making the data stationary.
+        method (str, optional): Method to use for making data stationary.
+            Currently only "difference" is supported. Defaults to "difference".
 
     Returns:
         pd.DataFrame: The stationary version of the input data.
@@ -398,19 +393,22 @@ def stationarize_data(df: pd.DataFrame, config) -> pd.DataFrame:
     l.info("\n# Processing: making data stationary")
     stationary_returns_processor = StationaryReturnsProcessor()
     df_stationary = stationary_returns_processor.make_stationary(
-        data=df, method=config.data_processor.make_stationary.method, config=config
+        data=df, method=method
     )
     return df_stationary
 
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
-def test_stationarity(df: pd.DataFrame, config) -> Dict[str, Dict[str, float]]:
+def test_stationarity(
+    df: pd.DataFrame, 
+    method: str = "adf"
+) -> Dict[str, Dict[str, float]]:
     """
-    Tests the stationarity of a given DataFrame using the specified configuration.
+    Tests the stationarity of a given DataFrame.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the data to be tested for stationarity.
-        config: Configuration object containing the method to be used for testing stationarity.
+        method (str, optional): Method to use for testing stationarity.
+            Currently only "adf" is supported. Defaults to "adf".
 
     Returns:
         Dict[str, Dict[str, float]]: Results of the stationarity test.
@@ -420,20 +418,22 @@ def test_stationarity(df: pd.DataFrame, config) -> Dict[str, Dict[str, float]]:
         "test_stationarity"
     )
     adf_results = stationary_returns_processor.test_stationarity(
-        data=df, test=config.data_processor.test_stationarity.method
+        data=df, test=method
     )
     return adf_results
 
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
-def log_stationarity(df: pd.DataFrame, config) -> None:
+def log_stationarity(
+    adf_results: Dict[str, Dict[str, float]], 
+    p_value_threshold: float = 0.05
+) -> None:
     """
     Logs the stationarity of the given DataFrame using the Augmented Dickey-Fuller (ADF) test.
 
     Args:
-        df (pd.DataFrame): The DataFrame containing the data to be tested for stationarity.
-        config: Configuration object containing the parameters for the stationarity test.
-            - config.data_processor.test_stationarity.p_value_threshold (float): The p-value threshold for the ADF test.
+        adf_results (Dict[str, Dict[str, float]]): Results from test_stationarity function.
+        p_value_threshold (float, optional): The p-value threshold for the ADF test.
+            Defaults to 0.05.
 
     Returns:
         None
@@ -443,6 +443,6 @@ def log_stationarity(df: pd.DataFrame, config) -> None:
         "log_stationarity"
     )
     stationary_returns_processor.log_adf_results(
-        data=df,
-        p_value_threshold=config.data_processor.test_stationarity.p_value_threshold,
+        data=adf_results,
+        p_value_threshold=p_value_threshold,
     )
