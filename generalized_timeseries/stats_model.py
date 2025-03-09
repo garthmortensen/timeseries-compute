@@ -27,7 +27,7 @@ class ModelARIMA:
     """
 
     def __init__(
-        self, data: pd.DataFrame, order: Tuple[int, int, int], steps: int
+        self, data: pd.DataFrame, order: Tuple[int, int, int] = (1, 1, 1), steps: int = 5
     ) -> None:
         """
         Initializes the ARIMA model with the given data, order, and steps.
@@ -137,7 +137,7 @@ class ModelGARCH:
         fits (Dict[str, arch_model]): A dictionary to store fitted models for each column of the data.
     """
 
-    def __init__(self, data: pd.DataFrame, p: int, q: int, dist: str) -> None:
+    def __init__(self, data: pd.DataFrame, p: int = 1, q: int = 1, dist: str = "normal") -> None:
         """
         Initializes the GARCH model with the given parameters.
 
@@ -210,7 +210,17 @@ class ModelFactory:
     """
 
     @staticmethod
-    def create_model(model_type: str, **kwargs) -> Any:
+    def create_model(
+        model_type: str, 
+        data: pd.DataFrame,
+        # ARIMA parameters with defaults
+        order: Tuple[int, int, int] = (1, 1, 1),
+        steps: int = 5,
+        # GARCH parameters with defaults
+        p: int = 1,
+        q: int = 1,
+        dist: str = "normal"
+    ) -> Any:
         """
         Creates and returns a statistical model based on the specified type.
 
@@ -226,9 +236,9 @@ class ModelFactory:
         """
         l.info(f"Creating model type: {model_type}")
         if model_type.lower() == "arima":
-            return ModelARIMA(**kwargs)
+            return ModelARIMA(data=data, order=order, steps=steps)
         elif model_type.lower() == "garch":
-            return ModelGARCH(**kwargs)
+            return ModelGARCH(data=data, p=p, q=q, dist=dist)
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
