@@ -85,7 +85,7 @@ class ModelARIMA:
             forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
-
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def run_arima(
     df_stationary: pd.DataFrame, config
 ) -> Tuple[Dict[str, object], Dict[str, float]]:
@@ -233,7 +233,7 @@ class ModelFactory:
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
-
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def run_garch(
     df_stationary: pd.DataFrame, config
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:

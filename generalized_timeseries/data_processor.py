@@ -83,6 +83,7 @@ class MissingDataHandlerFactory:
             raise ValueError(f"Unknown missing data strategy: {strategy}")
 
 
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def fill_data(df: pd.DataFrame, config) -> pd.DataFrame:
     """
     Fills missing data in the given DataFrame according to the specified configuration.
@@ -206,6 +207,7 @@ class DataScalerFactory:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")
 
 
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def scale_data(df: pd.DataFrame, config) -> pd.DataFrame:
     """
     Scales the input DataFrame according to the specified configuration.
@@ -240,6 +242,7 @@ class StationaryReturnsProcessor:
             Log the interpreted results of the ADF test.
     """
 
+    # FIXME: replace usage of config object with explicit parameters for clear input/output contract
     def make_stationary(self, data: pd.DataFrame, method: str, config) -> pd.DataFrame:
         """
         Apply the chosen method to make the data stationary.
@@ -380,6 +383,7 @@ class StationaryReturnsProcessorFactory:
             )
 
 
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def stationarize_data(df: pd.DataFrame, config) -> pd.DataFrame:
     """
     Processes the given DataFrame to make the data stationary.
@@ -399,6 +403,7 @@ def stationarize_data(df: pd.DataFrame, config) -> pd.DataFrame:
     return df_stationary
 
 
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def test_stationarity(df: pd.DataFrame, config) -> Dict[str, Dict[str, float]]:
     """
     Tests the stationarity of a given DataFrame using the specified configuration.
@@ -420,6 +425,7 @@ def test_stationarity(df: pd.DataFrame, config) -> Dict[str, Dict[str, float]]:
     return adf_results
 
 
+# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def log_stationarity(df: pd.DataFrame, config) -> None:
     """
     Logs the stationarity of the given DataFrame using the Augmented Dickey-Fuller (ADF) test.
