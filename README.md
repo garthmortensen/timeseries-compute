@@ -75,6 +75,6 @@ rm -rf dist build *.egg-info # restart if needed
 Pypi publication occurs when pushing a tag:
 
 ```shell
-git tag v0.1.4
-git push origin v0.1.4
+git tag v0.1.6
+git push origin v0.1.6
 ```
