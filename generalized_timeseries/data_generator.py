@@ -47,7 +47,9 @@ class PriceSeriesGenerator:
             start=start_date, end=end_date, freq="B"
         )  # weekdays only
 
-    def generate_prices(self, anchor_prices: Dict[str, float]) -> Tuple[Dict[str, list], pd.DataFrame]:
+    def generate_prices(
+        self, anchor_prices: Dict[str, float]
+    ) -> Tuple[Dict[str, list], pd.DataFrame]:
         """
         Create price series for given tickers with initial prices.
 
@@ -55,7 +57,7 @@ class PriceSeriesGenerator:
             anchor_prices (Dict[str, float]): keys = tickers, values = initial prices
 
         Returns:
-            Tuple[Dict[str, list], pd.DataFrame]: 
+            Tuple[Dict[str, list], pd.DataFrame]:
                 - dict: keys = tickers, values = prices
                 - pd.DataFrame: df of all series
         """
@@ -78,10 +80,11 @@ class PriceSeriesGenerator:
         return data, df
 
 
+# convenience wrapper around the class
 def generate_price_series(
     start_date: str = "2023-01-01",
     end_date: str = "2023-12-31",
-    anchor_prices: Optional[Dict[str, float]] = None
+    anchor_prices: Optional[Dict[str, float]] = None,
 ) -> Tuple[Dict[str, list], pd.DataFrame]:
     """
     Generates a series of price data based on the provided parameters.
@@ -93,19 +96,17 @@ def generate_price_series(
             Defaults to {"GME": 100.0, "BYND": 200.0} if None.
 
     Returns:
-        Tuple[Dict[str, list], pd.DataFrame]: 
+        Tuple[Dict[str, list], pd.DataFrame]:
             - price_dict: A dictionary of generated prices.
             - price_df: A DataFrame of generated prices.
     """
     if anchor_prices is None:
         anchor_prices = {"GME": 100.0, "BYND": 200.0}
-    
+
     l.info("Generating price series data")
     generator = PriceSeriesGenerator(
         start_date=start_date,
         end_date=end_date,
     )
-    price_dict, price_df = generator.generate_prices(
-        anchor_prices=anchor_prices
-    )
+    price_dict, price_df = generator.generate_prices(anchor_prices=anchor_prices)
     return price_dict, price_df

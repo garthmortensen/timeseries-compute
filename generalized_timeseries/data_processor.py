@@ -82,16 +82,13 @@ class MissingDataHandlerFactory:
             raise ValueError(f"Unknown missing data strategy: {strategy}")
 
 
-def fill_data(
-    df: pd.DataFrame, 
-    strategy: str = "forward_fill"
-) -> pd.DataFrame:
+def fill_data(df: pd.DataFrame, strategy: str = "forward_fill") -> pd.DataFrame:
     """
     Fills missing data in the given DataFrame according to the specified strategy.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the data to be processed.
-        strategy (str, optional): Strategy for handling missing values. 
+        strategy (str, optional): Strategy for handling missing values.
             Options are "drop" or "forward_fill". Defaults to "forward_fill".
 
     Returns:
@@ -197,16 +194,13 @@ class DataScalerFactory:
             raise ValueError(f"Unknown data scaling strategy: {strategy}")
 
 
-def scale_data(
-    df: pd.DataFrame, 
-    method: str = "standardize"
-) -> pd.DataFrame:
+def scale_data(df: pd.DataFrame, method: str = "standardize") -> pd.DataFrame:
     """
     Scales the input DataFrame according to the specified method.
 
     Args:
         df (pd.DataFrame): The input data to be scaled.
-        method (str, optional): Scaling method to use. Options are "standardize" or "minmax". 
+        method (str, optional): Scaling method to use. Options are "standardize" or "minmax".
             Defaults to "standardize".
 
     Returns:
@@ -234,16 +228,14 @@ class StationaryReturnsProcessor:
     """
 
     def make_stationary(
-        self, 
-        data: pd.DataFrame, 
-        method: str = "difference"
+        self, data: pd.DataFrame, method: str = "difference"
     ) -> pd.DataFrame:
         """
         Apply the chosen method to make the data stationary.
 
         Args:
             data (pd.DataFrame): The input data to be made stationary.
-            method (str, optional): The method to use for making the data stationary. 
+            method (str, optional): The method to use for making the data stationary.
                 Currently supported method is "difference". Defaults to "difference".
 
         Returns:
@@ -276,7 +268,7 @@ class StationaryReturnsProcessor:
 
         Args:
             data (pd.DataFrame): The input data containing time series to be tested.
-            test (str, optional): The type of stationarity test to perform. 
+            test (str, optional): The type of stationarity test to perform.
                 Currently, only "adf" is supported. Defaults to "adf".
 
         Returns:
@@ -375,10 +367,7 @@ class StationaryReturnsProcessorFactory:
             )
 
 
-def stationarize_data(
-    df: pd.DataFrame, 
-    method: str = "difference"
-) -> pd.DataFrame:
+def stationarize_data(df: pd.DataFrame, method: str = "difference") -> pd.DataFrame:
     """
     Processes the given DataFrame to make the data stationary.
 
@@ -392,15 +381,12 @@ def stationarize_data(
     """
     l.info("\n# Processing: making data stationary")
     stationary_returns_processor = StationaryReturnsProcessor()
-    df_stationary = stationary_returns_processor.make_stationary(
-        data=df, method=method
-    )
+    df_stationary = stationary_returns_processor.make_stationary(data=df, method=method)
     return df_stationary
 
 
 def test_stationarity(
-    df: pd.DataFrame, 
-    method: str = "adf"
+    df: pd.DataFrame, method: str = "adf"
 ) -> Dict[str, Dict[str, float]]:
     """
     Tests the stationarity of a given DataFrame.
@@ -417,15 +403,12 @@ def test_stationarity(
     stationary_returns_processor = StationaryReturnsProcessorFactory.create_handler(
         "test_stationarity"
     )
-    adf_results = stationary_returns_processor.test_stationarity(
-        data=df, test=method
-    )
+    adf_results = stationary_returns_processor.test_stationarity(data=df, test=method)
     return adf_results
 
 
 def log_stationarity(
-    adf_results: Dict[str, Dict[str, float]], 
-    p_value_threshold: float = 0.05
+    adf_results: Dict[str, Dict[str, float]], p_value_threshold: float = 0.05
 ) -> None:
     """
     Logs the stationarity of the given DataFrame using the Augmented Dickey-Fuller (ADF) test.

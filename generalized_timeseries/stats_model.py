@@ -27,7 +27,10 @@ class ModelARIMA:
     """
 
     def __init__(
-        self, data: pd.DataFrame, order: Tuple[int, int, int] = (1, 1, 1), steps: int = 5
+        self,
+        data: pd.DataFrame,
+        order: Tuple[int, int, int] = (1, 1, 1),
+        steps: int = 5,
     ) -> None:
         """
         Initializes the ARIMA model with the given data, order, and steps.
@@ -85,23 +88,24 @@ class ModelARIMA:
             forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
+
 def run_arima(
-    df_stationary: pd.DataFrame, 
+    df_stationary: pd.DataFrame,
     p: int = 1,
-    d: int = 1, 
+    d: int = 1,
     q: int = 1,
-    forecast_steps: int = 5
+    forecast_steps: int = 5,
 ) -> Tuple[Dict[str, object], Dict[str, float]]:
     """
     Runs an ARIMA model on stationary time series data.
-    
+
     Args:
         df_stationary: The stationary DataFrame to model
         p=1 means include one autoregressive term
         d=1 means apply first-order differencing
         q=1 means include one moving average term
         forecast_steps: Number of steps to forecast (default: 5)
-        
+
     Returns:
         Tuple containing the fitted model and forecasts
     """
@@ -137,7 +141,9 @@ class ModelGARCH:
         fits (Dict[str, arch_model]): A dictionary to store fitted models for each column of the data.
     """
 
-    def __init__(self, data: pd.DataFrame, p: int = 1, q: int = 1, dist: str = "normal") -> None:
+    def __init__(
+        self, data: pd.DataFrame, p: int = 1, q: int = 1, dist: str = "normal"
+    ) -> None:
         """
         Initializes the GARCH model with the given parameters.
 
@@ -211,7 +217,7 @@ class ModelFactory:
 
     @staticmethod
     def create_model(
-        model_type: str, 
+        model_type: str,
         data: pd.DataFrame,
         # ARIMA parameters with defaults
         order: Tuple[int, int, int] = (1, 1, 1),
@@ -219,7 +225,7 @@ class ModelFactory:
         # GARCH parameters with defaults
         p: int = 1,
         q: int = 1,
-        dist: str = "normal"
+        dist: str = "normal",
     ) -> Any:
         """
         Creates and returns a statistical model based on the specified type.
@@ -242,12 +248,13 @@ class ModelFactory:
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
+
 def run_garch(
     df_stationary: pd.DataFrame,
     p: int = 1,
     q: int = 1,
     dist: str = "normal",
-    forecast_steps: int = 5
+    forecast_steps: int = 5,
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:
     """
     Runs the GARCH model on the provided stationary DataFrame.
@@ -274,9 +281,7 @@ def run_garch(
     l.info("\n## GARCH summary")
     l.info(model_garch.summary())
     l.info("\n## GARCH forecast")
-    garch_forecast = model_garch.forecast(
-        steps=forecast_steps
-    )
+    garch_forecast = model_garch.forecast(steps=forecast_steps)
     l.info(f"garch_forecast: {garch_forecast}")
 
     return garch_fit, garch_forecast
