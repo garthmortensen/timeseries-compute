@@ -85,33 +85,32 @@ class ModelARIMA:
             forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def run_arima(
-    df_stationary: pd.DataFrame, config
+    df_stationary: pd.DataFrame, 
+    p: int = 1,
+    d: int = 1, 
+    q: int = 1,
+    forecast_steps: int = 5
 ) -> Tuple[Dict[str, object], Dict[str, float]]:
     """
-    Runs the ARIMA model on the provided stationary DataFrame using the given configuration.
-
+    Runs an ARIMA model on stationary time series data.
+    
     Args:
-        df_stationary (pd.DataFrame): The stationary DataFrame to be used for ARIMA modeling.
-        config: Configuration object containing ARIMA parameters.
-
+        df_stationary: The stationary DataFrame to model
+        p: Autoregressive order parameter (default: 1)
+        d: Differencing order parameter (default: 1)
+        q: Moving average order parameter (default: 1)
+        forecast_steps: Number of steps to forecast (default: 5)
+        
     Returns:
-        Tuple[Dict[str, object], Dict[str, float]]: A tuple containing the fitted ARIMA model and the forecasted values.
-
-    Logs:
-        Logs the ARIMA model summary and forecasted values.
+        Tuple containing the fitted model and forecasts
     """
     l.info("\n## Running ARIMA")
     model_arima = ModelFactory.create_model(
         model_type="ARIMA",
         data=df_stationary,
-        order=(
-            config.stats_model.ARIMA.parameters_fit.get("p"),
-            config.stats_model.ARIMA.parameters_fit.get("d"),
-            config.stats_model.ARIMA.parameters_fit.get("q"),
-        ),
-        steps=config.stats_model.ARIMA.parameters_predict_steps,
+        order=(p, d, q),
+        steps=forecast_steps,
     )
     arima_fit = model_arima.fit()
     l.info("\n## ARIMA summary")
@@ -233,16 +232,22 @@ class ModelFactory:
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
-# FIXME: replace usage of config object with explicit parameters for clear input/output contract
 def run_garch(
-    df_stationary: pd.DataFrame, config
+    df_stationary: pd.DataFrame,
+    p: int = 1,
+    q: int = 1,
+    dist: str = "normal",
+    forecast_steps: int = 5
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:
     """
-    Runs the GARCH model on the provided stationary DataFrame using the given configuration.
+    Runs the GARCH model on the provided stationary DataFrame.
 
     Args:
         df_stationary (pd.DataFrame): The stationary time series data to fit the GARCH model on.
-        config: Configuration object containing parameters for fitting and forecasting with the GARCH model.
+        p (int, optional): The GARCH lag order. Defaults to 1.
+        q (int, optional): The ARCH lag order. Defaults to 1.
+        dist (str, optional): The error distribution - 'normal', 't', etc. Defaults to "normal".
+        forecast_steps (int, optional): The number of steps to forecast. Defaults to 5.
 
     Returns:
         Tuple[Dict[str, Any], Dict[str, float]]: A tuple containing the fitted GARCH model and the forecasted values.
@@ -251,16 +256,16 @@ def run_garch(
     model_garch = ModelFactory.create_model(
         model_type="GARCH",
         data=df_stationary,
-        p=config.stats_model.GARCH.parameters_fit.p,
-        q=config.stats_model.GARCH.parameters_fit.q,
-        dist=config.stats_model.GARCH.parameters_fit.dist,
+        p=p,
+        q=q,
+        dist=dist,
     )
     garch_fit = model_garch.fit()
     l.info("\n## GARCH summary")
     l.info(model_garch.summary())
     l.info("\n## GARCH forecast")
     garch_forecast = model_garch.forecast(
-        steps=config.stats_model.GARCH.parameters_predict_steps
+        steps=forecast_steps
     )
     l.info(f"garch_forecast: {garch_forecast}")
 
