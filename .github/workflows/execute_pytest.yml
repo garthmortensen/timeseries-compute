@@ -24,17 +24,17 @@ jobs:
     steps:
       # Check out repository code
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       # Set up Python environment with specified version
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       
       # Cache pip dependencies to speed up workflow
       - name: Cache pip dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -84,10 +84,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up Python 3.13
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       
@@ -106,9 +106,9 @@ jobs:
         run: |
           twine check dist/*
       
-      # Upload built package as an artifact
+      # Upload built package as an artifact - updated to v4
       - name: Upload package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: distributions
           path: dist/
@@ -119,10 +119,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up Python 3.13
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       
@@ -138,9 +138,9 @@ jobs:
           cd docs
           sphinx-build -b html source build
       
-      # Upload built documentation as an artifact
+      # Upload built documentation as an artifact - updated to v4
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: docs/build/html/
@@ -153,11 +153,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
-      # Download the built package
+      # Download the built package - updated to v4
       - name: Download package distributions
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: distributions
           path: dist/
