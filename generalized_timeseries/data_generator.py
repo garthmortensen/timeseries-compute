@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # data_generator.py
 
-# handle relative directory imports for chronicler
 import logging as l
 
 # script specific imports
 import pandas as pd
 import random
 from tabulate import tabulate  # pretty print dfs
+from typing import Dict, Tuple, Optional
 
 
 class PriceSeriesGenerator:
@@ -47,16 +47,17 @@ class PriceSeriesGenerator:
             start=start_date, end=end_date, freq="B"
         )  # weekdays only
 
-    def generate_prices(self, anchor_prices: dict):
+    def generate_prices(self, anchor_prices: Dict[str, float]) -> Tuple[Dict[str, list], pd.DataFrame]:
         """
         Create price series for given tickers with initial prices.
 
         Args:
-            anchor_prices (dict): keys = tickers, values = initial prices
+            anchor_prices (Dict[str, float]): keys = tickers, values = initial prices
 
         Returns:
-            dict: keys = tickers, values = prices
-            pd.DataFrame: df of all series
+            Tuple[Dict[str, list], pd.DataFrame]: 
+                - dict: keys = tickers, values = prices
+                - pd.DataFrame: df of all series
         """
         data = {}
         l.info("generating prices...")
@@ -77,32 +78,34 @@ class PriceSeriesGenerator:
         return data, df
 
 
-def generate_price_series(config):
+def generate_price_series(
+    start_date: str = "2023-01-01",
+    end_date: str = "2023-12-31",
+    anchor_prices: Optional[Dict[str, float]] = None
+) -> Tuple[Dict[str, list], pd.DataFrame]:
     """
-    Generates a series of price data based on the provided configuration.
+    Generates a series of price data based on the provided parameters.
 
     Args:
-        config (object): Configuration object containing the following attributes:
-            - data_generator.enabled (bool): Whether data generation is enabled.
-            - data_generator.start_date (str): The start date for the price series.
-            - data_generator.end_date (str): The end date for the price series.
-            - data_generator.anchor_prices (dict): A dictionary of tickers and their initial prices.
+        start_date (str, optional): The start date for the price series. Defaults to "2023-01-01".
+        end_date (str, optional): The end date for the price series. Defaults to "2023-12-31".
+        anchor_prices (Dict[str, float], optional): A dictionary of tickers and their initial prices.
+            Defaults to {"GME": 100.0, "BYND": 200.0} if None.
 
     Returns:
-        tuple: A tuple containing:
-            - price_dict (dict): A dictionary of generated prices (empty if disabled).
-            - price_df (pandas.DataFrame): A DataFrame of generated prices (empty if disabled).
+        Tuple[Dict[str, list], pd.DataFrame]: 
+            - price_dict: A dictionary of generated prices.
+            - price_df: A DataFrame of generated prices.
     """
-    if not config.data_generator.enabled:
-        l.info("Data generation is disabled. Skipping price series generation.")
-        return {}, pd.DataFrame()  # Return empty results
-
+    if anchor_prices is None:
+        anchor_prices = {"GME": 100.0, "BYND": 200.0}
+    
     l.info("Generating price series data")
     generator = PriceSeriesGenerator(
-        start_date=config.data_generator.start_date,
-        end_date=config.data_generator.end_date,
+        start_date=start_date,
+        end_date=end_date,
     )
     price_dict, price_df = generator.generate_prices(
-        anchor_prices=config.data_generator.anchor_prices
+        anchor_prices=anchor_prices
     )
     return price_dict, price_df

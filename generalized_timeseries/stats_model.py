@@ -97,9 +97,9 @@ def run_arima(
     
     Args:
         df_stationary: The stationary DataFrame to model
-        p: Autoregressive order parameter (default: 1)
-        d: Differencing order parameter (default: 1)
-        q: Moving average order parameter (default: 1)
+        p=1 means include one autoregressive term
+        d=1 means apply first-order differencing
+        q=1 means include one moving average term
         forecast_steps: Number of steps to forecast (default: 5)
         
     Returns:
