@@ -429,3 +429,47 @@ def log_stationarity(
         data=adf_results,
         p_value_threshold=p_value_threshold,
     )
+
+
+def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prepares time series data for analysis by:
+    1. Converting date column to datetime and setting as index (if not already)
+    2. Ensuring numeric columns are properly typed
+    3. Removing non-numeric columns
+    
+    Args:
+        df (pd.DataFrame): Input DataFrame with time series data
+        
+    Returns:
+        pd.DataFrame: Properly formatted DataFrame for time series analysis
+    """
+    # Make a copy to avoid modifying the original
+    df = df.copy()
+    
+    # Handle date column if it exists and isn't already the index
+    if not isinstance(df.index, pd.DatetimeIndex):
+        date_cols = [col for col in df.columns if 'date' in col.lower()]
+        if date_cols:
+            date_col = date_cols[0]
+            df[date_col] = pd.to_datetime(df[date_col], errors='coerce')
+            df.set_index(date_col, inplace=True)
+    
+    # Convert numeric columns to proper type
+    for col in df.columns:
+        if col.lower() not in ['date', 'time', 'datetime', 'timestamp']:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+    
+    # Drop rows with NaN values
+    df.dropna(inplace=True)
+    
+    # Keep only numeric columns
+    numeric_df = df.select_dtypes(include=['number'])
+    
+    if numeric_df.empty:
+        raise ValueError("No numeric columns found after data preparation")
+    
+    l.info("Data prepared for time series analysis")
+    l.info("\n" + tabulate(numeric_df.head(5), headers="keys", tablefmt="fancy_grid"))
+    
+    return numeric_df

@@ -12,7 +12,7 @@ from arch import arch_model
 
 # type hinting
 from typing import Dict, Any, Tuple
-
+import data_processor
 
 class ModelARIMA:
     """
@@ -98,18 +98,22 @@ def run_arima(
 ) -> Tuple[Dict[str, object], Dict[str, float]]:
     """
     Runs an ARIMA model on stationary time series data.
-
+    
     Args:
-        df_stationary: The stationary DataFrame to model
-        p=1 means include one autoregressive term
-        d=1 means apply first-order differencing
-        q=1 means include one moving average term
-        forecast_steps: Number of steps to forecast (default: 5)
-
+        df_stationary: The DataFrame with stationary time series data
+        p: AR lag order
+        d: Degree of differencing
+        q: MA lag order
+        forecast_steps: Number of steps to forecast
+        
     Returns:
-        Tuple containing the fitted model and forecasts
+        Tuple[Dict[str, object], Dict[str, float]]: Fitted models and forecasts
     """
     l.info("\n## Running ARIMA")
+    
+    # Ensure data is properly prepared
+    df_stationary = data_processor.prepare_timeseries_data(df_stationary)
+    
     model_arima = ModelFactory.create_model(
         model_type="ARIMA",
         data=df_stationary,
@@ -120,9 +124,7 @@ def run_arima(
     l.info("\n## ARIMA summary")
     l.info(model_arima.summary())
     l.info("\n## ARIMA forecast")
-    arima_forecast = (
-        model_arima.forecast()
-    )  # Steps arg is already in object initialization
+    arima_forecast = model_arima.forecast()
     l.info(f"arima_forecast: {arima_forecast}")
 
     return arima_fit, arima_forecast
@@ -248,7 +250,6 @@ class ModelFactory:
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
-
 def run_garch(
     df_stationary: pd.DataFrame,
     p: int = 1,
@@ -258,30 +259,56 @@ def run_garch(
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:
     """
     Runs the GARCH model on the provided stationary DataFrame.
-
+    
     Args:
         df_stationary (pd.DataFrame): The stationary time series data to fit the GARCH model on.
         p (int, optional): The GARCH lag order. Defaults to 1.
         q (int, optional): The ARCH lag order. Defaults to 1.
         dist (str, optional): The error distribution - 'normal', 't', etc. Defaults to "normal".
         forecast_steps (int, optional): The number of steps to forecast. Defaults to 5.
-
+        
     Returns:
         Tuple[Dict[str, Any], Dict[str, float]]: A tuple containing the fitted GARCH model and the forecasted values.
     """
     l.info("\n## Running GARCH")
-    model_garch = ModelFactory.create_model(
-        model_type="GARCH",
-        data=df_stationary,
-        p=p,
-        q=q,
-        dist=dist,
-    )
-    garch_fit = model_garch.fit()
-    l.info("\n## GARCH summary")
-    l.info(model_garch.summary())
-    l.info("\n## GARCH forecast")
-    garch_forecast = model_garch.forecast(steps=forecast_steps)
-    l.info(f"garch_forecast: {garch_forecast}")
-
-    return garch_fit, garch_forecast
+    
+    # Ensure data is properly prepared for time series analysis
+    try:
+        df_stationary = data_processor.prepare_timeseries_data(df_stationary)
+    except Exception as e:
+        l.error(f"Error preparing data for GARCH model: {e}")
+        raise ValueError(f"Failed to prepare data for GARCH model: {str(e)}")
+    
+    # Check if we have enough data points for GARCH modeling (need at least p+q+1)
+    min_points = p + q + 1
+    if len(df_stationary) < min_points:
+        raise ValueError(f"GARCH model requires at least {min_points} data points, but only {len(df_stationary)} provided")
+    
+    # Verify data has variance (GARCH won't work on constant data)
+    for col in df_stationary.columns:
+        if df_stationary[col].std() == 0:
+            l.warning(f"Column {col} has zero variance, GARCH modeling may fail")
+    
+    # Create and fit the GARCH model
+    try:
+        model_garch = ModelFactory.create_model(
+            model_type="GARCH",
+            data=df_stationary,
+            p=p,
+            q=q,
+            dist=dist,
+        )
+        garch_fit = model_garch.fit()
+        
+        l.info("\n## GARCH summary")
+        l.info(model_garch.summary())
+        
+        l.info("\n## GARCH forecast")
+        garch_forecast = model_garch.forecast(steps=forecast_steps)
+        l.info(f"garch_forecast: {garch_forecast}")
+        
+        return garch_fit, garch_forecast
+    
+    except Exception as e:
+        l.error(f"Error during GARCH model fitting or forecasting: {e}")
+        raise RuntimeError(f"GARCH model failed: {str(e)}")

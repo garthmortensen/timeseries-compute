@@ -1,5 +1,7 @@
 # Generalized Timeseries
 
+TODO: Add random seed into .yml
+
 ![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_pytest.yml/badge.svg)
 
 ![Read the Docs](https://img.shields.io/readthedocs/generalized-timeseries)
