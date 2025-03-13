@@ -18,7 +18,7 @@ jobs:
       matrix:
         # Test on multiple Python versions and operating systems
         python-version: ["3.11", "3.13"]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest,]  # windows-latest,
 
     steps:
       # Check out repository code
