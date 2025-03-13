@@ -168,7 +168,6 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # No need to specify user or password with trusted publishing
-          verify_metadata: true
+          verify-metadata: true
           verbose: true
-          skip_existing: false
+          skip-existing: false
