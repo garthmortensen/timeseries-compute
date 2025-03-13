@@ -4,105 +4,104 @@ import pytest
 import pandas as pd
 import numpy as np
 from generalized_timeseries.data_generator import generate_price_series, PriceSeriesGenerator
+from generalized_timeseries.data_processor import (
+    fill_data, scale_data, stationarize_data, log_stationarity,
+    DataScaler, DataScalerFactory, StationaryReturnsProcessor
+)
+from generalized_timeseries.stats_model import (
+    ModelARIMA, ModelGARCH, ModelFactory, run_arima, run_garch
+)
+
+# -- price generator tests --
 
 def test_generate_price_series_default_params():
-    """Test the convenience wrapper function with default parameters."""
+    """test default wrapper func"""
     price_dict, price_df = generate_price_series()
     
-    # Test the returned types
+    # check types & content
     assert isinstance(price_dict, dict)
     assert isinstance(price_df, pd.DataFrame)
-    
-    # Test default tickers are present
     assert "GME" in price_dict
     assert "BYND" in price_dict
     
-    # Test shape matches expected date range (workdays in 2023)
-    # Approximately 252 trading days in a year
+    # check dates (trading days in 2023)
     expected_days = len(pd.date_range(start="2023-01-01", end="2023-12-31", freq="B"))
     assert len(price_df) == expected_days
     
-    # Test initial values match anchor prices
+    # check initial values
     assert price_dict["GME"][0] == 100.0
     assert price_dict["BYND"][0] == 200.0
 
 def test_custom_date_range():
-    """Test with custom date range."""
+    """test custom dates"""
     start_date = "2024-01-01"
     end_date = "2024-01-31"
     price_dict, price_df = generate_price_series(start_date=start_date, end_date=end_date)
     
-    # Check if date range matches
+    # check dates
     expected_days = len(pd.date_range(start=start_date, end=end_date, freq="B"))
     assert len(price_df) == expected_days
     assert price_df.index[0].strftime("%Y-%m-%d") == "2024-01-01"
 
 def test_custom_anchor_prices():
-    """Test with custom anchor prices."""
+    """test custom starting prices"""
     anchor_prices = {"AAPL": 150.0, "MSFT": 250.0, "GOOGL": 1000.0}
     price_dict, price_df = generate_price_series(anchor_prices=anchor_prices)
     
-    # Check if all tickers are present
-    for ticker in anchor_prices.keys():
+    # check tickers
+    for ticker in anchor_prices:
         assert ticker in price_dict
         assert ticker in price_df.columns
     
-    # Check if initial prices match
+    # check values
     for ticker, price in anchor_prices.items():
         assert price_dict[ticker][0] == price
         assert price_df[ticker].iloc[0] == price
 
 def test_price_series_statistics():
-    """Test statistical properties of generated price series."""
-    price_dict, price_df = generate_price_series()
-    
-    # Test for each ticker
-    for ticker in price_df.columns:
-        series = price_df[ticker]
-        
-        # Since we're using Gaussian with mean=0, the mean of differences should be close to 0
-        diff = series.diff().dropna()
-        assert abs(diff.mean()) < 1.0  # Should be close to 0 with some tolerance
-        
-        # Standard deviation should be close to 1 (as sigma=1 in the random.gauss)
-        assert 0.5 < diff.std() < 1.5  # Allow some tolerance
-
-def test_decimal_precision():
-    """Test that values are rounded to 4 decimal places."""
+    """test stats properties"""
     _, price_df = generate_price_series()
     
-    # Check if all values are rounded to 4 decimal places
+    # gaussian params
+    expected_mean = 0
+    expected_std = 1
+    tolerance = 0.5  # allow some variation
+    
+    for ticker in price_df.columns:
+        series = price_df[ticker]
+        diff = series.diff().dropna()
+        
+        # check stats are close to expected
+        assert abs(diff.mean() - expected_mean) < tolerance
+        assert abs(diff.std() - expected_std) < tolerance * 2
+
+def test_decimal_precision():
+    """test 4-decimal rounding"""
+    _, price_df = generate_price_series()
+    
+    max_decimals = 4
     for column in price_df.columns:
-        # Extract the decimal part for each value and check its length
+        # get decimal digit count
         decimal_lengths = price_df[column].apply(
             lambda x: len(str(x).split('.')[-1]) if '.' in str(x) else 0
         )
-        assert (decimal_lengths <= 4).all()
+        assert (decimal_lengths <= max_decimals).all()
 
-# tests/test_data_processor_advanced.py
-
-import pytest
-import pandas as pd
-import numpy as np
-from generalized_timeseries.data_processor import (
-    fill_data, scale_data, stationarize_data, 
-    log_stationarity,
-    DataScaler, DataScalerFactory, StationaryReturnsProcessor
-)
+# -- data processor tests --
 
 @pytest.fixture
 def sample_data_with_missing():
-    """Fixture providing sample data with missing values."""
+    """gen data w/ missing vals"""
     data = {
         "A": [1, 2, None, 4, 5],
         "B": [None, 2, 3, None, 5],
-        "C": [1, 2, 3, 4, 5]  # No missing values
+        "C": [1, 2, 3, 4, 5]  # complete column
     }
     return pd.DataFrame(data)
 
 @pytest.fixture
 def sample_data_for_scaling():
-    """Fixture providing sample data for scaling tests."""
+    """gen data for scaling tests"""
     data = {
         "A": [1, 2, 3, 4, 5],
         "B": [10, 20, 30, 40, 50],
@@ -112,13 +111,17 @@ def sample_data_for_scaling():
 
 @pytest.fixture
 def sample_data_for_stationarity():
-    """Fixture providing non-stationary and stationary data."""
-    # Random walk (non-stationary)
+    """gen non-stationary + stationary data"""
     np.random.seed(42)
-    random_walk = np.cumsum(np.random.normal(0, 1, 100))
     
-    # White noise (stationary)
-    white_noise = np.random.normal(0, 1, 100)
+    # random walk (non-stationary) - each point depends on previous point
+    n_points = 100
+    random_walk = np.zeros(n_points)
+    for i in range(1, n_points):
+        random_walk[i] = random_walk[i-1] + np.random.normal(0, 1)
+    
+    # white noise (stationary) - points are independent
+    white_noise = np.random.normal(0, 1, n_points)
     
     data = {
         "random_walk": random_walk,
@@ -127,70 +130,74 @@ def sample_data_for_stationarity():
     return pd.DataFrame(data)
 
 def test_scale_data_standardize(sample_data_for_scaling):
-    """Test standardization scaling."""
+    """test z-score scaling"""
     scaled_df = scale_data(sample_data_for_scaling, method="standardize")
     
-    # Check mean and std for each column
+    target_mean = 0
+    target_std = 1
+    epsilon = 1e-10  # small error tolerance
+    
+    # check stats match targets
     for column in scaled_df.columns:
-        assert abs(scaled_df[column].mean()) < 1e-10  # Mean should be close to 0
-        assert abs(scaled_df[column].std() - 1.0) < 1e-10  # Std should be close to 1
+        assert abs(scaled_df[column].mean() - target_mean) < epsilon
+        assert abs(scaled_df[column].std() - target_std) < epsilon
 
 def test_scale_data_minmax(sample_data_for_scaling):
-    """Test min-max scaling."""
+    """test 0-1 scaling"""
     scaled_df = scale_data(sample_data_for_scaling, method="minmax")
     
-    # Check min and max for each column
+    target_min = 0
+    target_max = 1
+    epsilon = 1e-10  # small error tolerance
+    
+    # check bounds match targets
     for column in scaled_df.columns:
-        assert abs(scaled_df[column].min()) < 1e-10  # Min should be close to 0
-        assert abs(scaled_df[column].max() - 1.0) < 1e-10  # Max should be close to 1
+        assert abs(scaled_df[column].min() - target_min) < epsilon
+        assert abs(scaled_df[column].max() - target_max) < epsilon
 
 def test_stationarize_data(sample_data_for_stationarity):
-    """Test making data stationary through differencing."""
+    """test differencing for stationarity"""
     stationary_df = stationarize_data(sample_data_for_stationarity)
     
-    # Check that differenced columns were created
+    # check differenced cols exist
     assert "random_walk_diff" in stationary_df.columns
     assert "white_noise_diff" in stationary_df.columns
-    
-    # Original columns should still exist
     assert "random_walk" in stationary_df.columns
     assert "white_noise" in stationary_df.columns
 
-
 def test_data_scaler_factory_invalid_strategy():
-    """Test DataScalerFactory with invalid strategy."""
+    """test factory error handling"""
     with pytest.raises(ValueError):
         DataScalerFactory.create_handler("invalid_strategy")
 
-# tests/test_stats_model_advanced.py
-
-import pytest
-import pandas as pd
-import numpy as np
-from generalized_timeseries.stats_model import (
-    ModelARIMA, ModelGARCH, ModelFactory,
-    run_arima, run_garch
-)
+# -- stats model tests --
 
 @pytest.fixture
 def stationary_sample_data():
-    """Fixture to provide stationary data for testing."""
+    """gen stationary data for modeling"""
     np.random.seed(42)
+    n_points = 100
     
-    # Create an AR(1) process
-    n = 100
-    ar_param = 0.7
-    ar_series = np.zeros(n)
+    # ar(1) params
+    ar_coef = 0.7
+    noise_std = 1.0
     
-    for i in range(1, n):
-        ar_series[i] = ar_param * ar_series[i-1] + np.random.normal(0, 1)
+    # garch params
+    constant = 0.1
+    arch_coef = 0.2 
+    garch_coef = 0.7
     
-    # Create a series with GARCH effects
-    garch_series = np.zeros(n)
-    volatility = np.ones(n)
+    # create ar(1) series
+    ar_series = np.zeros(n_points)
+    for i in range(1, n_points):
+        ar_series[i] = ar_coef * ar_series[i-1] + np.random.normal(0, noise_std)
     
-    for i in range(1, n):
-        volatility[i] = 0.1 + 0.2 * garch_series[i-1]**2 + 0.7 * volatility[i-1]
+    # create garch series
+    garch_series = np.zeros(n_points)
+    volatility = np.ones(n_points)
+    
+    for i in range(1, n_points):
+        volatility[i] = constant + arch_coef * garch_series[i-1]**2 + garch_coef * volatility[i-1]
         garch_series[i] = np.random.normal(0, np.sqrt(volatility[i]))
     
     data = {
@@ -200,71 +207,85 @@ def stationary_sample_data():
     return pd.DataFrame(data)
 
 def test_model_factory_arima(stationary_sample_data):
-    """Test ModelFactory for creating ARIMA models."""
+    """test factory creates arima"""
+    ar_lag = 1
+    diff_order = 0
+    ma_lag = 0
+    steps = 3
+    
     model = ModelFactory.create_model(
         model_type="ARIMA",
         data=stationary_sample_data,
-        order=(1, 0, 0),
-        steps=3
+        order=(ar_lag, diff_order, ma_lag),
+        steps=steps
     )
     
     assert isinstance(model, ModelARIMA)
-    assert model.order == (1, 0, 0)
-    assert model.steps == 3
+    assert model.order == (ar_lag, diff_order, ma_lag)
+    assert model.steps == steps
 
 def test_model_factory_garch(stationary_sample_data):
-    """Test ModelFactory for creating GARCH models."""
+    """test factory creates garch"""
+    p_order = 1  # garch lag
+    q_order = 1  # arch lag
+    dist_type = "normal"
+    
     model = ModelFactory.create_model(
         model_type="GARCH",
         data=stationary_sample_data,
-        p=1,
-        q=1,
-        dist="normal"
+        p=p_order,
+        q=q_order,
+        dist=dist_type
     )
     
     assert isinstance(model, ModelGARCH)
-    assert model.p == 1
-    assert model.q == 1
-    assert model.dist == "normal"
+    assert model.p == p_order
+    assert model.q == q_order
+    assert model.dist == dist_type
 
 def test_model_factory_invalid():
-    """Test ModelFactory with invalid model type."""
+    """test factory invalid type"""
+    test_data = pd.DataFrame({"A": [1, 2, 3]})
+    
     with pytest.raises(ValueError):
-        ModelFactory.create_model(
-            model_type="INVALID",
-            data=pd.DataFrame({"A": [1, 2, 3]})
-        )
+        ModelFactory.create_model(model_type="INVALID", data=test_data)
 
 def test_model_garch_methods(stationary_sample_data):
-    """Test the methods of ModelGARCH."""
+    """test garch model methods"""
     model = ModelGARCH(data=stationary_sample_data, p=1, q=1)
     
-    # Test fit method
+    # check fit
     fits = model.fit()
     assert isinstance(fits, dict)
     assert "AR" in fits
     assert "GARCH" in fits
     
-    # Test summary method
+    # check summary
     summaries = model.summary()
     assert isinstance(summaries, dict)
     assert "AR" in summaries
     assert "GARCH" in summaries
     
-    # Test forecast method
-    forecasts = model.forecast(steps=3)
+    # check forecast
+    forecast_steps = 3
+    forecasts = model.forecast(steps=forecast_steps)
     assert isinstance(forecasts, dict)
     assert "AR" in forecasts
     assert "GARCH" in forecasts
 
 def test_run_arima(stationary_sample_data):
-    """Test the run_arima convenience function."""
+    """test arima convenience func"""
+    p_val = 1
+    d_val = 0
+    q_val = 0
+    forecast_steps = 3
+    
     arima_fit, arima_forecast = run_arima(
         df_stationary=stationary_sample_data,
-        p=1,
-        d=0,
-        q=0,
-        forecast_steps=3
+        p=p_val,
+        d=d_val,
+        q=q_val,
+        forecast_steps=forecast_steps
     )
     
     assert isinstance(arima_fit, dict)
@@ -273,17 +294,21 @@ def test_run_arima(stationary_sample_data):
     assert "AR" in arima_forecast
 
 def test_run_garch(stationary_sample_data):
-    """Test the run_garch convenience function."""
+    """test garch convenience func"""
+    p_val = 1
+    q_val = 1
+    dist_type = "normal"
+    forecast_steps = 3
+    
     garch_fit, garch_forecast = run_garch(
         df_stationary=stationary_sample_data,
-        p=1,
-        q=1,
-        dist="normal",
-        forecast_steps=3
+        p=p_val,
+        q=q_val,
+        dist=dist_type,
+        forecast_steps=forecast_steps
     )
     
     assert isinstance(garch_fit, dict)
     assert isinstance(garch_forecast, dict)
     assert "AR" in garch_fit
     assert "GARCH" in garch_forecast
-
