@@ -4,7 +4,6 @@ name: generalized-timeseries CI/CD
 on: 
   push:
     branches: [ main, dev ]  # Only run on main and develop branches for pushes
-    tags: ['v*']  # Run on version tags for releases
 
 jobs:
   test:
@@ -147,8 +146,6 @@ jobs:
   
   publish:
     name: Publish to PyPI
-    # Only run on tagged commits and after build job completes
-    if: startsWith(github.ref, 'refs/tags/')
     needs: [test, build, docs]
     runs-on: ubuntu-latest
     
