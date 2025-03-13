@@ -1,12 +1,6 @@
 # Generalized Timeseries
 
-TODO: Add random seed into .yml
-
-![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_pytest.yml/badge.svg)
-
-![Read the Docs](https://img.shields.io/readthedocs/generalized-timeseries)
-
-![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI)
+![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_CICD.yml/badge.svg) ![readthedocs.io](https://img.shields.io/readthedocs/generalized-timeseries) ![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI) [![codecov](https://codecov.io/gh/garthmortensen/generalized-timeseries/graph/badge.svg?token=L1L5OBSF3Z)](https://codecov.io/gh/garthmortensen/generalized-timeseries) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 A package for time series data processing and modeling using ARIMA and GARCH models.
 
@@ -19,10 +13,20 @@ A package for time series data processing and modeling using ARIMA and GARCH mod
 
 ## Installation
 
+Install from pypi:
+
 ```bash
 python -m venv venv
 source venv/bin/activate
 pip install generalized-timeseries
+```
+
+Install from github:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install git+https://github.com/garthmortensen/generalized-timeseries.git
 ```
 
 ## Usage
@@ -51,12 +55,6 @@ garch_forecast = stats_model.forecast_garch(garch_model, steps=10)
 print("ARIMA Forecast:", arima_forecast)
 print("GARCH Forecast:", garch_forecast)
 ```
-
-## External resources
-
-[pypi repo](https://pypi.org/project/generalized-timeseries/)
-
-[readthedocs.io](https://generalized-timeseries.readthedocs.io/en/latest/)
 
 ## Publishing Maintenance
 

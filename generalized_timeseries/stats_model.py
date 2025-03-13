@@ -12,7 +12,7 @@ from arch import arch_model
 
 # type hinting
 from typing import Dict, Any, Tuple
-import data_processor
+from generalized_timeseries import data_processor
 
 class ModelARIMA:
     """
