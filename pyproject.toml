@@ -1,7 +1,7 @@
 # project metadata
 [project]
 name = "generalized_timeseries"
-version = "0.1.7"
+version = "0.1.8"
 authors = [
     { name="Garth Mortensen", email="mortensengarth@hotmail.com" }
 ]
@@ -12,6 +12,7 @@ urls = { "Homepage" = "https://github.com/garthmortensen/generalized-timeseries"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
+    "Development Status :: 3 - Beta",
 ]
 
 requires-python = ">=3.11"

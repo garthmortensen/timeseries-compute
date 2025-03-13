@@ -9,6 +9,9 @@ import random
 from tabulate import tabulate  # pretty print dfs
 from typing import Dict, Tuple, Optional
 
+# set random seed for reproducibility
+DEFAULT_RANDOM_SEED = 2025  # this is used by random module
+random.seed(DEFAULT_RANDOM_SEED)
 
 class PriceSeriesGenerator:
     """
@@ -80,11 +83,24 @@ class PriceSeriesGenerator:
         return data, df
 
 
+# set new random seed using a "convenience" function, which is a wrapper around the class
+def set_random_seed(seed: int = DEFAULT_RANDOM_SEED) -> None:
+    """
+    Sets the random seed for the random module.
+    
+    Args:
+        seed (int): Seed value for random number generator.
+    """
+    l.info(f"Setting random seed to {seed}")
+    random.seed(seed)
+
+
 # convenience wrapper around the class
 def generate_price_series(
     start_date: str = "2023-01-01",
     end_date: str = "2023-12-31",
     anchor_prices: Optional[Dict[str, float]] = None,
+    random_seed: Optional[int] = None,
 ) -> Tuple[Dict[str, list], pd.DataFrame]:
     """
     Generates a series of price data based on the provided parameters.
@@ -94,6 +110,7 @@ def generate_price_series(
         end_date (str, optional): The end date for the price series. Defaults to "2023-12-31".
         anchor_prices (Dict[str, float], optional): A dictionary of tickers and their initial prices.
             Defaults to {"GME": 100.0, "BYND": 200.0} if None.
+        random_seed (int, optional): Seed for random number generation. If provided, overrides the module-level seed. Defaults to None.
 
     Returns:
         Tuple[Dict[str, list], pd.DataFrame]:
