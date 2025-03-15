@@ -74,6 +74,19 @@ python generalized_timeseries/examples/example.py
 
 Reminder on how to manually push to pypi. This step, along with autodoc build, is automated with CI/CD.
 
+
+### Steps
+
+1. bump `version` in `pyproject.toml` to `v0.1.11`
+2. git add, commit:
+
+    ```bash
+    git add pyproject.toml
+    git commit -m "Ver: bump"
+    git tag v0.1.11
+    git push && git push --tags
+    ```
+
 ### pypi
 
 ```shell
