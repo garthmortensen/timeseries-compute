@@ -7,7 +7,7 @@ import logging as l
 import pandas as pd
 import random
 from tabulate import tabulate  # pretty print dfs
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional  # type hints for better code readability
 
 # set random seed for reproducibility
 DEFAULT_RANDOM_SEED = 2025  # this is used by random module

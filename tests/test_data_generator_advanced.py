@@ -45,7 +45,7 @@ def test_custom_date_range():
 
 def test_custom_anchor_prices():
     """test custom starting prices"""
-    anchor_prices = {"AAPL": 150.0, "MSFT": 250.0, "GOOGL": 1000.0}
+    anchor_prices = {"ESPO": 150.0, "HERO": 250.0, "GAMR": 1000.0}
     price_dict, price_df = generate_price_series(anchor_prices=anchor_prices)
     
     # check tickers
