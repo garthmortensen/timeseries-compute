@@ -304,9 +304,9 @@ def run_garch(
         l.info(model_garch.summary())
         
         l.info("\n## GARCH forecast")
-        garch_forecast = model_garch.forecast(horizon=forecast_steps)
+        garch_forecast = model_garch.forecast(steps=forecast_steps)
         l.info(f"garch_forecast: {garch_forecast}")
-
+        
         return garch_fit, garch_forecast
     
     except Exception as e:
