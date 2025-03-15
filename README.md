@@ -101,13 +101,11 @@ rm -rf dist build *.egg-info # restart if needed
 
 ## Design Decisions
 
-### Package project
+### [Package project](https://pypi.org/project/generalized-timeseries/)
 
 This package was created in order to carve out code from a larger thesis remake project. Doing so increased modularity. `pyproject.toml` is used instead of `setup.py` to achieve a modern build process for publishing to pypi. It also supports direct pip installation via github clone.
 
-pypi project: https://pypi.org/project/generalized-timeseries/
-
-### Self documenting code
+### [Self documenting code](https://generalized-timeseries.readthedocs.io/en/latest/)
 
 To achieve self-documenting code, docstrings are used. 
 
@@ -115,25 +113,17 @@ Due to there being a fair amount of modules, classes and functions, type hints a
 
 Sphinx converts all this metadata into `.html` and hosted on readthedocs.io.
 
-readthedocs: https://generalized-timeseries.readthedocs.io/en/latest/
-
-### Test covereage
+### [Test covereage](https://app.codecov.io/gh/garthmortensen/generalized-timeseries)
 
 Unit tests cover the majority of the codebase, to ensure code changes don't break existing functionality. Codecov.io is used to analyze code coverage.
 
-code coverage report: https://app.codecov.io/gh/garthmortensen/generalized-timeseries
-
-### Code quality
+### [Code quality](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard)
 
 Codacy is used to analyze code quality, and highly any insecure programming issues.
 
-code quality report: https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard
-
-### Branching
+### [Branching](https://github.com/garthmortensen/generalized-timeseries/branches)
 
 Branches were used early on in the project for the sake of purity, but eventually pragmatism took over.
-
-git branches: https://github.com/garthmortensen/generalized-timeseries/branches
 
 ### `venv`
 
@@ -143,17 +133,15 @@ Virtual environments and [`requirements.txt`](https://github.com/garthmortensen/
 
 The code is OS-agnostic, and [tested across ubuntu and mac-os](https://github.com/garthmortensen/generalized-timeseries/blob/dev/.github/workflows/execute_CICD.yml#L21). Due to the slow spin-up times of testing on a Windows build, it's been excluded from testing since v0.1.7.
 
-### CI/CD
+### [CI/CD](https://github.com/garthmortensen/generalized-timeseries/tree/dev/.github/workflows)
 
 A Github Actions workflow automates the labor involved with `pytest`, package build (wheels included), pypi distribution, producing `sphinx` autodocs, publishing docs to readthedocs.io, and publishing to docker hub.
 
-CD/CD: https://github.com/garthmortensen/generalized-timeseries/tree/dev/.github/workflows
+### [Docker](https://hub.docker.com/r/goattheprofessionalmeower/generalized-timeseries)
 
-### Docker
+TODO: Add Docker pull commands
 
 In addition to `venv`, docker encapsulates the app and dependencies. This helps run it across different environments.
-
-https://hub.docker.com/r/goattheprofessionalmeower/generalized-timeseries
 
 ```bash
 docker build -t generalized-timeseries:latest ./
