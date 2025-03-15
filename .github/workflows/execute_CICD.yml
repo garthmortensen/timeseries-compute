@@ -65,17 +65,16 @@ jobs:
       
       # Upload coverage report to Codecov
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@3440e5ef70c638a9f44602a80ab017feee1309fe
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: garthmortensen/generalized-timeseries
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        uses: codecov/test-results-action@f2dba722c67b86c6caa034178c6e4d35335f6706
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
 
   docker:
     name: Build and Push Docker Image
@@ -87,17 +86,17 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@afeb29a6e0d7d6258844ecabe6eba67d13443680
       
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
         with:
           images: goattheprofessionalmeower/generalized-timeseries
           tags: |
@@ -113,8 +112,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-
 
   build:
     name: Build package
@@ -205,7 +202,7 @@ jobs:
       
       # Publish to PyPI using GitHub Action with trusted publishing
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
         with:
           verify-metadata: true
           verbose: true
