@@ -19,12 +19,23 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copy everything in souce into app working dir
 COPY ./ /app
 
+# overcome permissions issues
+USER root
+RUN chown -R coolcat:coolcat /app
+USER coolcat
+
+
 # install the package in development mode
 # editable mode allows you to modify the source code and see the changes reflected in the package without having to reinstall it
 RUN pip install --editable .
 
-RUN chown -R coolcat:coolcat /app
-
 # Set the entrypoint to python
 ENTRYPOINT ["python"]
+
+# docker build -t generalized-timeseries:latest ./
+# docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example.py
+# -it for interactive, tty mode, allowing typing in the terminal, color formatting, etc
+
+# to run the container in interactive mode, without using python as the entrypoint
+# docker run -it --entrypoint /bin/bash generalized-timeseries:latest
 
