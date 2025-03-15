@@ -5,9 +5,9 @@ FROM python:3.13-slim
 # bc running as a non-root, create a user that matches host UID/GID
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-RUN groupadd -g ${GROUP_ID} coolcat && \
-    useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash coolcat
-USER coolcat
+RUN groupadd -g ${GROUP_ID} timeseriesapp && \
+    useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash timeseriesapp
+USER timeseriesapp
 
 # set containers working dir
 WORKDIR /app
@@ -21,8 +21,8 @@ COPY ./ /app
 
 # overcome permissions issues
 USER root
-RUN chown -R coolcat:coolcat /app
-USER coolcat
+RUN chown -R timeseriesapp:timeseriesapp /app
+USER timeseriesapp
 
 
 # install the package in development mode
