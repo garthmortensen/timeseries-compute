@@ -1,7 +1,7 @@
 # project metadata
 [project]
 name = "generalized_timeseries"
-version = "0.1.10"
+version = "0.1.11garch_forecast = model_garch.forecast(steps=forecast_steps)"
 authors = [
     { name="Garth Mortensen", email="mortensengarth@hotmail.com" }
 ]
