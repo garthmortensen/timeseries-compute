@@ -1,0 +1,20 @@
+# docker-compose will make it easier to run the package under various configs
+services:
+  timeseries:
+    build: .
+    volumes:
+      - ./:/app
+    command: -c "from generalized_timeseries import data_generator, data_processor, stats_model; print('Generalized Timeseries package ready!')"
+
+  example:
+    build: .
+    volumes:
+      - ./:/app
+    command: examples/timeseries_example.py
+    entrypoint: ["bash", "-c", "chmod +x /app/examples/timeseries_example.py && python /app/examples/timeseries_example.py"]
+
+  tests:
+    build: .
+    volumes:
+      - ./:/app
+    command: -m pytest
