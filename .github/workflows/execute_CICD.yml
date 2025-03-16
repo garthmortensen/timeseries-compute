@@ -209,6 +209,24 @@ jobs:
           cd docs
           sphinx-build -b html source build
       
+      - name: Install Graphviz
+        description: "Install Graphviz for UML diagram generation"
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      
+      - name: Generate UML diagrams
+        description: "Create UML class diagrams with pyreverse"
+        run: |
+          python -m pip install pylint
+          mkdir -p images
+          pyreverse -o png -d images generalized_timeseries
+      
+      - name: Upload UML diagrams as artifacts
+        description: "Store generated UML diagrams"
+        uses: actions/upload-artifact@v4
+        with:
+          name: uml-diagrams
+          path: images/
+      
       - name: Upload documentation artifact
         description: "Store documentation for later deployment"
         uses: actions/upload-artifact@v4

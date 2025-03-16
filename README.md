@@ -155,7 +155,7 @@ Iirc, much of the CI/CD actions are gated not behind pushed branches, but pushed
 2. Commit and tag:
    ```bash
    git add pyproject.toml
-   git commit -m "bump: version to v0.1.12"
+   git commit -m "version bump"
    git tag v0.1.12
    git push && git push --tags  # push branch and tag at once
    ```
