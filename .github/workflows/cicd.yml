@@ -1,20 +1,14 @@
-name: cicd
+name: generalized timeseries cicd
 
 # Run workflow on push
 on: 
   push:
     branches: [ main, dev ]  # Only run on main and develop branches for pushes
 
-# note that some of these keys are informational only
 jobs:
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    # description: "Validates code quality and functionality across multiple Python versions and operating systems"
-    # purpose: "Continuous Integration - Test code quality and functionality"
-    inputs: "Source code from repo"
-    outputs: "Test results and coverage reports"
-    
-    # Test on multiple operating systems for better compatibility assurance
+    # Test code quality and functionality across multiple environments
     runs-on: ${{ matrix.os }}
     
     strategy:
@@ -22,24 +16,21 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.13"]
-        os: [ubuntu-latest, macos-latest,]  # windows-latest,
+        os: [ubuntu-latest, macos-latest]  # windows-latest,
 
     steps:
       # check out repos
       - name: Check out repo
-        # description: "Clone repo to runner"
         uses: actions/checkout@v4
       
       # Set up Python environment with specified version
       - name: Set up Python ${{ matrix.python-version }}
-        # description: "Configure Python runtime environment"
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       
       # cache pip dependencies to speed up workflow
       - name: Cache pip dependencies
-        # description: "Speed up builds by caching Python packages"
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -49,7 +40,6 @@ jobs:
       
       # Install dependencies
       - name: Install dependencies
-        # description: "Set up dev environment with required packages"
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest pytest-cov
@@ -58,7 +48,6 @@ jobs:
         shell: bash  # ensure consistent shell across all OS
       
       - name: Lint with flake8
-        # description: "Check code quality and style compliance"
         run: |
           # Stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -66,19 +55,16 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       
       - name: Test with pytest and collect coverage
-        # description: "Execute unit tests and measure code coverage"
         run: |
           pytest --cov=generalized_timeseries --cov-report=xml --cov-report=term
       
       - name: Upload coverage reports to Codecov
-        # description: "Publish code coverage metrics to Codecov"
         uses: codecov/codecov-action@3440e5ef70c638a9f44602a80ab017feee1309fe
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: garthmortensen/generalized-timeseries
 
       - name: Upload test results to Codecov
-        # description: "Upload test results to Codecov"
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@f2dba722c67b86c6caa034178c6e4d35335f6706
         with:
@@ -86,31 +72,24 @@ jobs:
 
   docker:
     name: Build and Push Docker Image
-    # description: "Create and publish Docker image to DockerHub"
-    # purpose: "Continuous Deployment - Container delivery"
-    inputs: "Validated source code"
-    outputs: "Docker image on DockerHub"
+    # Create and publish Docker image to DockerHub
     needs: test  # gate this behind successful tests
     runs-on: ubuntu-latest
     
     steps:
       - name: Check out repo
-        # description: "Clone repo code to runner"
         uses: actions/checkout@v4
       
       - name: Set up Docker Buildx
-        # description: "Configure Docker build environment with multi-platform support"
         uses: docker/setup-buildx-action@afeb29a6e0d7d6258844ecabe6eba67d13443680
       
       - name: Login to DockerHub
-        # description: "Authenticate with DockerHub"
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Extract metadata for Docker
-        # description: "Generate semantic versioning tags and metadata"
         id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
         with:
@@ -122,7 +101,6 @@ jobs:
             type=sha,format=short
       
       - name: Build and push Docker image
-        # description: "Compile and publish Docker image to registry"
         uses: docker/build-push-action@84ad562665bb303b549fec655d1b64f9945f3f91
         with:
           context: .
@@ -132,45 +110,36 @@ jobs:
 
   build:
     name: Build package
-    # description: "Create Python package distribution files"
-    # purpose: "Continuous Deployment - Package preparation"
-    inputs: "Validated source code"
-    outputs: "Python wheel and source distribution packages"
+    # Create Python package distribution files
     needs: test  # gate this behind successful tests
     runs-on: ubuntu-latest
     
     steps:
       - name: Check out repo
-        # description: "Clone repo to runner"
         uses: actions/checkout@v4
       
       - name: Set up Python 3.13
-        # description: "Configure Python environment"
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       
       - name: Install build dependencies
-        # description: "Set up package building tools"
         run: |
           python -m pip install --upgrade pip
           pip install build twine
       
       # Build both wheel and source distribution
       - name: Build package
-        # description: "Create wheel and source distribution files"
         run: |
           python -m build
       
       # Verify package integrity with twine
       - name: Check package with twine
-        # description: "Validate package metadata and structure"
         run: |
           twine check dist/*
       
-      # Upload built package as an artifact - updated to v4
+      # Upload built package as an artifact
       - name: Upload package artifact
-        # description: "Store built packages for later deployment steps"
         uses: actions/upload-artifact@v4
         with:
           name: distributions
@@ -178,57 +147,46 @@ jobs:
   
   docs:
     name: Build documentation
-    # description: "Generate API documentation from source code"
-    # purpose: "Continuous Deployment - Documentation generation"
-    inputs: "Validated source code with docstrings"
-    outputs: "HTML documentation for ReadTheDocs"
+    # Generate API documentation from source code
     needs: test   # gate this behind successful tests
     runs-on: ubuntu-latest
     
     steps:
       - name: Check out repo
-        # description: "Clone repo to runner"
         uses: actions/checkout@v4
       
       - name: Set up Python 3.13
-        # description: "Configure Python environment"
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       
       - name: Install dependencies
-        # description: "Install Sphinx and documentation tools"
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e ".[docs]"
       
       - name: Build documentation
-        # description: "Generate HTML documentation from docstrings"
         run: |
           cd docs
           sphinx-build -b html source build
       
       - name: Install Graphviz
-        # description: "Install Graphviz for UML diagram generation"
         run: sudo apt-get update && sudo apt-get install -y graphviz
       
       - name: Generate UML diagrams
-        # description: "Create UML class diagrams with pyreverse"
         run: |
           python -m pip install pylint
           mkdir -p images
           pyreverse -o png -d images generalized_timeseries
       
       - name: Upload UML diagrams as artifacts
-        # description: "Store generated UML diagrams"
         uses: actions/upload-artifact@v4
         with:
           name: uml-diagrams
           path: images/
       
       - name: Upload documentation artifact
-        # description: "Store documentation for later deployment"
         uses: actions/upload-artifact@v4
         with:
           name: documentation
@@ -236,10 +194,7 @@ jobs:
   
   publish:
     name: Publish to PyPI
-    # description: "Deploy package to Python Package Index"
-    # purpose: "Continuous Deployment - Public release"
-    inputs: "Validated package distributions"
-    outputs: "Published package on PyPI"
+    # Deploy package to Python Package Index
     needs: [test, build, docs]
     runs-on: ubuntu-latest
     
@@ -250,18 +205,15 @@ jobs:
     
     steps:
       - name: Check out repo
-        # description: "Clone repo to runner"
         uses: actions/checkout@v4
       
       - name: Download package distributions
-        # description: "Retrieve built package artifacts"
         uses: actions/download-artifact@v4
         with:
           name: distributions
           path: dist/
       
       - name: Publish to PyPI
-        # description: "Upload package to PyPI using trusted publishing"
         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
         with:
           verify-metadata: true
