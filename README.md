@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI)](https://pypi.org/project/generalized-timeseries/)
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-generalized--timeseries-blue)](https://hub.docker.com/r/goattheprofessionalmeower/generalized-timeseries)
 
-![CI/CD](https://github.com/garthmortensen/garch/actions/workflows/execute_CICD.yml/badge.svg) 
+![CI/CD](https://github.com/garthmortensen/generalized-timeseries/actions/workflows/execute_CICD.yml/badge.svg) 
 [![codecov](https://codecov.io/gh/garthmortensen/generalized-timeseries/graph/badge.svg?token=L1L5OBSF3Z)](https://codecov.io/gh/garthmortensen/generalized-timeseries)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
@@ -65,29 +65,6 @@ pip install git+https://github.com/garthmortensen/generalized-timeseries.git
 ```
 
 ## Quick Start
-
-```python
-from generalized_timeseries import data_generator, data_processor, stats_model
-
-# Generate synthetic price series
-price_dict, price_df = data_generator.generate_price_series(length=1000)
-
-# Preprocess the data (handle missing values, stationarize)
-processed_data = data_processor.preprocess_data(price_df)
-
-# Fit ARIMA model
-arima_model = stats_model.fit_arima(processed_data)
-
-# Fit GARCH model for volatility forecasting
-garch_model = stats_model.fit_garch(processed_data)
-
-# Generate forecasts
-arima_forecast = stats_model.forecast_arima(arima_model, steps=10)
-garch_forecast = stats_model.forecast_garch(garch_model, steps=10)
-
-print("ARIMA Forecast:", arima_forecast)
-print("GARCH Forecast:", garch_forecast)
-```
 
 For a near-complete working example:
 

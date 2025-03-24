@@ -99,17 +99,23 @@ def run_arima(
     """
     Runs an ARIMA model on stationary time series data.
     
+    This function fits ARIMA(p,d,q) models to each column in the provided DataFrame
+    and generates forecasts for the specified number of steps ahead. It performs minimal
+    logging to display only core information about the model and forecasts.
+    
     Args:
-        df_stationary: The DataFrame with stationary time series data
-        p: AR lag order
-        d: Degree of differencing
-        q: MA lag order
-        forecast_steps: Number of steps to forecast
+        df_stationary (pd.DataFrame): The DataFrame with stationary time series data
+        p (int): Autoregressive lag order, default=1
+        d (int): Degree of differencing, default=1
+        q (int): Moving average lag order, default=1
+        forecast_steps (int): Number of steps to forecast, default=5
         
     Returns:
-        Tuple[Dict[str, object], Dict[str, float]]: Fitted models and forecasts
+        Tuple[Dict[str, object], Dict[str, float]]: 
+            - First element: Dictionary of fitted ARIMA models for each column
+            - Second element: Dictionary of forecasted values for each column
     """
-    l.info("\n## Running ARIMA")
+    l.info(f"\n## Running ARIMA(p={p}, d={d}, q={q})")
     
     # Ensure data is properly prepared
     df_stationary = data_processor.prepare_timeseries_data(df_stationary)
@@ -121,11 +127,15 @@ def run_arima(
         steps=forecast_steps,
     )
     arima_fit = model_arima.fit()
-    l.info("\n## ARIMA summary")
-    l.info(model_arima.summary())
-    l.info("\n## ARIMA forecast")
+    
+    # Log only core model information instead of full summary
+    l.info(f"## ARIMA model fitted to columns: {list(arima_fit.keys())}")
+    
+    # Generate and log forecast values concisely
     arima_forecast = model_arima.forecast()
-    l.info(f"arima_forecast: {arima_forecast}")
+    l.info(f"## ARIMA {forecast_steps}-step forecast values:")
+    for col, value in arima_forecast.items():
+        l.info(f"   {col}: {value:.4f}")
 
     return arima_fit, arima_forecast
 
@@ -260,17 +270,23 @@ def run_garch(
     """
     Runs the GARCH model on the provided stationary DataFrame.
     
+    This function fits GARCH(p,q) models to each column in the provided DataFrame 
+    and generates volatility forecasts. It performs minimal logging to display only 
+    core information about the model and forecasts.
+    
     Args:
-        df_stationary (pd.DataFrame): The stationary time series data to fit the GARCH model on.
-        p (int, optional): The GARCH lag order. Defaults to 1.
-        q (int, optional): The ARCH lag order. Defaults to 1.
-        dist (str, optional): The error distribution - 'normal', 't', etc. Defaults to "normal".
-        forecast_steps (int, optional): The number of steps to forecast. Defaults to 5.
+        df_stationary (pd.DataFrame): The stationary time series data for GARCH modeling
+        p (int): The GARCH lag order, default=1
+        q (int): The ARCH lag order, default=1
+        dist (str): The error distribution - 'normal', 't', etc., default="normal"
+        forecast_steps (int): The number of steps to forecast, default=5
         
     Returns:
-        Tuple[Dict[str, Any], Dict[str, float]]: A tuple containing the fitted GARCH model and the forecasted values.
+        Tuple[Dict[str, Any], Dict[str, float]]: 
+            - First element: Dictionary of fitted GARCH models for each column
+            - Second element: Dictionary of forecasted volatility values for each column
     """
-    l.info("\n## Running GARCH")
+    l.info(f"\n## Running GARCH(p={p}, q={q}, dist={dist})")
     
     # Ensure data is properly prepared for time series analysis
     try:
@@ -300,12 +316,18 @@ def run_garch(
         )
         garch_fit = model_garch.fit()
         
-        l.info("\n## GARCH summary")
-        l.info(model_garch.summary())
+        # Log only core model information instead of full summary
+        l.info(f"## GARCH model fitted to columns: {list(garch_fit.keys())}")
         
-        l.info("\n## GARCH forecast")
+        # Generate and log forecast values concisely
         garch_forecast = model_garch.forecast(steps=forecast_steps)
-        l.info(f"garch_forecast: {garch_forecast}")
+        l.info(f"## GARCH {forecast_steps}-step volatility forecast:")
+        for col, value in garch_forecast.items():
+            if hasattr(value, 'iloc'):
+                value_str = ', '.join(f"{v:.6f}" for v in value)
+                l.info(f"   {col}: [{value_str}]")
+            else:
+                l.info(f"   {col}: {value:.6f}")
         
         return garch_fit, garch_forecast
     

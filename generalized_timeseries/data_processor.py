@@ -292,7 +292,6 @@ class StationaryReturnsProcessor:
                     continue
                 result = adfuller(data[column])
                 results[column] = {"ADF Statistic": result[0], "p-value": result[1]}
-            l.info(f"Results: {results}")
         return results
 
     def log_adf_results(

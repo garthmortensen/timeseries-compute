@@ -29,13 +29,9 @@ def main():
         end_date="2023-03-31",  # Shorter timeframe for quicker execution
         anchor_prices={"AAA": 150.0, "BBB": 250.0, "CCC": 1000.0}
     )
-    
-    print(tabulate(price_df.head(5), headers="keys", tablefmt="grid"))
-    
+
     # 2 Make data stationary
     df_stationary = data_processor.stationarize_data(price_df)
-    
-    print(tabulate(df_stationary.head(5), headers="keys", tablefmt="grid"))
     
     # 3 Test for stationarity
     adf_results = data_processor.test_stationarity(df_stationary)
