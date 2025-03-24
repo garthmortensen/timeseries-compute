@@ -1,7 +1,7 @@
 # project metadata
 [project]
 name = "generalized_timeseries"
-version = "v0.1.12"
+version = "v0.1.13"
 authors = [
     { name="Garth Mortensen", email="mortensengarth@hotmail.com" }
 ]
