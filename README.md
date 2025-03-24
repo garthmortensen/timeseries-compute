@@ -128,12 +128,12 @@ pytest --cov=generalized_timeseries
 
 Iirc, much of the CI/CD actions are gated not behind pushed branches, but pushed tags. It will fail if you don't version += 1
 
-1. Bump version in `README.md` and `pyproject.toml` (e.g., `v0.1.16`)
+1. Bump version in `README.md` and `pyproject.toml` (e.g., `v0.1.17`)
 2. Commit and tag:
    ```bash
    git add pyproject.toml README.md
    git commit -m "version bump"
-   git tag v0.1.16
+   git tag v0.1.17
    git push && git push --tags  # push branch and tag at once
    ```
 
