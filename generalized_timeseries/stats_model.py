@@ -4,6 +4,7 @@
 import logging as l
 
 # handle data transformation and preparation tasks
+import numpy as np
 import pandas as pd
 
 # import model specific libraries
@@ -13,6 +14,8 @@ from arch import arch_model
 # type hinting
 from typing import Dict, Any, Tuple
 from generalized_timeseries import data_processor
+from generalized_timeseries.data_processor import calculate_ewma_covariance, calculate_ewma_volatility
+
 
 class ModelARIMA:
     """
@@ -217,6 +220,128 @@ class ModelGARCH:
             forecasts[column] = fit.forecast(horizon=steps).variance.iloc[-1]
         return forecasts
 
+class ModelMultivariateGARCH:
+    """Implements multivariate GARCH models including CC-GARCH and DCC-GARCH."""
+    
+    def __init__(self, data: pd.DataFrame, p: int = 1, q: int = 1, model_type: str = "cc"):
+        """
+        Initialize multivariate GARCH model.
+        
+        Args:
+            data: DataFrame with multiple time series
+            p: GARCH order
+            q: ARCH order
+            model_type: 'cc' for Constant Correlation or 'dcc' for Dynamic Conditional Correlation
+        """
+        self.data = data
+        self.p = p
+        self.q = q
+        self.model_type = model_type
+        self.fits = {}
+        
+    def fit_cc_garch(self):
+        """Fit Constant Conditional Correlation GARCH model."""
+        # Similar to MATLAB's cc_mvgarch function
+        # First fit univariate GARCH models
+        univariate_models = {}
+        for column in self.data.columns:
+            model = arch_model(self.data[column], vol="Garch", p=self.p, q=self.q)
+            univariate_models[column] = model.fit(disp="off")
+            
+        # Calculate constant correlation matrix
+        residuals = pd.DataFrame()
+        for column in self.data.columns:
+            residuals[column] = univariate_models[column].resid
+        
+        correlation_matrix = residuals.corr()
+        
+        # Store results
+        self.cc_results = {
+            'univariate_models': univariate_models,
+            'correlation': correlation_matrix
+        }
+        return self.cc_results
+    
+    def fit_dcc_garch(self, lambda_val: float = 0.95):
+        """
+        Fit Dynamic Conditional Correlation GARCH model using EWMA for correlation.
+        
+        Args:
+            lambda_val: EWMA decay factor
+            
+        Returns:
+            Dictionary with DCC-GARCH results
+        """
+        # First fit univariate GARCH models to get conditional volatilities
+        univariate_models = {}
+        conditional_vols = pd.DataFrame(index=self.data.index)
+        
+        for column in self.data.columns:
+            model = arch_model(self.data[column], vol="Garch", p=self.p, q=self.q)
+            fit = model.fit(disp="off")
+            univariate_models[column] = fit
+            conditional_vols[column] = np.sqrt(fit.conditional_volatility)
+        
+        # Calculate standardized residuals
+        std_residuals = pd.DataFrame(index=self.data.index)
+        for column in self.data.columns:
+            std_residuals[column] = self.data[column] / conditional_vols[column]
+        
+        # Calculate EWMA correlation for all pairs
+        correlations = {}
+        columns = self.data.columns
+        for i in range(len(columns)):
+            for j in range(i+1, len(columns)):
+                col_pair = f"{columns[i]}_{columns[j]}"
+                correlations[col_pair] = calculate_ewma_covariance(
+                    std_residuals[columns[i]], 
+                    std_residuals[columns[j]], 
+                    lambda_val
+                )
+        
+        self.dcc_results = {
+            'univariate_models': univariate_models,
+            'conditional_vols': conditional_vols,
+            'correlations': correlations
+        }
+        
+        return self.dcc_results
+
+def run_multivariate_garch(
+    df: pd.DataFrame, 
+    p: int = 1, 
+    q: int = 1, 
+    model_type: str = "both",
+    lambda_val: float = 0.95
+) -> dict:
+    """
+    Run multivariate GARCH models on the provided data.
+    
+    Args:
+        df: DataFrame with multiple time series columns
+        p: GARCH order
+        q: ARCH order
+        model_type: 'cc', 'dcc', or 'both'
+        lambda_val: EWMA decay factor for DCC model
+        
+    Returns:
+        Dictionary with model results
+    """
+    l.info(f"\n## Running Multivariate GARCH(p={p}, q={q}, type={model_type})")
+    
+    # Create multivariate GARCH model
+    mv_garch = ModelMultivariateGARCH(data=df, p=p, q=q)
+    
+    results = {}
+    
+    # Fit models based on requested type
+    if model_type in ["cc", "both"]:
+        results["cc_garch"] = mv_garch.fit_cc_garch()
+        
+    if model_type in ["dcc", "both"]:
+        results["dcc_garch"] = mv_garch.fit_dcc_garch(lambda_val=lambda_val)
+    
+    return results
 
 class ModelFactory:
     """
@@ -334,3 +459,25 @@ def run_garch(
     except Exception as e:
         l.error(f"Error during GARCH model fitting or forecasting: {e}")
         raise RuntimeError(f"GARCH model failed: {str(e)}")
+
+def calculate_stats(series: pd.Series) -> dict:
+    """
+    Calculate comprehensive statistics for a time series.
+    
+    Args:
+        series: Time series data
+        
+    Returns:
+        Dictionary of statistics
+    """
+    return {
+        'n': len(series),
+        'mean': series.mean(),
+        'median': series.median(),
+        'min': series.min(),
+        'max': series.max(),
+        'std': series.std(),
+        'skew': series.skew(),
+        'kurt': series.kurtosis(),
+        'annualized_vol': series.std() * np.sqrt(250)  # Assuming daily data
+    }

@@ -257,6 +257,19 @@ class StationaryReturnsProcessor:
         l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
         return data
 
+    # TODO: determine if this method is needed, or if make_stationary should be used instead
+    def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
+        """
+        Convert prices to log returns, similar to MATLAB's price2ret function.
+        
+        Args:
+            prices: DataFrame of price series
+            
+        Returns:
+            DataFrame of log returns
+        """
+        return np.log(prices / prices.shift(1)).dropna()
+
     def test_stationarity(
         self, data: pd.DataFrame, test: str = "adf"
     ) -> Dict[str, Dict[str, float]]:
@@ -472,3 +485,54 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
     l.info("\n" + tabulate(numeric_df.head(5), headers="keys", tablefmt="fancy_grid"))
     
     return numeric_df
+
+
+def calculate_ewma_covariance(series1: pd.Series, series2: pd.Series, 
+                             lambda_val: float = 0.95) -> pd.Series:
+    """
+    Calculate Exponentially Weighted Moving Average covariance between two series.
+    
+    Args:
+        series1: First time series
+        series2: Second time series
+        lambda_val: Decay factor (0.95 or 0.97 in your thesis)
+        
+    Returns:
+        Series of EWMA covariances
+    """
+    # Initialize covariance series
+    cov_series = pd.Series(index=series1.index)
+    
+    # Calculate initial covariance (first 20 observations)
+    init_window = min(20, len(series1))
+    init_cov = series1.iloc[:init_window].cov(series2.iloc[:init_window])
+    cov_series.iloc[0] = init_cov
+    
+    # Calculate EWMA covariance
+    for t in range(1, len(series1)):
+        cov_series.iloc[t] = lambda_val * cov_series.iloc[t-1] + \
+                            (1 - lambda_val) * series1.iloc[t-1] * series2.iloc[t-1]
+    
+    return cov_series
+
+def calculate_ewma_volatility(series: pd.Series, lambda_val: float = 0.95) -> pd.Series:
+    """
+    Calculate Exponentially Weighted Moving Average volatility for a series.
+    
+    Args:
+        series: Time series
+        lambda_val: Decay factor
+        
+    Returns:
+        Series of EWMA volatilities
+    """
+    # Square the returns
+    squared_returns = series ** 2
+    
+    # Calculate EWMA variance
+    ewma_variance = squared_returns.ewm(alpha=1-lambda_val, adjust=False).mean()
+    
+    # Convert variance to volatility (standard deviation)
+    ewma_volatility = np.sqrt(ewma_variance)
+    
+    return ewma_volatility
