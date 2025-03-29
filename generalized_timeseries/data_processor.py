@@ -257,19 +257,6 @@ class StationaryReturnsProcessor:
         l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
         return data
 
-    # TODO: determine if this method is needed, or if make_stationary should be used instead
-    def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
-        """
-        Convert prices to log returns, similar to MATLAB's price2ret function.
-        
-        Args:
-            prices: DataFrame of price series
-            
-        Returns:
-            DataFrame of log returns
-        """
-        return np.log(prices / prices.shift(1)).dropna()
-
     def test_stationarity(
         self, data: pd.DataFrame, test: str = "adf"
     ) -> Dict[str, Dict[str, float]]:
@@ -337,6 +324,17 @@ class StationaryReturnsProcessor:
                 f"   interpretation: {interpretation}\n"
             )
 
+def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert prices to log returns, similar to MATLAB's price2ret function.
+    
+    Args:
+        prices: DataFrame of price series
+        
+    Returns:
+        DataFrame of log returns
+    """
+    return np.log(prices / prices.shift(1)).dropna()
 
 class StationaryReturnsProcessorFactory:
     """

@@ -241,7 +241,6 @@ class ModelMultivariateGARCH:
         
     def fit_cc_garch(self) -> Dict[str, Any]:
         """Fit Constant Conditional Correlation GARCH model."""
-        # Similar to MATLAB's cc_mvgarch function
         # First fit univariate GARCH models
         univariate_models = {}
         for column in self.data.columns:
@@ -272,7 +271,7 @@ class ModelMultivariateGARCH:
         Returns:
             Dictionary with DCC-GARCH results
         """
-        # First fit univariate GARCH models to get conditional volatilities
+        # Fit univariate GARCH models
         univariate_models = {}
         conditional_vols = pd.DataFrame(index=self.data.index)
         
@@ -307,59 +306,192 @@ class ModelMultivariateGARCH:
         
         return self.dcc_results
 
-def run_multivariate_garch(
-    df_stationary: pd.DataFrame,
-    p: int = 1,
-    q: int = 1,
-    model_type: str = "both",
-    lambda_val: float = 0.95,
-) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+
+# These functions should be outside the class
+def calculate_correlation_matrix(standardized_residuals: pd.DataFrame) -> pd.DataFrame:
     """
-    Runs multivariate GARCH models on the provided stationary DataFrame.
+    Calculate constant conditional correlation matrix from standardized residuals.
+    
+    Args:
+        standardized_residuals (pd.DataFrame): DataFrame of standardized residuals from GARCH models
+        
+    Returns:
+        pd.DataFrame: Correlation matrix
+    """
+    return standardized_residuals.corr()
+
+
+def calculate_dynamic_correlation(ewma_cov: pd.Series, ewma_vol1: pd.Series, ewma_vol2: pd.Series) -> pd.Series:
+    """
+    Calculate dynamic conditional correlation from EWMA covariance and volatilities.
+    
+    Args:
+        ewma_cov (pd.Series): EWMA covariance between two series
+        ewma_vol1 (pd.Series): EWMA volatility of first series
+        ewma_vol2 (pd.Series): EWMA volatility of second series
+        
+    Returns:
+        pd.Series: Dynamic conditional correlation
+    """
+    return ewma_cov / (ewma_vol1 * ewma_vol2)
+
+
+def construct_covariance_matrix(volatilities: list, correlation: float) -> np.ndarray:
+    """
+    Construct a 2x2 covariance matrix using volatilities and correlation.
+    
+    Args:
+        volatilities (list): List of volatilities [vol1, vol2]
+        correlation (float): Correlation coefficient
+        
+    Returns:
+        np.ndarray: 2x2 covariance matrix
+    """
+    cov_matrix = np.outer(volatilities, volatilities)
+    cov_matrix[0, 1] *= correlation
+    cov_matrix[1, 0] *= correlation
+    return cov_matrix
+
+
+def calculate_portfolio_risk(weights: np.ndarray, cov_matrix: np.ndarray) -> tuple:
+    """
+    Calculate portfolio variance and volatility for given weights and covariance matrix.
+    
+    Args:
+        weights (np.ndarray): Array of portfolio weights
+        cov_matrix (np.ndarray): Covariance matrix
+        
+    Returns:
+        tuple: (portfolio_variance, portfolio_volatility)
+    """
+    portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
+    portfolio_volatility = np.sqrt(portfolio_variance)
+    return portfolio_variance, portfolio_volatility
+
+
+
+def run_multivariate_garch(df_stationary: pd.DataFrame, 
+                          arima_fits: dict = None, 
+                          garch_fits: dict = None,
+                          lambda_val: float = 0.95) -> dict:
+    """
+    Runs multivariate GARCH analysis on the provided stationary DataFrame.
+    
+    This function implements both Constant Conditional Correlation (CCC) and 
+    Dynamic Conditional Correlation (DCC) GARCH models. It either uses provided
+    ARIMA and GARCH models or fits new ones if not provided.
     
     Args:
         df_stationary (pd.DataFrame): The stationary time series data for GARCH modeling
-        p (int): The GARCH lag order, default=1
-        q (int): The ARCH lag order, default=1
-        model_type (str): Model type - 'cc', 'dcc', or 'both'
-        lambda_val (float): EWMA decay factor for DCC model
+        arima_fits (dict, optional): Dictionary of fitted ARIMA models for each column
+        garch_fits (dict, optional): Dictionary of fitted GARCH models for each column
+        lambda_val (float, optional): EWMA decay factor for DCC model. Defaults to 0.95.
         
     Returns:
-        Tuple[Dict[str, Any], Dict[str, Any]]: 
-            - First element: Dictionary of fitted multivariate GARCH models
-            - Second element: Dictionary of results (correlations, volatilities)
+        dict: Dictionary containing multivariate GARCH results
+            - 'arima_residuals': DataFrame of ARIMA residuals
+            - 'conditional_volatilities': DataFrame of conditional volatilities
+            - 'standardized_residuals': DataFrame of standardized residuals
+            - 'cc_correlation': Constant conditional correlation matrix
+            - 'cc_covariance_matrix': Covariance matrix using CCC
+            - 'dcc_correlation': Series of dynamic conditional correlations
+            - 'dcc_covariance': Series of dynamic conditional covariances
     """
-    l.info(f"\n## Running Multivariate GARCH(p={p}, q={q}, type={model_type})")
-    
-    # Create multivariate GARCH model through factory
-    model = ModelFactory.create_model(
-        model_type="mvgarch",
-        data=df_stationary,
-        p=p,
-        q=q,
-        mv_model_type=model_type,
-    )
-    
-    fits = {}
     results = {}
     
-    # Fit models based on requested type
-    if model_type in ["cc", "both"]:
-        cc_results = model.fit_cc_garch()
-        fits["cc_garch"] = cc_results["univariate_models"]
-        results["cc_garch"] = {
-            "correlation": cc_results["correlation"]
-        }
-        
-    if model_type in ["dcc", "both"]:
-        dcc_results = model.fit_dcc_garch(lambda_val=lambda_val)
-        fits["dcc_garch"] = dcc_results["univariate_models"]
-        results["dcc_garch"] = {
-            "conditional_vols": dcc_results["conditional_vols"],
-            "correlations": dcc_results["correlations"]
-        }
+    # 1. If ARIMA fits not provided, fit ARIMA models to filter out conditional mean
+    if arima_fits is None:
+        arima_fits, _ = run_arima(
+            df_stationary=df_stationary,
+            p=1,
+            d=0,
+            q=1,
+            forecast_steps=1
+        )
     
-    return fits, results
+    # 2. Extract ARIMA residuals
+    arima_residuals = pd.DataFrame(index=df_stationary.index)
+    for column in df_stationary.columns:
+        if hasattr(arima_fits[column], 'resid'):
+            arima_residuals[column] = arima_fits[column].resid
+        else:
+            # If no residuals available, use original series
+            arima_residuals[column] = df_stationary[column]
+    
+    results['arima_residuals'] = arima_residuals
+    
+    # 3. If GARCH fits not provided, fit GARCH models
+    if garch_fits is None:
+        garch_fits, _ = run_garch(
+            df_stationary=arima_residuals,
+            p=1,
+            q=1,
+            forecast_steps=1
+        )
+    
+    # 4. Extract conditional volatilities
+    cond_vol = {}
+    for column in arima_residuals.columns:
+        cond_vol[column] = np.sqrt(garch_fits[column].conditional_volatility)
+    
+    cond_vol_df = pd.DataFrame(cond_vol, index=arima_residuals.index)
+    results['conditional_volatilities'] = cond_vol_df
+    
+    # 5. Calculate standardized residuals
+    std_resid = {}
+    for column in arima_residuals.columns:
+        std_resid[column] = arima_residuals[column] / cond_vol[column]
+    
+    std_resid_df = pd.DataFrame(std_resid, index=arima_residuals.index)
+    results['standardized_residuals'] = std_resid_df
+    
+    # 6. Constant Conditional Correlation (CCC-GARCH)
+    cc_corr = calculate_correlation_matrix(std_resid_df)
+    results['cc_correlation'] = cc_corr
+    
+    # 7. Get latest volatilities for covariance matrix
+    if len(arima_residuals.columns) == 2:
+        columns = list(arima_residuals.columns)
+        latest_vols = [cond_vol[col].iloc[-1] for col in columns]
+        
+        # Construct covariance matrix using CCC
+        cc_cov_matrix = construct_covariance_matrix(
+            volatilities=latest_vols,
+            correlation=cc_corr.iloc[0, 1]
+        )
+        results['cc_covariance_matrix'] = cc_cov_matrix
+    
+    # 8. Dynamic Conditional Correlation (DCC-GARCH)
+    if len(arima_residuals.columns) == 2:
+        columns = list(std_resid_df.columns)
+        
+        # Calculate EWMA covariance
+        ewma_cov = calculate_ewma_covariance(
+            std_resid_df[columns[0]], 
+            std_resid_df[columns[1]], 
+            lambda_val=lambda_val
+        )
+        
+        # Calculate EWMA volatilities for standardized residuals
+        ewma_vol1 = calculate_ewma_volatility(
+            std_resid_df[columns[0]], 
+            lambda_val=lambda_val
+        )
+        
+        ewma_vol2 = calculate_ewma_volatility(
+            std_resid_df[columns[1]],
+            lambda_val=lambda_val
+        )
+        
+        # Calculate dynamic correlation
+        dcc_corr = calculate_dynamic_correlation(ewma_cov, ewma_vol1, ewma_vol2)
+        results['dcc_correlation'] = dcc_corr
+        
+        # Calculate dynamic covariance
+        dcc_cov = dcc_corr * (cond_vol_df[columns[0]] * cond_vol_df[columns[1]])
+        results['dcc_covariance'] = dcc_cov
+    
+    return results
 
 class ModelFactory:
     """
