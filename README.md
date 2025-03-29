@@ -21,7 +21,7 @@
        █  g▄█▄m▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘▐▙▄▄▖▐▌ ▐▌▗▄█▄▖▐▙▄▄▖▗▄▄▞▘
 ```
 
-A Python package for timeseries data processing and modeling using ARIMA and GARCH models.
+A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and bivariate capabilities.
 
 ## Architecture and Design Decisions
 
@@ -40,11 +40,14 @@ This package follows best development practices:
 
 ## Features
 
-- Price series generation
+- Price series generation for single and multiple assets
 - Data preprocessing with configurable missing data handling and scaling options
 - Stationarity testing and transformation for time series analysis
 - ARIMA modeling for time series forecasting
 - GARCH modeling for volatility forecasting and risk assessment
+- Bivariate GARCH modeling with both Constant Conditional Correlation (CCC) and Dynamic Conditional Correlation (DCC) methods
+- EWMA covariance calculation for dynamic correlation analysis
+- Portfolio risk assessment using volatility and correlation matrices
 
 ## Installation
 
@@ -66,10 +69,16 @@ pip install git+https://github.com/garthmortensen/generalized-timeseries.git
 
 ## Quick Start
 
-For a near-complete working example:
+For univariate time series analysis:
 
 ```bash
-python -m generalized_timeseries.examples.example
+python -m generalized_timeseries.examples.example_univariate_garch
+```
+
+For bivariate GARCH analysis (correlation between two assets):
+
+```bash
+python -m generalized_timeseries.examples.example_bivariate_garch
 ```
 
 ## Docker Support
@@ -80,10 +89,13 @@ Run with Docker for isolated environments:
 # build the image
 docker build -t generalized-timeseries:latest ./
 
-# R\run the example pipeline
-docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example.py
+# Run the univariate example
+docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example_univariate_garch.py
 
-# get into interactive shell
+# Run the bivariate example
+docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example_bivariate_garch.py
+
+# Get into interactive shell
 docker run -it --entrypoint /bin/bash generalized-timeseries:latest
 ```
 
@@ -128,13 +140,13 @@ pytest --cov=generalized_timeseries
 
 Iirc, much of the CI/CD actions are gated not behind pushed branches, but pushed tags. It will fail if you don't version += 1
 
-1. Bump version in `README.md` and `pyproject.toml` (e.g., `v0.1.17`)
+1. Bump version in `README.md` and `pyproject.toml` (e.g., `v0.1.20`)
 2. Commit and tag:
    ```bash
    git add pyproject.toml README.md
    git commit -m "version bump"
-   git tag v0.1.17
-   git push && git push --tags  # push branch and tag at once
+   git tag v0.1.20
+   git push && git push --tags
    ```
 
 #### Overall Process
