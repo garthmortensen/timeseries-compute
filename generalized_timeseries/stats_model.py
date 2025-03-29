@@ -239,7 +239,7 @@ class ModelMultivariateGARCH:
         self.model_type = model_type
         self.fits = {}
         
-    def fit_cc_garch(self):
+    def fit_cc_garch(self) -> Dict[str, Any]:
         """Fit Constant Conditional Correlation GARCH model."""
         # Similar to MATLAB's cc_mvgarch function
         # First fit univariate GARCH models
@@ -308,40 +308,58 @@ class ModelMultivariateGARCH:
         return self.dcc_results
 
 def run_multivariate_garch(
-    df: pd.DataFrame, 
-    p: int = 1, 
-    q: int = 1, 
+    df_stationary: pd.DataFrame,
+    p: int = 1,
+    q: int = 1,
     model_type: str = "both",
-    lambda_val: float = 0.95
-) -> dict:
+    lambda_val: float = 0.95,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
-    Run multivariate GARCH models on the provided data.
+    Runs multivariate GARCH models on the provided stationary DataFrame.
     
     Args:
-        df: DataFrame with multiple time series columns
-        p: GARCH order
-        q: ARCH order
-        model_type: 'cc', 'dcc', or 'both'
-        lambda_val: EWMA decay factor for DCC model
+        df_stationary (pd.DataFrame): The stationary time series data for GARCH modeling
+        p (int): The GARCH lag order, default=1
+        q (int): The ARCH lag order, default=1
+        model_type (str): Model type - 'cc', 'dcc', or 'both'
+        lambda_val (float): EWMA decay factor for DCC model
         
     Returns:
-        Dictionary with model results
+        Tuple[Dict[str, Any], Dict[str, Any]]: 
+            - First element: Dictionary of fitted multivariate GARCH models
+            - Second element: Dictionary of results (correlations, volatilities)
     """
     l.info(f"\n## Running Multivariate GARCH(p={p}, q={q}, type={model_type})")
     
-    # Create multivariate GARCH model
-    mv_garch = ModelMultivariateGARCH(data=df, p=p, q=q)
+    # Create multivariate GARCH model through factory
+    model = ModelFactory.create_model(
+        model_type="mvgarch",
+        data=df_stationary,
+        p=p,
+        q=q,
+        mv_model_type=model_type,
+    )
     
+    fits = {}
     results = {}
     
     # Fit models based on requested type
     if model_type in ["cc", "both"]:
-        results["cc_garch"] = mv_garch.fit_cc_garch()
+        cc_results = model.fit_cc_garch()
+        fits["cc_garch"] = cc_results["univariate_models"]
+        results["cc_garch"] = {
+            "correlation": cc_results["correlation"]
+        }
         
     if model_type in ["dcc", "both"]:
-        results["dcc_garch"] = mv_garch.fit_dcc_garch(lambda_val=lambda_val)
+        dcc_results = model.fit_dcc_garch(lambda_val=lambda_val)
+        fits["dcc_garch"] = dcc_results["univariate_models"]
+        results["dcc_garch"] = {
+            "conditional_vols": dcc_results["conditional_vols"],
+            "correlations": dcc_results["correlations"]
+        }
     
-    return results
+    return fits, results
 
 class ModelFactory:
     """
@@ -363,25 +381,16 @@ class ModelFactory:
         p: int = 1,
         q: int = 1,
         dist: str = "normal",
+        # Multivariate GARCH parameters
+        mv_model_type: str = "cc",
     ) -> Any:
-        """
-        Creates and returns a statistical model based on the specified type.
-
-        Args:
-            model_type (str): The type of model to create. Supported values are "arima" and "garch".
-            **kwargs: Additional keyword arguments to pass to the model constructor.
-
-        Returns:
-            Any: An instance of the specified model type.
-
-        Raises:
-            ValueError: If the specified model type is not supported.
-        """
         l.info(f"Creating model type: {model_type}")
         if model_type.lower() == "arima":
             return ModelARIMA(data=data, order=order, steps=steps)
         elif model_type.lower() == "garch":
             return ModelGARCH(data=data, p=p, q=q, dist=dist)
+        elif model_type.lower() == "mvgarch":
+            return ModelMultivariateGARCH(data=data, p=p, q=q, model_type=mv_model_type)
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
