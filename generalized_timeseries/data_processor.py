@@ -324,17 +324,19 @@ class StationaryReturnsProcessor:
                 f"   interpretation: {interpretation}\n"
             )
 
+
 def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
     """
     Convert prices to log returns, similar to MATLAB's price2ret function.
-    
+
     Args:
         prices: DataFrame of price series
-        
+
     Returns:
         DataFrame of log returns
     """
     return np.log(prices / prices.shift(1)).dropna()
+
 
 class StationaryReturnsProcessorFactory:
     """
@@ -447,90 +449,94 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
     1. Converting date column to datetime and setting as index (if not already)
     2. Ensuring numeric columns are properly typed
     3. Removing non-numeric columns
-    
+
     Args:
         df (pd.DataFrame): Input DataFrame with time series data
-        
+
     Returns:
         pd.DataFrame: Properly formatted DataFrame for time series analysis
     """
     # Make a copy to avoid modifying the original
     df = df.copy()
-    
+
     # Handle date column if it exists and isn't already the index
     if not isinstance(df.index, pd.DatetimeIndex):
-        date_cols = [col for col in df.columns if 'date' in col.lower()]
+        date_cols = [col for col in df.columns if "date" in col.lower()]
         if date_cols:
             date_col = date_cols[0]
-            df[date_col] = pd.to_datetime(df[date_col], errors='coerce')
+            df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
             df.set_index(date_col, inplace=True)
-    
+
     # Convert numeric columns to proper type
     for col in df.columns:
-        if col.lower() not in ['date', 'time', 'datetime', 'timestamp']:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-    
+        if col.lower() not in ["date", "time", "datetime", "timestamp"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
     # Drop rows with NaN values
     df.dropna(inplace=True)
-    
+
     # Keep only numeric columns
-    numeric_df = df.select_dtypes(include=['number'])
-    
+    numeric_df = df.select_dtypes(include=["number"])
+
     if numeric_df.empty:
         raise ValueError("No numeric columns found after data preparation")
-    
+
     l.info("Data prepared for time series analysis")
     l.info("\n" + tabulate(numeric_df.head(5), headers="keys", tablefmt="fancy_grid"))
-    
+
     return numeric_df
 
 
-def calculate_ewma_covariance(series1: pd.Series, series2: pd.Series, 
-                             lambda_val: float = 0.95) -> pd.Series:
+def calculate_ewma_covariance(
+    series1: pd.Series, series2: pd.Series, lambda_val: float = 0.95
+) -> pd.Series:
     """
     Calculate Exponentially Weighted Moving Average covariance between two series.
-    
+
     Args:
         series1: First time series
         series2: Second time series
         lambda_val: Decay factor (0.95 or 0.97 in your thesis)
-        
+
     Returns:
         Series of EWMA covariances
     """
     # Initialize covariance series
     cov_series = pd.Series(index=series1.index)
-    
+
     # Calculate initial covariance (first 20 observations)
     init_window = min(20, len(series1))
     init_cov = series1.iloc[:init_window].cov(series2.iloc[:init_window])
     cov_series.iloc[0] = init_cov
-    
+
     # Calculate EWMA covariance
     for t in range(1, len(series1)):
-        cov_series.iloc[t] = lambda_val * cov_series.iloc[t-1] + \
-                            (1 - lambda_val) * series1.iloc[t-1] * series2.iloc[t-1]
-    
+        cov_series.iloc[t] = (
+            lambda_val * cov_series.iloc[t - 1]
+            + (1 - lambda_val) * series1.iloc[t - 1] * series2.iloc[t - 1]
+        )
+
     return cov_series
+
 
 def calculate_ewma_volatility(series: pd.Series, lambda_val: float = 0.95) -> pd.Series:
     """
     Calculate Exponentially Weighted Moving Average volatility for a series.
-    
+
     Args:
         series: Time series
         lambda_val: Decay factor
-        
+
     Returns:
         Series of EWMA volatilities
     """
     # Square the returns
-    squared_returns = series ** 2
-    
+    squared_returns = series**2
+
     # Calculate EWMA variance
-    ewma_variance = squared_returns.ewm(alpha=1-lambda_val, adjust=False).mean()
-    
+    ewma_variance = squared_returns.ewm(alpha=1 - lambda_val, adjust=False).mean()
+
     # Convert variance to volatility (standard deviation)
     ewma_volatility = np.sqrt(ewma_variance)
-    
+
     return ewma_volatility

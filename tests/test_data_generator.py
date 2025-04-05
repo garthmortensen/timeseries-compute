@@ -20,9 +20,8 @@ def test_generate_prices():
     anchor_prices = {"GM": 51.1, "LM": 2.2}
     generator = PriceSeriesGenerator(start_date=start_date, end_date=end_date)
 
-    price_dict, price_df = generator.generate_prices(anchor_prices=anchor_prices)
+    price_dict = generator.generate_prices(anchor_prices=anchor_prices)
 
     assert isinstance(price_dict, dict)
-    assert isinstance(price_df, pd.DataFrame)
     assert "GM" in price_dict
     assert "LM" in price_dict

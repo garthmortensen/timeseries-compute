@@ -23,6 +23,10 @@
 
 A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and bivariate capabilities.
 
+TODO: Add C4 diagrams for levels 2-4.
+
+TODO: Reformat README in accordance with other repos.
+
 ## Architecture and Design Decisions
 
 This package follows best development practices:
@@ -140,12 +144,12 @@ pytest --cov=generalized_timeseries
 
 Iirc, much of the CI/CD actions are gated not behind pushed branches, but pushed tags. It will fail if you don't version += 1
 
-1. Bump version in `README.md` and `pyproject.toml` (e.g., `v0.1.20`)
+1. Bump version in `README.md` and `pyproject.toml` (e.g., `v0.1.21`)
 2. Commit and tag:
    ```bash
    git add pyproject.toml README.md
    git commit -m "version bump"
-   git tag v0.1.20
+   git tag v0.1.21
    git push && git push --tags
    ```
 
