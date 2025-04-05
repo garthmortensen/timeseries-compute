@@ -442,7 +442,7 @@ pytest --cov=generalized_timeseries
 # Bump version in pyproject.toml and README.md
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.1.3
+git tag v0.1.31
 git push && git push --tags
 ```
 
@@ -452,6 +452,90 @@ git push && git push --tags
 - `pytest`: Validates code across multiple Python versions and OS
 - Building: Creates package distributions and documentation
 - Publishing: Deploys to PyPI, Docker Hub and ReadTheDocs
+
+```mermaid
+flowchart TB
+    %% Styling
+    classDef person fill:#08427B,color:#fff,stroke:#052E56,stroke-width:1px
+    classDef system fill:#1168BD,color:#fff,stroke:#0B4884,stroke-width:1px
+    classDef external fill:#999999,color:#fff,stroke:#6B6B6B,stroke-width:1px
+    classDef pipeline fill:#ff9900,color:#fff,stroke:#cc7700,stroke-width:1px
+    
+    %% Actors
+    Developer((Developer)):::person
+    
+    %% Main Systems
+    GeneralizedTimeseries["Generalized Timeseries\nPython Package"]:::system
+    
+    %% Source Control
+    GitHub["GitHub\nSource Repository"]:::external
+    
+    %% CI/CD Pipeline and Tools
+    GitHubActions["GitHub Actions\nCI/CD Pipeline"]:::pipeline
+    
+    %% Distribution Platforms
+    PyPI["PyPI Registry"]:::external
+    DockerHub["Docker Hub"]:::external
+    ReadTheDocs["ReadTheDocs"]:::external
+    
+    %% Code Quality Services
+    Codecov["Codecov\nCode Coverage"]:::external
+    
+    %% Flow
+    Developer -- "Commits code to" --> GitHub
+    GitHub -- "Triggers on push\nto main/dev" --> GitHubActions
+    
+    %% Primary Jobs
+    subgraph TestJob["Test Job"]
+        Test["Run Tests\nPytest"]:::pipeline
+        Lint["Lint with Flake8"]:::pipeline
+        
+        Lint --> Test
+    end
+    
+    subgraph DockerJob["Docker Job"]
+        BuildDocker["Build Docker Image"]:::pipeline
+    end
+    
+    subgraph BuildJob["Build Job"]
+        BuildPackage["Build Package\nSDist & Wheel"]:::pipeline
+        VerifyPackage["Verify with Twine"]:::pipeline
+        
+        BuildPackage --> VerifyPackage
+    end
+    
+    subgraph DocsJob["Docs Job"]
+        BuildDocs["Generate Docs\nSphinx"]:::pipeline
+        BuildUML["Generate UML\nDiagrams"]:::pipeline
+        
+        BuildDocs --> BuildUML
+    end
+    
+    subgraph PublishJob["Publish Job"]
+        PublishPyPI["Publish to PyPI"]:::pipeline
+    end
+    
+    %% Job Dependencies
+    GitHubActions --> TestJob
+    
+    TestJob --> DockerJob
+    TestJob --> BuildJob
+    TestJob --> DocsJob
+    
+    BuildJob --> PublishJob
+    DocsJob --> PublishJob
+    
+    %% External Services Connections
+    Test -- "Upload Results" --> Codecov
+    BuildDocker -- "Push Image" --> DockerHub
+    DocsJob -- "Deploy Documentation" --> ReadTheDocs
+    PublishPyPI -- "Deploy Package" --> PyPI
+    
+    %% Final Products
+    PyPI --> GeneralizedTimeseries
+    DockerHub --> GeneralizedTimeseries
+    ReadTheDocs -- "Documents" --> GeneralizedTimeseries
+```
 
 ## Documentation
 
