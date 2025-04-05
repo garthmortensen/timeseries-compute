@@ -128,16 +128,16 @@ docker run -it --entrypoint /bin/bash generalized-timeseries:latest
 ### Project Structure
 
 ```text
-generalized_timeseries/...........
+generalized_timeseries/..............
 ├── __init__.py                     # Package initialization
 ├── data_generator.py               # For creating synthetic price data with random walks and specific statistical properties
 ├── data_processor.py               # For handling missing data, scaling, stationarizing, and testing time series stationarity
 ├── stats_model.py                  # For implementing ARIMA, GARCH, and multivariate GARCH models with factory pattern
-├── examples/...................
+├── examples/........................
 │   ├── __init__.py                 # Makes examples importable as a module
 │   ├── example_bivariate_garch.py  # For demonstrating correlation analysis between two markets with CC-GARCH and DCC-GARCH
 │   └── example_univariate_garch.py # For showing basic usage of ARIMA and GARCH for single-series forecasting
-├── tests/.....................
+└── tests/...........................
     ├── __init__.py                 # Makes tests discoverable as a module
     ├── test_data_generator.py      # For testing basic price generation functionality
     ├── test_data_generator_advanced.py # For testing advanced features like customization and statistical properties
