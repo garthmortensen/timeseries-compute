@@ -2,13 +2,13 @@
 
 [![Python Versions](https://img.shields.io/pypi/pyversions/generalized-timeseries)]((https://pypi.org/project/generalized-timeseries/))
 [![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI)](https://pypi.org/project/generalized-timeseries/)
+[![GitHub](https://img.shields.io/badge/GitHub-generalized--timeseries-blue?logo=github)](https://github.com/garthmortensen/generalized-timeseries)
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-generalized--timeseries-blue)](https://hub.docker.com/r/goattheprofessionalmeower/generalized-timeseries)
+[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-generalized--timeseries-blue)](https://generalized-timeseries.readthedocs.io/en/latest/)
 
-![CI/CD](https://github.com/garthmortensen/generalized-timeseries/actions/workflows/cicd.yml/badge.svg) 
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/garthmortensen/generalized-timeseries/cicd.yml?label=CI%2FCD)](https://github.com/garthmortensen/generalized-timeseries/actions/workflows/cicd.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard)
 [![codecov](https://codecov.io/gh/garthmortensen/generalized-timeseries/graph/badge.svg?token=L1L5OBSF3Z)](https://codecov.io/gh/garthmortensen/generalized-timeseries)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-
-[![readthedocs.io](https://img.shields.io/readthedocs/generalized-timeseries)](https://generalized-timeseries.readthedocs.io/en/latest/)
 
 ## Overview
 
@@ -436,16 +436,6 @@ pip install -e ".[dev]"
 pytest --cov=generalized_timeseries
 ```
 
-### Tag & Publish
-
-```bash
-# Bump version in pyproject.toml and README.md
-git add pyproject.toml README.md
-git commit -m "version bump"
-git tag v0.1.31
-git push && git push --tags
-```
-
 ### CI/CD Process
 
 - Triggers: Runs when code is pushed to branches `main` or `dev`
@@ -535,6 +525,16 @@ flowchart TB
     PyPI --> GeneralizedTimeseries
     DockerHub --> GeneralizedTimeseries
     ReadTheDocs -- "Documents" --> GeneralizedTimeseries
+```
+
+### Tag & Publish
+
+```bash
+# Bump version in pyproject.toml and README.md
+git add pyproject.toml README.md
+git commit -m "version bump"
+git tag v0.1.32
+git push && git push --tags
 ```
 
 ## Documentation
