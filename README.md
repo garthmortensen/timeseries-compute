@@ -439,10 +439,10 @@ pytest --cov=generalized_timeseries
 ### Tag & Publish
 
 ```bash
-# Bump version in pyproject.toml (e.g., v0.1.22)
+# Bump version in pyproject.toml and README.md
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.1.22
+git tag v0.1.3
 git push && git push --tags
 ```
 
