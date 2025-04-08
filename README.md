@@ -8,7 +8,7 @@
 
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/garthmortensen/generalized-timeseries/cicd.yml?label=CI%2FCD)](https://github.com/garthmortensen/generalized-timeseries/actions/workflows/cicd.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard)
-[![codecov](https://codecov.io/gh/garthmortensen/generalized-timeseries/graph/badge.svg?token=L1L5OBSF3Z)](https://codecov.io/gh/garthmortensen/generalized-timeseries)
+[![Coverage](https://codecov.io/gh/garthmortensen/generalized-timeseries/graph/badge.svg)](https://codecov.io/gh/garthmortensen/generalized-timeseries)
 
 ## Overview
 
@@ -138,12 +138,12 @@ generalized_timeseries/..............
 │   ├── example_bivariate_garch.py  # For demonstrating correlation analysis between two markets with CC-GARCH and DCC-GARCH
 │   └── example_univariate_garch.py # For showing basic usage of ARIMA and GARCH for single-series forecasting
 └── tests/...........................
-    ├── __init__.py                 # Makes tests discoverable as a module
-    ├── test_data_generator.py      # For testing basic price generation functionality
-    ├── test_data_generator_advanced.py # For testing advanced features like customization and statistical properties
-    ├── test_data_processor.py      # For testing data transformation, scaling, and stationarity testing
-    ├── test_stats_model_arima.py   # For testing ARIMA modeling separately with specialized fixtures
-    └── test_stats_model_garch.py   # For testing GARCH volatility modeling with different distributions
+    ├── __init__.py                 # Makes tests discoverable
+    ├── test_data_generator.py      # test basic price generation functionality
+    ├── test_data_generator_advanced.py # test advanced features like customization and statistical properties
+    ├── test_data_processor.py      # test data transformation, scaling, and stationarity testing
+    ├── test_stats_model_arima.py   # test ARIMA modeling separately with specialized fixtures
+    └── test_stats_model_garch.py   # test GARCH volatility modeling with different distributions
 ```
 
 ### Architectural Diagrams
@@ -399,44 +399,7 @@ classDiagram
     ModelFactory --> ModelMultivariateGARCH: creates
 ```
 
-## Development
-
-### Environment Setup
-
-Option 1 (recommended):
-
-```bash
-mkdir generalized-timeseries
-cd generalized-timeseries
-
-# create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-pip install generalized-timeseries
-```
-
-Option 2:
-
-```bash
-# clone the repository
-git clone https://github.com/garthmortensen/generalized-timeseries.git
-cd generalized-timeseries
-
-# create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-pip install -e ".[dev]"
-```
-
-### Testing
-
-```bash
-pytest --cov=generalized_timeseries
-```
-
-### CI/CD Process
+#### CI/CD Process
 
 - Triggers: Runs when code is pushed to branches `main` or `dev`
 - `pytest`: Validates code across multiple Python versions and OS
@@ -527,6 +490,43 @@ flowchart TB
     ReadTheDocs -- "Documents" --> GeneralizedTimeseries
 ```
 
+## Development
+
+### Environment Setup
+
+Option 1 (recommended):
+
+```bash
+mkdir generalized-timeseries
+cd generalized-timeseries
+
+# create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+pip install generalized-timeseries
+```
+
+Option 2:
+
+```bash
+# clone the repository
+git clone https://github.com/garthmortensen/generalized-timeseries.git
+cd generalized-timeseries
+
+# create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+pip install -e ".[dev]"
+```
+
+### Testing
+
+```bash
+pytest --cov=generalized_timeseries
+```
+
 ### Tag & Publish
 
 ```bash
@@ -540,7 +540,3 @@ git push && git push --tags
 ## Documentation
 
 Full documentation is available at [generalized-timeseries.readthedocs.io](https://generalized-timeseries.readthedocs.io/en/latest/).
-
-## License
-
-Released under the MIT License.
