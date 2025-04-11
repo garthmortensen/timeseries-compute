@@ -1,13 +1,13 @@
 # project metadata
 [project]
-name = "generalized_timeseries"
-version = "v0.1.33"
+name = "timeseries_compute"
+version = "v0.1.4"
 authors = [
     { name="Garth Mortensen", email="mortensengarth@hotmail.com" }
 ]
 readme = "README.md"
 description = "A package for time series data processing and modeling using ARIMA and GARCH models"
-urls = { "Homepage" = "https://github.com/garthmortensen/generalized-timeseries" }
+urls = { "Homepage" = "https://github.com/garthmortensen/timeseries-compute" }
 
 # Each project's maintainers provide PyPI with a list of "Trove classifiers" to categorize each release, describing who it's for, what systems it can run on, and how mature it is.
 # These standardized classifiers can then be used by community members to find projects based on their desired criteria.
@@ -35,7 +35,7 @@ dependencies = { file = ["requirements.txt"] }
 
 [project.optional-dependencies]
 # dependencies: development
-# pip install generalized_timeseries[dev]
+# pip install timeseries_compute[dev]
 dev = [
     "pytest==8.3.4",
     "black==24.10.0",
@@ -44,7 +44,7 @@ dev = [
 ]
 
 # dependencies: docs
-# pip install generalized_timeseries[docs]
+# pip install timeseries_compute[docs]
 docs = [
     "Sphinx==8.2.1",
     "sphinx-rtd-theme==3.0.2",

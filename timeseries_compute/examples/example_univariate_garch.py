@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Basic example of using the generalized_timeseries package.
+Basic example of using the timeseries_compute package.
 This script demos the key features of the package.
 """
 
@@ -12,7 +12,7 @@ from tabulate import tabulate
 import sys, os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from generalized_timeseries import data_generator, data_processor, stats_model
+from timeseries_compute import data_generator, data_processor, stats_model
 
 # logging
 logging.basicConfig(

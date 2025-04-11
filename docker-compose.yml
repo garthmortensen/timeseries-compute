@@ -4,7 +4,7 @@ services:
     build: .
     volumes:
       - ./:/app
-    command: -c "from generalized_timeseries import data_generator, data_processor, stats_model; print('Generalized Timeseries package ready!')"
+    command: -c "from timeseries_compute import data_generator, data_processor, stats_model; print('Timeseries Compute package ready!')"
 
   example:
     build: .

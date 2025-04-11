@@ -1,4 +1,4 @@
-name: generalized timeseries cicd
+name: cicd
 
 # Run workflow on push
 on: 
@@ -62,7 +62,7 @@ jobs:
         uses: codecov/codecov-action@3440e5ef70c638a9f44602a80ab017feee1309fe
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: garthmortensen/generalized-timeseries
+          slug: garthmortensen/timeseries-compute
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
@@ -93,7 +93,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
         with:
-          images: goattheprofessionalmeower/generalized-timeseries
+          images: goattheprofessionalmeower/timeseries-compute
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}

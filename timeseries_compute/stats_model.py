@@ -13,8 +13,8 @@ from arch import arch_model
 
 # type hinting
 from typing import Dict, Any, Tuple
-from generalized_timeseries import data_processor
-from generalized_timeseries.data_processor import (
+from timeseries_compute import data_processor
+from timeseries_compute.data_processor import (
     calculate_ewma_covariance,
     calculate_ewma_volatility,
 )

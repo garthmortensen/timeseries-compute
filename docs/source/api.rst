@@ -1,7 +1,7 @@
 API Documentation
 =================
 
-This section provides example usage of the main methods and classes in the Generalized Timeseries project.
+This section provides example usage of the main methods and classes in the Timeseries Compute project.
 
 Data Generator
 ==============
@@ -13,7 +13,7 @@ Example usage of the `PriceSeriesGenerator` class:
 
 .. code-block:: python
 
-    from generalized_timeseries.data_generator import PriceSeriesGenerator
+    from timeseries_compute.data_generator import PriceSeriesGenerator
 
     start_date = "2023-01-01"
     end_date = "2023-01-10"
@@ -34,7 +34,7 @@ Example usage of the `MissingDataHandler` class:
 
 .. code-block:: python
 
-    from generalized_timeseries.data_processor import MissingDataHandler
+    from timeseries_compute.data_processor import MissingDataHandler
 
     data = {
         "A": [1, 2, None, 4, 5],
@@ -55,7 +55,7 @@ Example usage of the `MissingDataHandlerFactory` class:
 
 .. code-block:: python
 
-    from generalized_timeseries.data_processor import MissingDataHandlerFactory
+    from timeseries_compute.data_processor import MissingDataHandlerFactory
 
     handler = MissingDataHandlerFactory.create_handler("drop")
     processed_df = handler.handle(df)
@@ -72,7 +72,7 @@ Example usage of the `ModelFactory` class:
 
 .. code-block:: python
 
-    from generalized_timeseries.stats_model import ModelFactory
+    from timeseries_compute.stats_model import ModelFactory
 
     model = ModelFactory.create_model("arima", order=(1, 1, 1))
     model.fit(data)

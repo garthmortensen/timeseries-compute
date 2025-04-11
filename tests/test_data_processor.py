@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 import warnings
-from generalized_timeseries.data_processor import (
+from timeseries_compute.data_processor import (
     MissingDataHandler,
     MissingDataHandlerFactory,
     test_stationarity,
@@ -142,7 +142,7 @@ def test_fill_data(sample_df):
         fill_data(sample_df, strategy="invalid_strategy")
 
 
-@patch("generalized_timeseries.data_processor.adfuller")
+@patch("timeseries_compute.data_processor.adfuller")
 def test_ts_stationarity(mock_adfuller):
     """Test test_stationarity function properly uses adfuller test."""
     # Mock adfuller return value (test statistic, p-value, lags, nobs, critical values, icbest)

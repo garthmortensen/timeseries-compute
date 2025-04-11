@@ -16,7 +16,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 # Import our modules
-from generalized_timeseries import data_generator, data_processor, stats_model
+from timeseries_compute import data_generator, data_processor, stats_model
 
 # Configure logging
 logging.basicConfig(

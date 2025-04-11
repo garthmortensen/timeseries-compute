@@ -1,14 +1,14 @@
 # Timeseries Compute
 
-[![Python Versions](https://img.shields.io/pypi/pyversions/generalized-timeseries)]((https://pypi.org/project/generalized-timeseries/))
-[![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI)](https://pypi.org/project/generalized-timeseries/)
-[![GitHub](https://img.shields.io/badge/GitHub-generalized--timeseries-blue?logo=github)](https://github.com/garthmortensen/generalized-timeseries)
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-generalized--timeseries-blue)](https://hub.docker.com/r/goattheprofessionalmeower/generalized-timeseries)
-[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-generalized--timeseries-blue)](https://generalized-timeseries.readthedocs.io/en/latest/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/timeseries-compute)]((https://pypi.org/project/timeseries-compute/))
+[![PyPI](https://img.shields.io/pypi/v/timeseries-compute?color=blue&label=PyPI)](https://pypi.org/project/timeseries-compute/)
+[![GitHub](https://img.shields.io/badge/GitHub-generalized--timeseries-blue?logo=github)](https://github.com/garthmortensen/timeseries-compute)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-generalized--timeseries-blue)](https://hub.docker.com/r/goattheprofessionalmeower/timeseries-compute)
+[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-generalized--timeseries-blue)](https://timeseries-compute.readthedocs.io/en/latest/)
 
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/garthmortensen/generalized-timeseries/cicd.yml?label=CI%2FCD)](https://github.com/garthmortensen/generalized-timeseries/actions/workflows/cicd.yml)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/generalized-timeseries/dashboard)
-[![Coverage](https://codecov.io/gh/garthmortensen/generalized-timeseries/graph/badge.svg)](https://codecov.io/gh/garthmortensen/generalized-timeseries)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/garthmortensen/timeseries-compute/cicd.yml?label=CI%2FCD)](https://github.com/garthmortensen/timeseries-compute/actions/workflows/cicd.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/timeseries-compute/dashboard)
+[![Coverage](https://codecov.io/gh/garthmortensen/timeseries-compute/graph/badge.svg)](https://codecov.io/gh/garthmortensen/timeseries-compute)
 
 ## Overview
 
@@ -76,7 +76,7 @@ flowchart TB
     (Visualization Apps)"]:::system
     TimeSeriesPipeline["Timeseries Pipeline
     (API Service)"]:::system
-    GeneralizedTimeseries["Generalized Timeseries
+    TimeseriesCompute["Timeseries Compute
     (Python Package)"]:::system
     %% External Systems
     ExternalDataSource[(External Data Source)]:::external
@@ -85,11 +85,11 @@ flowchart TB
     %% Relationships
     User -- "Uses" --> TimeSeriesFrontend
     TimeSeriesFrontend -- "Makes API calls to" --> TimeSeriesPipeline
-    TimeSeriesPipeline -- "Imports and uses" --> GeneralizedTimeseries
-    User -- "Can use package directly" --> GeneralizedTimeseries  
+    TimeSeriesPipeline -- "Imports and uses" --> TimeseriesCompute
+    User -- "Can use package directly" --> TimeseriesCompute  
     ExternalDataSource -- "Provides time series data" --> TimeSeriesPipeline
-    GeneralizedTimeseries -- "Exports analysis to" --> AnalysisTool
-    GeneralizedTimeseries -- "Published to" --> PyPI
+    TimeseriesCompute -- "Exports analysis to" --> AnalysisTool
+    TimeseriesCompute -- "Published to" --> PyPI
     User -- "Installs from" --> PyPI
 ```
 
@@ -102,7 +102,7 @@ Install from PyPI (recommended):
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install generalized-timeseries
+pip install timeseries-compute
 ```
 
 Install from GitHub (latest development version):
@@ -110,7 +110,7 @@ Install from GitHub (latest development version):
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install git+https://github.com/garthmortensen/generalized-timeseries.git
+pip install git+https://github.com/garthmortensen/timeseries-compute.git
 ```
 
 ### Example Usage
@@ -118,13 +118,13 @@ pip install git+https://github.com/garthmortensen/generalized-timeseries.git
 For univariate time series analysis:
 
 ```bash
-python -m generalized_timeseries.examples.example_univariate_garch
+python -m timeseries_compute.examples.example_univariate_garch
 ```
 
 For bivariate GARCH analysis (correlation between two assets):
 
 ```bash
-python -m generalized_timeseries.examples.example_bivariate_garch
+python -m timeseries_compute.examples.example_bivariate_garch
 ```
 
 ### Docker Support
@@ -133,22 +133,22 @@ Run with Docker for isolated environments:
 
 ```bash
 # build the image
-docker build -t generalized-timeseries:latest ./
+docker build -t timeseries-compute:latest ./
 
 # Run the univariate example
-docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example_univariate_garch.py
+docker run -it timeseries-compute:latest /app/timeseries_compute/examples/example_univariate_garch.py
 
 # Run the bivariate example
-docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example_bivariate_garch.py
+docker run -it timeseries-compute:latest /app/timeseries_compute/examples/example_bivariate_garch.py
 
 # Get into interactive shell
-docker run -it --entrypoint /bin/bash generalized-timeseries:latest
+docker run -it --entrypoint /bin/bash timeseries-compute:latest
 ```
 
 ### Project Structure
 
 ```text
-generalized_timeseries/..............
+timeseries_compute/..............
 ├── __init__.py                     # Package initialization
 ├── data_generator.py               # For creating synthetic price data with random walks and specific statistical properties
 ├── data_processor.py               # For handling missing data, scaling, stationarizing, and testing time series stationarity
@@ -182,7 +182,7 @@ flowchart TB
     User((User)):::person
     
     %% System boundary
-    subgraph GeneralizedTimeseriesSystem["Generalized Timeseries System"]
+    subgraph TimeseriesComputeSystem["Timeseries Compute System"]
         PythonPackage["Python Package<br>[Library]<br>Core functions for analysis"]:::container
         Dockerized["Docker Container<br>[Linux]<br>Containerized deployment"]:::container
         ExampleScripts["Example Scripts<br>[Python]<br>Demonstration use cases"]:::container
@@ -438,7 +438,7 @@ flowchart TB
     Developer((Developer)):::person
     
     %% Main Systems
-    GeneralizedTimeseries["Generalized Timeseries\nPython Package"]:::system
+    TimeseriesCompute["Timeseries Compute\nPython Package"]:::system
     
     %% Source Control
     GitHub["GitHub\nSource Repository"]:::external
@@ -505,9 +505,9 @@ flowchart TB
     PublishPyPI -- "Deploy Package" --> PyPI
     
     %% Final Products
-    PyPI --> GeneralizedTimeseries
-    DockerHub --> GeneralizedTimeseries
-    ReadTheDocs -- "Documents" --> GeneralizedTimeseries
+    PyPI --> TimeseriesCompute
+    DockerHub --> TimeseriesCompute
+    ReadTheDocs -- "Documents" --> TimeseriesCompute
 ```
 
 ## Development
@@ -517,22 +517,22 @@ flowchart TB
 Option 1 (recommended):
 
 ```bash
-mkdir generalized-timeseries
-cd generalized-timeseries
+mkdir timeseries-compute
+cd timeseries-compute
 
 # create and activate virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-pip install generalized-timeseries
+pip install timeseries-compute
 ```
 
 Option 2:
 
 ```bash
 # clone the repository
-git clone https://github.com/garthmortensen/generalized-timeseries.git
-cd generalized-timeseries
+git clone https://github.com/garthmortensen/timeseries-compute.git
+cd timeseries-compute
 
 # create and activate virtual environment
 python -m venv venv
@@ -544,7 +544,7 @@ pip install -e ".[dev]"
 ### Testing
 
 ```bash
-pytest --cov=generalized_timeseries
+pytest --cov=timeseries_compute
 ```
 
 ### Tag & Publish
@@ -559,4 +559,4 @@ git push && git push --tags
 
 ## Documentation
 
-Full documentation is available at [generalized-timeseries.readthedocs.io](https://generalized-timeseries.readthedocs.io/en/latest/).
+Full documentation is available at [timeseries-compute.readthedocs.io](https://timeseries-compute.readthedocs.io/en/latest/).

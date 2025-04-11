@@ -2,7 +2,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from generalized_timeseries.stats_model import ModelARIMA
+from timeseries_compute.stats_model import ModelARIMA
 
 
 @pytest.fixture

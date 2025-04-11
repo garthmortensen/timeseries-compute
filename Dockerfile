@@ -32,10 +32,10 @@ RUN pip install --editable .
 # Set the entrypoint to python
 ENTRYPOINT ["python"]
 
-# docker build -t generalized-timeseries:latest ./
-# docker run -it generalized-timeseries:latest /app/generalized_timeseries/examples/example.py
+# docker build -t timeseries-compute:latest ./
+# docker run -it timeseries-compute:latest /app/timeseries_compute/examples/example.py
 # -it for interactive, tty mode, allowing typing in the terminal, color formatting, etc
 
 # to run the container in interactive mode, without using python as the entrypoint
-# docker run -it --entrypoint /bin/bash generalized-timeseries:latest
+# docker run -it --entrypoint /bin/bash timeseries-compute:latest
 

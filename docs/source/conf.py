@@ -6,13 +6,13 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../generalized_timeseries"))
+sys.path.insert(0, os.path.abspath("../../timeseries_compute"))
 sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Generalized Timeseries"
+project = "Timeseries Compute"
 copyright = "2025, Garth Mortensen"
 author = "Garth Mortensen"
 release = "0.0.1"

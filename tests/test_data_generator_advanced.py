@@ -3,11 +3,11 @@
 import pytest
 import pandas as pd
 import numpy as np
-from generalized_timeseries.data_generator import (
+from timeseries_compute.data_generator import (
     generate_price_series,
     PriceSeriesGenerator,
 )
-from generalized_timeseries.data_processor import (
+from timeseries_compute.data_processor import (
     fill_data,
     scale_data,
     stationarize_data,
@@ -16,7 +16,7 @@ from generalized_timeseries.data_processor import (
     DataScalerFactory,
     StationaryReturnsProcessor,
 )
-from generalized_timeseries.stats_model import (
+from timeseries_compute.stats_model import (
     ModelARIMA,
     ModelGARCH,
     ModelFactory,

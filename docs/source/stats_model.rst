@@ -1,7 +1,7 @@
 stats\_model module
 ===================
 
-.. automodule:: generalized_timeseries.stats_model
+.. automodule:: timeseries_compute.stats_model
    :members:
    :show-inheritance:
    :undoc-members:
