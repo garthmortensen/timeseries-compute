@@ -1,4 +1,4 @@
-# Generalized Timeseries
+# Timeseries Compute
 
 [![Python Versions](https://img.shields.io/pypi/pyversions/generalized-timeseries)]((https://pypi.org/project/generalized-timeseries/))
 [![PyPI](https://img.shields.io/pypi/v/generalized-timeseries?color=blue&label=PyPI)](https://pypi.org/project/generalized-timeseries/)
@@ -13,14 +13,18 @@
 ## Overview
 
 ```ascii
- ▗▄▄▖▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖▗▄▄▖  ▗▄▖ ▗▖   ▗▄▄▄▖▗▄▄▄▄▖▗▄▄▄▖▗▄▄▄ 
-▐▌   ▐▌   ▐▛▚▖▐▌▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌     █     ▗▞▘▐▌   ▐▌  █
-▐▌▝▜▌▐▛▀▀▘▐▌ ▝▜▌▐▛▀▀▘▐▛▀▚▖▐▛▀▜▌▐▌     █   ▗▞▘  ▐▛▀▀▘▐▌  █
-▝▚▄▞▘▐▙▄▄▖▐▌  ▐▌▐▙▄▄▖▐▌ ▐▌▐▌ ▐▌▐▙▄▄▖▗▄█▄▖▐▙▄▄▄▖▐▙▄▄▖▐▙▄▄▀
-     ▗▄▄▄▖▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▄▄▄▖ ▗▄▄▖
-       █    █  ▐▛▚▞▜▌▐▌   ▐▌   ▐▌   ▐▌ ▐▌  █  ▐▌   ▐▌
-       █    █  ▐▌  ▐▌▐▛▀▀▘ ▝▀▚▖▐▛▀▀▘▐▛▀▚▖  █  ▐▛▀▀▘ ▝▀▚▖
-       █  g▄█▄m▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘▐▙▄▄▖▐▌ ▐▌▗▄█▄▖▐▙▄▄▖▗▄▄▞▘
+████████╗██╗███╗   ███╗███████╗███████╗███████╗██████╗ ██╗███████╗███████╗
+╚══██╔══╝██║████╗ ████║██╔════╝██╔════╝██╔════╝██╔══██╗██║██╔════╝██╔════╝
+   ██║   ██║██╔████╔██║█████╗  ███████╗█████╗  ██████╔╝██║█████╗  ███████╗
+   ██║   ██║██║╚██╔╝██║██╔══╝  ╚════██║██╔══╝  ██╔══██╗██║██╔══╝  ╚════██║
+   ██║   ██║██║ ╚═╝ ██║███████╗███████║███████╗██║  ██║██║███████╗███████║
+   ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝
+ ██████╗ ██████╗ ███╗gm ███╗██████╗ ██╗   ██╗████████╗███████╗
+██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║   ██║╚══██╔══╝██╔════╝
+██║     ██║   ██║██╔████╔██║██████╔╝██║   ██║   ██║   █████╗
+██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║   ██║   ██╔══╝
+╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝   ██║   ███████╗
+ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝    ╚═╝   ╚══════╝
 ```
 
 A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and bivariate capabilities.
@@ -36,6 +40,27 @@ A Python package for timeseries data processing and modeling using ARIMA and GAR
 - EWMA covariance calculation for dynamic correlation analysis
 - Portfolio risk assessment using volatility and correlation matrices
 
+TODO: rename this to timeseries-compute.
+
+TODO: support the following:
+
+```{mermaid}
+flowchart TD
+    A[China and USA Market Return Data] --> B[Apply ARMA Models to Extract Conditional Mean]
+    B --> C[Extract Residuals/Error Terms]
+    C --> D[Apply GARCH Models]
+    D --> E[Extract Conditional Variance]
+    E --> F[Calculate Conditional Volatility\nSquare Root of Variance]
+    F --> G{Analyze Market Interactions}
+    G --> H[Constant Conditional Correlation\nCCC]
+    G --> I[Dynamic Conditional Correlation\nDCC with EWMA]
+    H --> J[Construct Covariance Matrix]
+    I --> J
+    J --> K[Analyze Spillover Effects\nBetween Markets]
+```
+
+
+
 ### Architectural Overview
 
 ```mermaid
@@ -44,10 +69,8 @@ flowchart TB
     classDef person fill:#08427B,color:#fff,stroke:#052E56,stroke-width:1px
     classDef system fill:#1168BD,color:#fff,stroke:#0B4884,stroke-width:1px
     classDef external fill:#999999,color:#fff,stroke:#6B6B6B,stroke-width:1px
-    
     %% Actors and Systems
     User((User)):::person
-    
     %% Main Systems
     TimeSeriesFrontend["Timeseries Frontend
     (Visualization Apps)"]:::system
@@ -55,20 +78,17 @@ flowchart TB
     (API Service)"]:::system
     GeneralizedTimeseries["Generalized Timeseries
     (Python Package)"]:::system
-    
     %% External Systems
     ExternalDataSource[(External Data Source)]:::external
     AnalysisTool["Data Analysis Tools"]:::external
     PyPI["PyPI Package Registry"]:::external
-    
     %% Relationships
-    User -- "Uses package directly" --> GeneralizedTimeseries
+    User -- "Uses" --> TimeSeriesFrontend
+    TimeSeriesFrontend -- "Makes API calls to" --> TimeSeriesPipeline
     TimeSeriesPipeline -- "Imports and uses" --> GeneralizedTimeseries
-    TimeSeriesFrontend -- "Imports and uses" --> GeneralizedTimeseries
-    
-    ExternalDataSource -- "Provides time series data" --> GeneralizedTimeseries
+    User -- "Can use package directly" --> GeneralizedTimeseries  
+    ExternalDataSource -- "Provides time series data" --> TimeSeriesPipeline
     GeneralizedTimeseries -- "Exports analysis to" --> AnalysisTool
-    
     GeneralizedTimeseries -- "Published to" --> PyPI
     User -- "Installs from" --> PyPI
 ```
