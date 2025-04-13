@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Bivariate GARCH Analysis Example with Spillover Effects.
-This script demonstrates the bivariate GARCH analysis functionality with added spillover analysis.
+Multivariate GARCH Analysis Example with Spillover Effects.
+This script demonstrates the multivariate GARCH analysis functionality with added spillover analysis.
 """
 
 import logging
@@ -26,16 +26,17 @@ l = logging.getLogger(__name__)
 
 
 def main():
-    """Main function implementing bivariate GARCH analysis with spillover effects."""
-    l.info("START: BIVARIATE GARCH ANALYSIS WITH SPILLOVER EFFECTS EXAMPLE")
+    """Main function implementing multivariate GARCH analysis with spillover effects."""
+    l.info("START: MULTIVARIATE GARCH ANALYSIS WITH SPILLOVER EFFECTS EXAMPLE")
 
-    # 1. Generate price series for multiple markets
+    # 1. Generate correlated price series for multiple markets
     price_dict, price_df = data_generator.generate_price_series(
-        start_date="2023-01-01",
-        end_date="2023-12-31",
-        anchor_prices={"DJ": 150.0, "SZ": 250.0, "EU": 300.0, "JP": 200.0},  # Now with 4 markets
+        start_date="2020-01-01",
+        end_date="2025-12-31",
+        anchor_prices={"DJ": 150.0, "SZ": 250.0, "EU": 300.0, "JP": 1000.0},
+        correlations={("DJ", "SZ"): 0.8, ("DJ", "EU"): 0.7, ("SZ", "EU"): 0.6,
+                    ("DJ", "JP"): 0.5, ("SZ", "JP"): 0.4, ("EU", "JP"): 0.3}
     )
-
     l.info(f"Generated price series for markets: {list(price_df.columns)}")
     l.info(f"Number of observations: {len(price_df)}")
 
@@ -82,7 +83,7 @@ def main():
             arima_fits=arima_fits,
             lambda_val=0.95,
             max_lag=5,
-            window_size=20,  # Smaller window for this example
+            window_size=40,  # Smaller window for this example
             forecast_horizon=10,
             response_periods=10,
             significance_level=0.05
@@ -140,7 +141,7 @@ def main():
         import traceback
         traceback.print_exc()
 
-    l.info("FINISH: BIVARIATE GARCH ANALYSIS WITH SPILLOVER EFFECTS EXAMPLE")
+    l.info("FINISH: MULTIVARIATE GARCH ANALYSIS WITH SPILLOVER EFFECTS EXAMPLE")
 
 
 if __name__ == "__main__":
