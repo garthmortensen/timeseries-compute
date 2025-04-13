@@ -2,7 +2,7 @@
 # Add to spillover_processor.py
 import pandas as pd
 from typing import Dict, Any
-from stats_model import run_multivariate_garch
+from timeseries_compute.stats_model import run_multivariate_garch
 
 def test_granger_causality(
     series1: pd.Series,

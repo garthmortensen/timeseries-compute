@@ -27,7 +27,7 @@ def main():
     # 1 Generate price series
     price_dict, price_df = data_generator.generate_price_series(
         start_date="2023-01-01",
-        end_date="2023-03-31",  # Shorter timeframe for quicker execution
+        end_date="2025-12-31",
         anchor_prices={"AAA": 150.0, "BBB": 250.0, "CCC": 1000.0},
     )
 

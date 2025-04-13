@@ -212,6 +212,49 @@ def scale_data(df: pd.DataFrame, method: str = "standardize") -> pd.DataFrame:
     return df_scaled
 
 
+def scale_for_garch(df: pd.DataFrame, target_scale: float = 10.0) -> pd.DataFrame:
+    """
+    Scale data to appropriate range for GARCH modeling.
+    
+    Adaptively scales data to bring it into the optimal range (1-1000)
+    for GARCH parameter estimation.
+    
+    Args:
+        df (pd.DataFrame): Input data
+        target_scale (float): Target scale to achieve
+        
+    Returns:
+        pd.DataFrame: Scaled data
+    """
+    # Create a new DataFrame to avoid modifying the original
+    df_scaled = df.copy()
+    
+    # Calculate adaptive scaling factor for each column
+    for column in df.columns:
+        # Calculate current scale (standard deviation)
+        current_scale = df[column].std()
+        
+        if current_scale > 0:  # Avoid division by zero
+            # Calculate how much to scale to reach target
+            if current_scale < 1.0:
+                # If scale is too small, scale up
+                scale_factor = target_scale / current_scale
+                l.info(f"Column {column} has scale {current_scale:.5f}, scaling up by factor of {scale_factor:.2f}")
+            elif current_scale > 1000.0:
+                # If scale is too large, scale down
+                scale_factor = target_scale / current_scale
+                l.info(f"Column {column} has scale {current_scale:.5f}, scaling down by factor of {scale_factor:.5f}")
+            else:
+                # Already in good range
+                scale_factor = 1.0
+                l.info(f"Column {column} has optimal scale {current_scale:.5f}, no rescaling needed")
+                
+            # Apply scaling factor
+            df_scaled[column] = df[column] * scale_factor
+    
+    return df_scaled
+
+
 class StationaryReturnsProcessor:
     """
     A class to process and test the stationarity of time series data.
