@@ -40,24 +40,27 @@ A Python package for timeseries data processing and modeling using ARIMA and GAR
 - EWMA covariance calculation for dynamic correlation analysis
 - Portfolio risk assessment using volatility and correlation matrices
 
+TODO: Simplify stats_model.py
+
+TODO: update univariate to match multivariate
+
+TODO: figure out how to create openapi.json like handoff
+
 TODO: support the following:
-
-```{mermaid}
-flowchart TD
-    A[China and USA Market Return Data] --> B[Apply ARMA Models to Extract Conditional Mean]
-    B --> C[Extract Residuals/Error Terms]
-    C --> D[Apply GARCH Models]
-    D --> E[Extract Conditional Variance]
-    E --> F[Calculate Conditional Volatility\nSquare Root of Variance]
-    F --> G{Analyze Market Interactions}
-    G --> H[Constant Conditional Correlation\nCCC]
-    G --> I[Dynamic Conditional Correlation\nDCC with EWMA]
-    H --> J[Construct Covariance Matrix]
-    I --> J
-    J --> K[Analyze Spillover Effects\nBetween Markets]
-```
-
-
+    ```{mermaid}
+    flowchart TD
+        A[China and USA Market Return Data] --> B[Apply ARMA Models to Extract Conditional Mean]
+        B --> C[Extract Residuals/Error Terms]
+        C --> D[Apply GARCH Models]
+        D --> E[Extract Conditional Variance]
+        E --> F[Calculate Conditional Volatility\nSquare Root of Variance]
+        F --> G{Analyze Market Interactions}
+        G --> H[Constant Conditional Correlation\nCCC]
+        G --> I[Dynamic Conditional Correlation\nDCC with EWMA]
+        H --> J[Construct Covariance Matrix]
+        I --> J
+        J --> K[Analyze Spillover Effects\nBetween Markets]
+    ```
 
 ### Architectural Overview
 

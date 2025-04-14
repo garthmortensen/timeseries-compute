@@ -20,7 +20,7 @@ def test_generate_prices():
     anchor_prices = {"GM": 51.1, "LM": 2.2}
     generator = PriceSeriesGenerator(start_date=start_date, end_date=end_date)
 
-    price_dict = generator.generate_prices(anchor_prices=anchor_prices)
+    price_dict = generator.generate_correlated_prices(anchor_prices=anchor_prices)
 
     assert isinstance(price_dict, dict)
     assert "GM" in price_dict
