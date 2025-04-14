@@ -27,7 +27,7 @@
  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝    ╚═╝   ╚══════╝
 ```
 
-A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and bivariate capabilities.
+A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and multivariate capabilities.
 
 ### Features
 
@@ -39,30 +39,10 @@ A Python package for timeseries data processing and modeling using ARIMA and GAR
 - Bivariate GARCH modeling with both Constant Conditional Correlation (CCC) and Dynamic Conditional Correlation (DCC) methods
 - EWMA covariance calculation for dynamic correlation analysis
 - Portfolio risk assessment using volatility and correlation matrices
+- Market spillover effects analysis with Granger causality testing and shock transmission modeling
+- Visualization tools for interpreting complex market interactions and spillover relationships
 
-TODO: Simplify stats_model.py
-
-TODO: update univariate to match multivariate
-
-TODO: figure out how to create openapi.json like handoff
-
-TODO: support the following:
-    ```{mermaid}
-    flowchart TD
-        A[China and USA Market Return Data] --> B[Apply ARMA Models to Extract Conditional Mean]
-        B --> C[Extract Residuals/Error Terms]
-        C --> D[Apply GARCH Models]
-        D --> E[Extract Conditional Variance]
-        E --> F[Calculate Conditional Volatility\nSquare Root of Variance]
-        F --> G{Analyze Market Interactions}
-        G --> H[Constant Conditional Correlation\nCCC]
-        G --> I[Dynamic Conditional Correlation\nDCC with EWMA]
-        H --> J[Construct Covariance Matrix]
-        I --> J
-        J --> K[Analyze Spillover Effects\nBetween Markets]
-    ```
-
-### Architectural Overview
+### Integration Overview
 
 ```mermaid
 flowchart TB
@@ -74,24 +54,20 @@ flowchart TB
     User((User)):::person
     %% Main Systems
     TimeSeriesFrontend["Timeseries Frontend
-    (Visualization Apps)"]:::system
+    (Django App)"]:::system
     TimeSeriesPipeline["Timeseries Pipeline
-    (API Service)"]:::system
+    (API App)"]:::system
     TimeseriesCompute["Timeseries Compute
     (Python Package)"]:::system
     %% External Systems
-    ExternalDataSource[(External Data Source)]:::external
-    AnalysisTool["Data Analysis Tools"]:::external
-    PyPI["PyPI Package Registry"]:::external
+    ExternalDataSource[(Yahoo Finance)]:::external
     %% Relationships
     User -- "Uses" --> TimeSeriesFrontend
     TimeSeriesFrontend -- "Makes API calls to" --> TimeSeriesPipeline
-    TimeSeriesPipeline -- "Imports and uses" --> TimeseriesCompute
+    TimeSeriesPipeline -- "Pip installs from" --> TimeseriesCompute
     User -- "Can use package directly" --> TimeseriesCompute  
     ExternalDataSource -- "Provides time series data" --> TimeSeriesPipeline
-    TimeseriesCompute -- "Exports analysis to" --> AnalysisTool
-    TimeseriesCompute -- "Published to" --> PyPI
-    User -- "Installs from" --> PyPI
+    TimeseriesCompute -- "Publishes to" --> PyPI/DockerHub
 ```
 
 ## Quick Start
@@ -122,10 +98,10 @@ For univariate time series analysis:
 python -m timeseries_compute.examples.example_univariate_garch
 ```
 
-For bivariate GARCH analysis (correlation between two assets):
+For multivariate GARCH analysis (correlation between two assets):
 
 ```bash
-python -m timeseries_compute.examples.example_bivariate_garch
+python -m timeseries_compute.examples.example_multivariate_garch
 ```
 
 ### Docker Support
@@ -139,8 +115,8 @@ docker build -t timeseries-compute:latest ./
 # Run the univariate example
 docker run -it timeseries-compute:latest /app/timeseries_compute/examples/example_univariate_garch.py
 
-# Run the bivariate example
-docker run -it timeseries-compute:latest /app/timeseries_compute/examples/example_bivariate_garch.py
+# Run the multivariate example
+docker run -it timeseries-compute:latest /app/timeseries_compute/examples/example_multivariate_garch.py
 
 # Get into interactive shell
 docker run -it --entrypoint /bin/bash timeseries-compute:latest
@@ -149,14 +125,15 @@ docker run -it --entrypoint /bin/bash timeseries-compute:latest
 ### Project Structure
 
 ```text
-timeseries_compute/..............
+timeseries_compute/..................
 ├── __init__.py                     # Package initialization
 ├── data_generator.py               # For creating synthetic price data with random walks and specific statistical properties
 ├── data_processor.py               # For handling missing data, scaling, stationarizing, and testing time series stationarity
 ├── stats_model.py                  # For implementing ARIMA, GARCH, and multivariate GARCH models with factory pattern
+├── spillover_processor.py          # For analyzing market interactions, shock transmission, and volatility spillovers between markets
 ├── examples/........................
 │   ├── __init__.py                 # Makes examples importable as a module
-│   ├── example_bivariate_garch.py  # For demonstrating correlation analysis between two markets with CC-GARCH and DCC-GARCH
+│   ├── example_multivariate_garch.py  # For demonstrating correlation analysis between multiple markets with CC-GARCH and DCC-GARCH
 │   └── example_univariate_garch.py # For showing basic usage of ARIMA and GARCH for single-series forecasting
 └── tests/...........................
     ├── __init__.py                 # Makes tests discoverable
@@ -269,7 +246,7 @@ classDiagram
         +end_date: str
         +dates: pd.DatetimeIndex
         +__init__(start_date, end_date)
-        +generate_prices(anchor_prices): Dict[str, list]
+        +generate_correlated_prices(anchor_prices): Dict[str, list]
     }
     
     class MissingDataHandler {
@@ -383,7 +360,7 @@ classDiagram
         +main(): None
     }
     
-    class ExampleBivariateGARCH {
+    class ExamplemultivariateGARCH {
         <<static>>
         +main(): None
     }
@@ -408,9 +385,9 @@ classDiagram
     ExampleUnivariateGARCH --> DataProcessorHelpers: uses
     ExampleUnivariateGARCH --> StatsModelHelpers: uses
     
-    ExampleBivariateGARCH --> DataGeneratorHelpers: uses
-    ExampleBivariateGARCH --> DataProcessorHelpers: uses
-    ExampleBivariateGARCH --> StatsModelHelpers: uses
+    ExamplemultivariateGARCH --> DataGeneratorHelpers: uses
+    ExamplemultivariateGARCH --> DataProcessorHelpers: uses
+    ExamplemultivariateGARCH --> StatsModelHelpers: uses
     
     MissingDataHandlerFactory --> MissingDataHandler: creates
     DataScalerFactory --> DataScaler: creates
