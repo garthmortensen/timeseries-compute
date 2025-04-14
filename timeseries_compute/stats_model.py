@@ -549,48 +549,48 @@ class ModelFactory:
             Static method that creates and returns an instance of a model based on the provided model_type.
     """
 
-@staticmethod
-def create_model(
-    model_type: str,
-    data: pd.DataFrame,
-    # ARIMA parameters with defaults
-    order: Tuple[int, int, int] = (1, 1, 1),
-    steps: int = 5,
-    # GARCH parameters with defaults
-    p: int = 1,
-    q: int = 1,
-    dist: str = "normal",
-    # Multivariate GARCH parameters
-    mv_model_type: str = "cc",
-) -> Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]:
-    """
-    Creates and returns an instance of a statistical model based on the specified type.
-    
-    Args:
-        model_type (str): Type of model to create ("ARIMA", "GARCH", or "MVGARCH")
-        data (pd.DataFrame): Input data for the model
-        order (Tuple[int, int, int]): (p,d,q) order for ARIMA models
-        steps (int): Forecast horizon for ARIMA models
-        p (int): GARCH order parameter
-        q (int): ARCH order parameter
-        dist (str): Error distribution for GARCH models
-        mv_model_type (str): Type of multivariate GARCH model ("cc" or "dcc")
+    @staticmethod
+    def create_model(
+        model_type: str,
+        data: pd.DataFrame,
+        # ARIMA parameters with defaults
+        order: Tuple[int, int, int] = (1, 1, 1),
+        steps: int = 5,
+        # GARCH parameters with defaults
+        p: int = 1,
+        q: int = 1,
+        dist: str = "normal",
+        # Multivariate GARCH parameters
+        mv_model_type: str = "cc",
+    ) -> Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]:
+        """
+        Creates and returns an instance of a statistical model based on the specified type.
         
-    Returns:
-        Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]: The created model instance
-        
-    Raises:
-        ValueError: If an unsupported model type is provided
-    """
-    l.info(f"Creating model type: {model_type}")
-    if model_type.lower() == "arima":
-        return ModelARIMA(data=data, order=order, steps=steps)
-    elif model_type.lower() == "garch":
-        return ModelGARCH(data=data, p=p, q=q, dist=dist)
-    elif model_type.lower() == "mvgarch":
-        return ModelMultivariateGARCH(data=data, p=p, q=q, model_type=mv_model_type)
-    else:
-        raise ValueError(f"Unsupported model type: {model_type}")
+        Args:
+            model_type (str): Type of model to create ("ARIMA", "GARCH", or "MVGARCH")
+            data (pd.DataFrame): Input data for the model
+            order (Tuple[int, int, int]): (p,d,q) order for ARIMA models
+            steps (int): Forecast horizon for ARIMA models
+            p (int): GARCH order parameter
+            q (int): ARCH order parameter
+            dist (str): Error distribution for GARCH models
+            mv_model_type (str): Type of multivariate GARCH model ("cc" or "dcc")
+            
+        Returns:
+            Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]: The created model instance
+            
+        Raises:
+            ValueError: If an unsupported model type is provided
+        """
+        l.info(f"Creating model type: {model_type}")
+        if model_type.lower() == "arima":
+            return ModelARIMA(data=data, order=order, steps=steps)
+        elif model_type.lower() == "garch":
+            return ModelGARCH(data=data, p=p, q=q, dist=dist)
+        elif model_type.lower() == "mvgarch":
+            return ModelMultivariateGARCH(data=data, p=p, q=q, model_type=mv_model_type)
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
 
 
 def run_garch(

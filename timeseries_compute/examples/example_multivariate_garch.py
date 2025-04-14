@@ -1,47 +1,31 @@
 #!/usr/bin/env python3
-# timeseries_compute/examples/example_multivariate_garch.py
+# timeseries_compute/examples/example_univariate_garch.py
 
 """
-Example: Multivariate GARCH Analysis with Spillover Effects.
+Example: Univariate GARCH Analysis with Timeseries Compute.
 
-This example demonstrates advanced functionality of the timeseries_compute package
-for multivariate time series analysis with a focus on market interactions and
-spillover effects. It shows a complete workflow:
-1. Generating synthetic correlated price data for multiple markets
-2. Converting to returns and testing stationarity
-3. Scaling data appropriately for GARCH modeling
-4. Fitting ARIMA models to filter out conditional means
-5. Analyzing market interactions using multivariate GARCH
-6. Testing for spillover effects between markets
-7. Visualizing conditional volatilities and correlations
-
-The example integrates all components of the package to demonstrate a comprehensive
-analysis of multiple correlated time series.
+This simplified example demonstrates the core functionality of the 
+timeseries_compute package for univariate time series analysis:
+1. Generating synthetic price data
+2. Converting to returns
+3. Fitting ARIMA models for conditional mean
+4. Fitting GARCH models for volatility
+5. Generating and interpreting forecasts
 
 To run this example:
-python -m timeseries_compute.examples.example_multivariate_garch
+python -m timeseries_compute.examples.example_univariate_garch
 """
 
 import logging
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from tabulate import tabulate
 
-# Add the parent directory to the PYTHONPATH if running as a standalone script
 import sys, os
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+from timeseries_compute import data_generator, data_processor, stats_model
 
-# Import our modules
-from timeseries_compute import (
-    data_generator,
-    data_processor,
-    stats_model,
-    spillover_processor,
-)
-
-# Configure logging
+# Set up logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -49,132 +33,115 @@ l = logging.getLogger(__name__)
 
 
 def main():
-    """Main function implementing multivariate GARCH analysis with spillover effects."""
-    l.info("START: MULTIVARIATE GARCH ANALYSIS WITH SPILLOVER EFFECTS EXAMPLE")
+    """Main function demonstrating the package usage."""
+    l.info("START: UNIVARIATE GARCH ANALYSIS EXAMPLE")
 
-    # 1. Generate correlated price series for multiple markets
+    # 1. Generate price series
+    l.info("Generating synthetic price series data...")
     price_dict, price_df = data_generator.generate_price_series(
         start_date="2020-01-01",
         end_date="2025-12-31",
-        anchor_prices={"DJ": 150.0, "SZ": 250.0, "EU": 300.0, "JP": 1000.0},
-        correlations={
-            ("DJ", "SZ"): 0.8,
-            ("DJ", "EU"): 0.7,
-            ("SZ", "EU"): 0.6,
-            ("DJ", "JP"): 0.5,
-            ("SZ", "JP"): 0.4,
-            ("EU", "JP"): 0.3,
-        },
+        anchor_prices={"AAA": 150.0, "BBB": 250.0, "CCC": 1000.0}
     )
-    l.info(f"Generated price series for markets: {list(price_df.columns)}")
+    l.info(f"Generated price series for assets: {list(price_df.columns)}")
     l.info(f"Number of observations: {len(price_df)}")
 
-    # 2. Calculate returns (similar to MATLAB's price2ret function)
+    # 2. Calculate log returns
+    l.info("Calculating log returns...")
     returns_df = data_processor.price_to_returns(price_df)
-    l.info("Calculated log returns")
-    l.info(f"First 5 return values:\n{returns_df.head()}")
-
-    # 3. Test stationarity of returns (adding this step)
+    
+    # 3. Test for stationarity
+    l.info("Testing stationarity of returns...")
     adf_results = data_processor.test_stationarity(returns_df)
-    l.info("Stationarity test results:")
     for col, result in adf_results.items():
-        l.info(f"Column: {col}")
-        l.info(f"  ADF Statistic: {result['ADF Statistic']:.4f}")
-        l.info(f"  p-value: {result['p-value']:.4e}")
-        l.info(f"  Stationary: {'Yes' if result['p-value'] < 0.05 else 'No'}")
+        l.info(f"{col}: p-value={result['p-value']:.4e} {'(Stationary)' if result['p-value'] < 0.05 else '(Non-stationary)'}")
 
-    # 4. Scale returns for GARCH modeling (adding this step)
+    # 4. Scale data for GARCH modeling
+    l.info("Scaling data for GARCH modeling...")
     scaled_returns_df = data_processor.scale_for_garch(returns_df)
-    l.info("Scaled returns for GARCH modeling")
 
-    # 5. Fit ARMA models to filter out conditional mean
+    # 5. Fit ARIMA models for conditional mean
+    l.info("Fitting ARIMA models...")
     try:
         arima_fits, arima_forecasts = stats_model.run_arima(
-            df_stationary=scaled_returns_df,  # Use scaled data now
-            p=1,
-            d=0,
-            q=1,
-            forecast_steps=5,
+            df_stationary=scaled_returns_df, 
+            p=1, d=0, q=1,
+            forecast_steps=5
         )
-
-        l.info("ARIMA parameters:")
-        for column in returns_df.columns:
-            l.info(f"  {column}:")
-            for param, value in arima_fits[column].params.items():
-                l.info(f"    {param}: {value:.4f}")
-
+        
+        # Extract ARIMA residuals for GARCH modeling
+        arima_residuals = pd.DataFrame(index=scaled_returns_df.index)
+        for column in scaled_returns_df.columns:
+            arima_residuals[column] = arima_fits[column].resid
+            
+        l.info("ARIMA forecasts (5-step ahead):")
+        for col, forecast in arima_forecasts.items():
+            l.info(f"  {col}: {forecast:.6f}")
+            
     except Exception as e:
         l.error(f"ARIMA modeling failed: {str(e)}")
-        arima_fits = None
+        arima_residuals = scaled_returns_df  # Use original returns if ARIMA fails
 
-    # 6. Run multivariate GARCH analysis with spillover effects
+    # 6. Fit GARCH models for volatility
+    l.info("Fitting GARCH models...")
     try:
-        # Run the analysis with spillover effects
-        combined_results = spillover_processor.run_spillover_analysis(
-            df_stationary=scaled_returns_df,  # Use scaled data here too
-            arima_fits=arima_fits,
-            lambda_val=0.95,
-            max_lag=5,
-            window_size=40,  # Smaller window for this example
-            forecast_horizon=10,
-            response_periods=10,
-            significance_level=0.05,
+        garch_fit, garch_forecast = stats_model.run_garch(
+            df_stationary=arima_residuals,
+            p=1, q=1,
+            forecast_steps=5
         )
-
-        # Extract standard results
-        arima_residuals = combined_results["arima_residuals"]
-        cond_vol_df = combined_results["conditional_volatilities"]
-        cc_corr = combined_results["cc_correlation"]
-
-        # Extract spillover analysis results
-        spillover_results = combined_results["spillover_analysis"]
-
-        # Display correlation results
-        l.info("Unconditional correlation between markets:")
-        uncond_corr = returns_df.corr()
-        l.info(f"\n{tabulate(uncond_corr, headers='keys', tablefmt='fancy_grid')}")
-
-        l.info("Constant conditional correlation (CCC-GARCH):")
-        l.info(f"\n{tabulate(cc_corr, headers='keys', tablefmt='fancy_grid')}")
-
-        # Display spillover analysis results
-        l.info("Granger Causality Results:")
-        for pair, result in spillover_results["granger_causality"].items():
-            l.info(f"  {pair}: {'Yes' if result['causality'] else 'No'}")
-            if result["causality"]:
-                l.info(f"    Optimal lag: {result['optimal_lag']}")
-
-        l.info("Significant Shock Spillover Relationships:")
-        for pair, result in spillover_results["shock_spillover"].items():
-            if result["significant_lags"]:
-                l.info(f"  {pair}:")
-                l.info(f"    Significant lags: {result['significant_lags']}")
-                l.info(f"    R-squared: {result['r_squared']:.4f}")
-
-        # Generate and save spillover analysis plots
-        spillover_fig = spillover_processor.plot_spillover_analysis(
-            spillover_results, output_path="spillover_analysis.png"
-        )
-        l.info("Spillover analysis plots saved to 'spillover_analysis.png'")
-
-        # Create additional visualization for volatility
-        plt.figure(figsize=(12, 8))
-        for column in cond_vol_df.columns:
-            annualized_vol = cond_vol_df[column] * np.sqrt(252)  # Annualize
-            plt.plot(annualized_vol.index, annualized_vol, label=f"{column} Volatility")
-        plt.title("Conditional Volatilities (Annualized)")
-        plt.legend()
-        plt.grid(True)
-        plt.savefig("volatility_analysis.png")
-        l.info("Volatility analysis plot saved to 'volatility_analysis.png'")
-
+        
+        # Extract conditional volatilities
+        cond_vol = pd.DataFrame(index=arima_residuals.index)
+        for column in arima_residuals.columns:
+            cond_vol[column] = np.sqrt(garch_fit[column].conditional_volatility)
+        
+        # Display GARCH forecasts
+        l.info("GARCH volatility forecasts (5-step ahead):")
+        for col, forecast in garch_forecast.items():
+            if hasattr(forecast, '__iter__'):
+                # Convert variance forecasts to volatility
+                forecast_vols = np.sqrt(forecast)
+                l.info(f"  {col} volatility forecast: {', '.join([f'{v:.6f}' for v in forecast_vols])}")
+            else:
+                l.info(f"  {col}: {np.sqrt(forecast):.6f}")
+                
+        # 7. Calculate correlation between assets
+        if len(arima_residuals.columns) > 1:
+            # Calculate standardized residuals
+            std_residuals = pd.DataFrame(index=arima_residuals.index)
+            for column in arima_residuals.columns:
+                std_residuals[column] = arima_residuals[column] / np.sqrt(garch_fit[column].conditional_volatility)
+                
+            # Calculate correlation matrix
+            correlation_matrix = std_residuals.corr()
+            l.info("Correlation matrix of standardized residuals:")
+            l.info(f"\n{tabulate(correlation_matrix, headers='keys', tablefmt='fancy_grid')}")
+            
+            # Calculate portfolio metrics for equal weights
+            num_assets = len(returns_df.columns)
+            weights = np.ones(num_assets) / num_assets
+            
+            # Get recent volatilities for a simplified covariance matrix
+            latest_vol_vector = np.array([cond_vol[col].iloc[-1] for col in cond_vol.columns])
+            cov_matrix = np.outer(latest_vol_vector, latest_vol_vector) * correlation_matrix.values
+            
+            # Calculate portfolio risk
+            portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
+            portfolio_volatility = np.sqrt(portfolio_variance)
+            annualized_volatility = portfolio_volatility * np.sqrt(252)  # Annualized
+            
+            l.info("Portfolio risk metrics (equal-weighted):")
+            l.info(f"  Daily volatility: {portfolio_volatility:.6f}")
+            l.info(f"  Annualized volatility: {annualized_volatility:.6f}")
+            l.info(f"  1-day Value at Risk (99%): {2.326 * portfolio_volatility:.6f}")
+        
     except Exception as e:
-        l.error(f"GARCH modeling or spillover analysis failed: {str(e)}")
+        l.error(f"GARCH modeling failed: {str(e)}")
         import traceback
-
         traceback.print_exc()
 
-    l.info("FINISH: MULTIVARIATE GARCH ANALYSIS WITH SPILLOVER EFFECTS EXAMPLE")
+    l.info("FINISH: UNIVARIATE GARCH ANALYSIS EXAMPLE")
 
 
 if __name__ == "__main__":

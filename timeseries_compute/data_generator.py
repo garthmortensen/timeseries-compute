@@ -70,11 +70,11 @@ class PriceSeriesGenerator:
             start=start_date, end=end_date, freq="B"
         )  # weekdays only
 
-def generate_correlated_prices(
-    self,
-    anchor_prices: Dict[str, float],
-    correlation_matrix: Optional[Dict[Tuple[str, str], float]] = None,
-) -> Dict[str, list]:
+    def generate_correlated_prices(
+        self,
+        anchor_prices: Dict[str, float],
+        correlation_matrix: Optional[Dict[Tuple[str, str], float]] = None,
+    ) -> Dict[str, list]:
         """
         Create price series for given tickers with initial prices and correlations.
 
@@ -94,8 +94,8 @@ def generate_correlated_prices(
                 
         Example:
             >>> generator = PriceSeriesGenerator(start_date="2023-01-01", end_date="2023-01-31")
-            >>> anchor_prices = {"AAPL": 150.0, "MSFT": 250.0}
-            >>> correlations = {("AAPL", "MSFT"): 0.7}
+            >>> anchor_prices = {"AAA": 150.0, "BBB": 250.0}
+            >>> correlations = {("AAA", "BBB"): 0.7}
             >>> prices = generator.generate_correlated_prices(anchor_prices, correlations)
         """
         # Initialize price data
