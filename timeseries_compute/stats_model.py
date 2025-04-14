@@ -377,10 +377,10 @@ def calculate_portfolio_risk(weights: np.ndarray, cov_matrix: np.ndarray) -> tup
 
 def run_multivariate_garch(
     df_stationary: pd.DataFrame,
-    arima_fits: dict = None,
-    garch_fits: dict = None,
+    arima_fits: Optional[Dict[str, Any]] = None,
+    garch_fits: Optional[Dict[str, Any]] = None,
     lambda_val: float = 0.95,
-) -> dict:
+) -> Dict[str, Any]:
     """
     Runs multivariate GARCH analysis on the provided stationary DataFrame.
 
@@ -403,6 +403,19 @@ def run_multivariate_garch(
             - 'cc_covariance_matrix': Covariance matrix using CCC
             - 'dcc_correlation': Series of dynamic conditional correlations
             - 'dcc_covariance': Series of dynamic conditional covariances
+            
+    Example:
+        >>> # Create stationary returns for two assets
+        >>> returns = pd.DataFrame({
+        ...     'Asset1': [0.01, -0.02, 0.015, -0.01, 0.02],
+        ...     'Asset2': [0.015, -0.01, 0.02, -0.015, 0.01]
+        ... })
+        >>> # Run multivariate GARCH analysis
+        >>> results = run_multivariate_garch(returns)
+        >>> # Access the correlation matrix
+        >>> print(results['cc_correlation'])
+        >>> # Plot dynamic correlation over time
+        >>> plt.plot(results['dcc_correlation'])
     """
     results = {}
 
@@ -498,29 +511,48 @@ class ModelFactory:
             Static method that creates and returns an instance of a model based on the provided model_type.
     """
 
-    @staticmethod
-    def create_model(
-        model_type: str,
-        data: pd.DataFrame,
-        # ARIMA parameters with defaults
-        order: Tuple[int, int, int] = (1, 1, 1),
-        steps: int = 5,
-        # GARCH parameters with defaults
-        p: int = 1,
-        q: int = 1,
-        dist: str = "normal",
-        # Multivariate GARCH parameters
-        mv_model_type: str = "cc",
-    ) -> Any:
-        l.info(f"Creating model type: {model_type}")
-        if model_type.lower() == "arima":
-            return ModelARIMA(data=data, order=order, steps=steps)
-        elif model_type.lower() == "garch":
-            return ModelGARCH(data=data, p=p, q=q, dist=dist)
-        elif model_type.lower() == "mvgarch":
-            return ModelMultivariateGARCH(data=data, p=p, q=q, model_type=mv_model_type)
-        else:
-            raise ValueError(f"Unsupported model type: {model_type}")
+@staticmethod
+def create_model(
+    model_type: str,
+    data: pd.DataFrame,
+    # ARIMA parameters with defaults
+    order: Tuple[int, int, int] = (1, 1, 1),
+    steps: int = 5,
+    # GARCH parameters with defaults
+    p: int = 1,
+    q: int = 1,
+    dist: str = "normal",
+    # Multivariate GARCH parameters
+    mv_model_type: str = "cc",
+) -> Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]:
+    """
+    Creates and returns an instance of a statistical model based on the specified type.
+    
+    Args:
+        model_type (str): Type of model to create ("ARIMA", "GARCH", or "MVGARCH")
+        data (pd.DataFrame): Input data for the model
+        order (Tuple[int, int, int]): (p,d,q) order for ARIMA models
+        steps (int): Forecast horizon for ARIMA models
+        p (int): GARCH order parameter
+        q (int): ARCH order parameter
+        dist (str): Error distribution for GARCH models
+        mv_model_type (str): Type of multivariate GARCH model ("cc" or "dcc")
+        
+    Returns:
+        Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]: The created model instance
+        
+    Raises:
+        ValueError: If an unsupported model type is provided
+    """
+    l.info(f"Creating model type: {model_type}")
+    if model_type.lower() == "arima":
+        return ModelARIMA(data=data, order=order, steps=steps)
+    elif model_type.lower() == "garch":
+        return ModelGARCH(data=data, p=p, q=q, dist=dist)
+    elif model_type.lower() == "mvgarch":
+        return ModelMultivariateGARCH(data=data, p=p, q=q, model_type=mv_model_type)
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
 
 
 def run_garch(
@@ -601,15 +633,30 @@ def run_garch(
         raise RuntimeError(f"GARCH model failed: {str(e)}")
 
 
-def calculate_stats(series: pd.Series) -> dict:
+def calculate_stats(series: pd.Series) -> Dict[str, float]:
     """
     Calculate comprehensive statistics for a time series.
 
     Args:
-        series: Time series data
+        series (pd.Series): Time series data to analyze
 
     Returns:
-        Dictionary of statistics
+        Dict[str, float]: Dictionary containing the following statistics:
+            - 'n': Number of observations in the series
+            - 'mean': Arithmetic mean of the series
+            - 'median': Median value of the series
+            - 'min': Minimum value in the series
+            - 'max': Maximum value in the series
+            - 'std': Standard deviation of the series
+            - 'skew': Skewness of the distribution (asymmetry measure)
+            - 'kurt': Kurtosis of the distribution (tail heaviness measure)
+            - 'annualized_vol': Annualized volatility, calculated as standard deviation * sqrt(250)
+              for daily data
+
+    Example:
+        >>> series = pd.Series([1.2, 2.3, 3.4, 4.5, 5.6])
+        >>> stats = calculate_stats(series)
+        >>> print(f"Mean: {stats['mean']}, Std Dev: {stats['std']}")
     """
     return {
         "n": len(series),

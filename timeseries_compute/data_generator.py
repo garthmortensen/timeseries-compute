@@ -28,10 +28,8 @@ class PriceSeriesGenerator:
         __init__(start_date: str, end_date: str):
             Initializes the PriceSeriesGenerator with the given date range.
 
-    generate_coreelate_prices(anchor_prices: dict) -> Tuple[dict, pd.DataFrame]:
-        Generates a series of prices for the given tickers with initial prices.
-            anchor_prices (dict): A dictionary where keys are tickers and values are initial prices.
-            dict: A dictionary where keys are tickers and values are lists of generated prices.
+        generate_correlated_prices(anchor_prices: dict, correlation_matrix: Optional[Dict[Tuple[str, str], float]] = None) -> Dict[str, list]:
+            Generates a series of correlated prices for the given tickers with initial prices.
     """
 
     def __init__(self, start_date: str, end_date: str):
@@ -51,22 +49,33 @@ class PriceSeriesGenerator:
             start=start_date, end=end_date, freq="B"
         )  # weekdays only
 
-    def generate_correlated_prices(
-        self,
-        anchor_prices: Dict[str, float],
-        correlation_matrix: Optional[Dict[Tuple[str, str], float]] = None,
-    ) -> Dict[str, list]:
+def generate_correlated_prices(
+    self,
+    anchor_prices: Dict[str, float],
+    correlation_matrix: Optional[Dict[Tuple[str, str], float]] = None,
+) -> Dict[str, list]:
         """
         Create price series for given tickers with initial prices and correlations.
 
         Args:
-            anchor_prices (Dict[str, float]): keys = tickers, values = initial prices
-            correlation_matrix (Dict[Tuple[str, str], float], optional): Dictionary specifying correlations
-                between ticker pairs. Keys are tuples of tickers (ticker1, ticker2), values are correlation
-                coefficients (-1.0 to 1.0). If None, default correlation of 0.6 will be used for all pairs.
+            anchor_prices (Dict[str, float]): Dictionary where keys are ticker symbols 
+                (e.g., 'AAPL', 'MSFT') and values are their respective initial prices.
+            correlation_matrix (Dict[Tuple[str, str], float], optional): Dictionary specifying 
+                correlations between ticker pairs. Each key should be a tuple of two ticker 
+                symbols (e.g., ('AAPL', 'MSFT')), and each value should be the desired 
+                correlation coefficient between -1.0 and 1.0. For example:
+                {('AAPL', 'MSFT'): 0.7, ('AAPL', 'GOOG'): 0.5, ('MSFT', 'GOOG'): 0.6}
+                If None, a default correlation of 0.6 will be used for all pairs.
 
         Returns:
-            Dict[str, list]: keys = tickers, values = prices
+            Dict[str, list]: Dictionary where keys are ticker symbols and values are lists 
+                containing the generated price series for each ticker.
+                
+        Example:
+            >>> generator = PriceSeriesGenerator(start_date="2023-01-01", end_date="2023-01-31")
+            >>> anchor_prices = {"AAPL": 150.0, "MSFT": 250.0}
+            >>> correlations = {("AAPL", "MSFT"): 0.7}
+            >>> prices = generator.generate_correlated_prices(anchor_prices, correlations)
         """
         # Initialize price data
         price_data = {}

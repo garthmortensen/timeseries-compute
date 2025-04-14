@@ -17,15 +17,31 @@ def test_granger_causality(
 ) -> Dict[str, Any]:
     """
     Test if series1 Granger-causes series2.
+    
+    Granger causality tests if past values of series1 help predict future values of series2
+    beyond what past values of series2 alone can predict.
 
     Args:
-        series1: Potential cause series
-        series2: Potential effect series
-        max_lag: Maximum number of lags to test
-        significance_level: Threshold for significance
+        series1 (pd.Series): Potential cause series
+        series2 (pd.Series): Potential effect series
+        max_lag (int): Maximum number of lags to test (will test lags 1 to max_lag)
+        significance_level (float): p-value threshold for determining significance
 
     Returns:
-        Dictionary with causality test results
+        Dict[str, Any]: Dictionary with the following keys:
+            - 'causality' (bool): True if series1 Granger-causes series2 at any tested lag
+            - 'p_values' (Dict[int, float]): Dictionary mapping each lag to its p-value
+            - 'optimal_lag' (int or None): Lag with the smallest p-value if causality exists,
+              None otherwise
+            
+    Example:
+        >>> # Test if returns of Market A cause returns of Market B
+        >>> market_a = pd.Series([0.01, -0.015, 0.02, -0.01, 0.015])
+        >>> market_b = pd.Series([0.005, -0.01, 0.015, -0.005, 0.01])
+        >>> result = test_granger_causality(market_a, market_b, max_lag=2)
+        >>> print(f"Causality exists: {result['causality']}")
+        >>> print(f"P-values by lag: {result['p_values']}")
+        >>> print(f"Best lag: {result['optimal_lag']}")
     """
     from statsmodels.tsa.stattools import grangercausalitytests
 
@@ -46,8 +62,10 @@ def test_granger_causality(
 
 
 def analyze_shock_spillover(
-    residuals1: pd.Series, volatility2: pd.Series, max_lag: int = 5
-) -> Dict[str, Any]:
+    residuals1: pd.Series, 
+    volatility2: pd.Series, 
+    max_lag: int = 5
+) -> Dict[str, Union[List[int], float]]:
     """
     Simplified analysis of how shocks in one market affect volatility in another.
 
@@ -89,31 +107,43 @@ def analyze_shock_spillover(
 
 def run_spillover_analysis(
     df_stationary: pd.DataFrame,
-    arima_fits: dict = None,
-    garch_fits: dict = None,
+    arima_fits: Optional[Dict[str, Any]] = None,
+    garch_fits: Optional[Dict[str, Any]] = None,
     lambda_val: float = 0.95,
     max_lag: int = 5,
-    window_size: int = 60,  # Kept for compatibility
-    forecast_horizon: int = 10,  # Kept for compatibility
-    response_periods: int = 10,  # Kept for compatibility
     significance_level: float = 0.05,
 ) -> Dict[str, Any]:
     """
-    Simplified spillover analysis between markets.
+    Analyzes spillover effects between markets using multivariate GARCH and Granger causality.
 
     Args:
-        df_stationary: DataFrame of stationary returns
-        arima_fits: Pre-fitted ARIMA models (optional)
-        garch_fits: Pre-fitted GARCH models (optional)
-        lambda_val: EWMA decay factor
-        max_lag: Maximum lag for Granger causality
-        window_size: Window size (kept for backward compatibility)
-        forecast_horizon: Forecast horizon (kept for backward compatibility)
-        response_periods: Response periods (kept for backward compatibility)
-        significance_level: Significance threshold
+        df_stationary (pd.DataFrame): DataFrame of stationary returns for multiple markets
+        arima_fits (dict, optional): Pre-fitted ARIMA models
+        garch_fits (dict, optional): Pre-fitted GARCH models
+        lambda_val (float): EWMA decay factor for dynamic correlation calculation
+        max_lag (int): Maximum lag for Granger causality tests
+        significance_level (float): Significance threshold for statistical tests
 
     Returns:
-        Dictionary with analysis results
+        Dict[str, Any]: Dictionary with analysis results containing:
+            - Standard multivariate GARCH results (see run_multivariate_garch)
+            - 'spillover_analysis': Dictionary with the following keys:
+                - 'granger_causality': Results from Granger causality tests between markets
+                - 'shock_spillover': Results from shock spillover analysis
+                - 'spillover_magnitude': Information about the strength of spillover effects
+                - 'impulse_response': Impulse response function results
+            
+    Example:
+        >>> # Create returns data for two markets
+        >>> returns = pd.DataFrame({
+        ...     'US': [0.01, -0.02, 0.015, -0.01, 0.02],
+        ...     'EU': [0.015, -0.01, 0.02, -0.015, 0.01]
+        ... })
+        >>> # Run spillover analysis
+        >>> results = run_spillover_analysis(returns, max_lag=3)
+        >>> # Check if US returns Granger-cause EU returns
+        >>> us_to_eu = results['spillover_analysis']['granger_causality']['US_to_EU']
+        >>> print(f"US Granger-causes EU: {us_to_eu['causality']}")
     """
     import itertools
 
@@ -171,8 +201,9 @@ def run_spillover_analysis(
 
 
 def plot_spillover_analysis(
-    spillover_results: Dict[str, Any], output_path: Optional[str] = None
-):
+    spillover_results: Dict[str, Any], 
+    output_path: Optional[str] = None
+) -> plt.Figure:
     """
     Create a simple visualization of spillover analysis results.
 
