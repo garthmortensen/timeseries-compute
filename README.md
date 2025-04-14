@@ -205,6 +205,7 @@ flowchart TB
         DataGenerator["Data Generator<br>[Python]<br>Creates synthetic time series"]:::component
         DataProcessor["Data Processor<br>[Python]<br>Transforms and tests data"]:::component
         StatsModels["Statistical Models<br>[Python]<br>ARIMA and GARCH models"]:::component
+        SpilloverProcessor["Spillover Processor<br>[Python]<br>Market interaction analysis"]:::component
         ExampleScripts["Example Scripts<br>[Python]<br>Usage demonstrations"]:::component
         TestSuite["Test Suite<br>[pytest]<br>Validates functionality"]:::component
         
@@ -212,13 +213,17 @@ flowchart TB
         ExampleScripts --> DataGenerator
         ExampleScripts --> DataProcessor
         ExampleScripts --> StatsModels
+        ExampleScripts --> SpilloverProcessor
         DataProcessor --> DataGenerator
         StatsModels --> DataProcessor
+        SpilloverProcessor --> StatsModels
+        SpilloverProcessor --> DataProcessor
         TestSuite --> DataGenerator
         TestSuite --> DataProcessor
         TestSuite --> StatsModels
+        TestSuite --> SpilloverProcessor
     end
-    
+
     %% External Components
     StatsLibraries[(Statistical Libraries<br>statsmodels, arch)]:::external
     DataLibraries[(Data Libraries<br>pandas, numpy)]:::external
@@ -234,6 +239,7 @@ flowchart TB
     StatsModels -- "Uses" --> StatsLibraries
     StatsModels -- "Uses" --> DataLibraries
     ExampleScripts -- "Uses" --> VisualizationLibraries
+    SpilloverProcessor -- "Uses" --> VisualizationLibraries
 ```
 
 #### Level 4: Code/Class Diagram
@@ -353,6 +359,14 @@ classDiagram
         +calculate_portfolio_risk(weights, cov_matrix): Tuple[float, float]
         +calculate_stats(series): Dict
     }
+
+    class SpilloverProcessorFunctions {
+        <<static>>
+        +test_granger_causality(series1, series2, max_lag, significance_level): Dict
+        +analyze_shock_spillover(residuals1, volatility2, max_lag): Dict
+        +run_spillover_analysis(df_stationary, arima_fits, garch_fits, lambda_val, max_lag, significance_level): Dict
+        +plot_spillover_analysis(spillover_results, output_path): plt.Figure
+    }
     
     %% Example Scripts
     class ExampleUnivariateGARCH {
@@ -395,6 +409,11 @@ classDiagram
     ModelFactory --> ModelARIMA: creates
     ModelFactory --> ModelGARCH: creates
     ModelFactory --> ModelMultivariateGARCH: creates
+
+    SpilloverProcessorFunctions --> StatsModelHelpers: uses
+    SpilloverProcessorFunctions --> DataProcessorHelpers: uses
+    ExampleUnivariateGARCH --> SpilloverProcessorFunctions: may use
+    ExampleBivariateGARCH --> SpilloverProcessorFunctions: may use
 ```
 
 #### CI/CD Process
