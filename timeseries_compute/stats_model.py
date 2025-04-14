@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# stats_model.py
+# timeseries_compute/stats_model.py
 
 import logging as l
 

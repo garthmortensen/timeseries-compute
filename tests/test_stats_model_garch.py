@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # tests/test_stats_model_garch.py
 import pytest
 import pandas as pd

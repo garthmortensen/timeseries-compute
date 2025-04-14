@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# data_processor.py
+# timeseries_compute/data_processor.py
 
 import logging as l
 
@@ -226,7 +226,6 @@ def scale_for_garch(df: pd.DataFrame, target_scale: float = 10.0) -> pd.DataFram
     Returns:
         pd.DataFrame: Scaled data
     """
-    # Create a new DataFrame to avoid modifying the original
     df_scaled = df.copy()
 
     # Calculate adaptive scaling factor for each column
@@ -505,7 +504,6 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Properly formatted DataFrame for time series analysis
     """
-    # Make a copy to avoid modifying the original
     df = df.copy()
 
     # Handle date column if it exists and isn't already the index
@@ -545,7 +543,7 @@ def calculate_ewma_covariance(
     Args:
         series1: First time series
         series2: Second time series
-        lambda_val: Decay factor (0.95 or 0.97 in your thesis)
+        lambda_val: Decay factor (0.95 or 0.97 from thesis)
 
     Returns:
         Series of EWMA covariances
@@ -553,7 +551,7 @@ def calculate_ewma_covariance(
     # Initialize covariance series
     cov_series = pd.Series(index=series1.index)
 
-    # Calculate initial covariance (first 20 observations)
+    # Calculate initial covariance (first 20 obs)
     init_window = min(20, len(series1))
     init_cov = series1.iloc[:init_window].cov(series2.iloc[:init_window])
     cov_series.iloc[0] = init_cov

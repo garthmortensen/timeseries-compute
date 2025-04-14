@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# data_generator.py
+# timeseries_compute/data_generator.py
 
 import logging as l
 
@@ -28,7 +28,7 @@ class PriceSeriesGenerator:
         __init__(start_date: str, end_date: str):
             Initializes the PriceSeriesGenerator with the given date range.
 
-    generate_prices(anchor_prices: dict) -> Tuple[dict, pd.DataFrame]:
+    generate_coreelate_prices(anchor_prices: dict) -> Tuple[dict, pd.DataFrame]:
         Generates a series of prices for the given tickers with initial prices.
             anchor_prices (dict): A dictionary where keys are tickers and values are initial prices.
             dict: A dictionary where keys are tickers and values are lists of generated prices.
@@ -127,15 +127,6 @@ class PriceSeriesGenerator:
                 )
                 price_data[ticker].append(new_price)
 
-        # Generate the list of records format for internal use (as before)
-        records = []
-        for date in self.dates:
-            date_str = date.strftime("%Y-%m-%d")
-            for ticker in anchor_prices.keys():
-                idx = self.dates.get_loc(date)
-                price = price_data[ticker][idx]
-                records.append({"date": date_str, "symbol": ticker, "price": price})
-
         return price_data
 
 
@@ -151,7 +142,6 @@ def set_random_seed(seed: int = DEFAULT_RANDOM_SEED) -> None:
     random.seed(seed)
 
 
-# convenience wrapper around the class
 def generate_price_series(
     start_date: str = "2023-01-01",
     end_date: str = "2023-12-31",
@@ -190,8 +180,7 @@ def generate_price_series(
         anchor_prices=anchor_prices, correlation_matrix=correlations
     )
 
-    # Create DataFrame from the price dictionary
-    dates = pd.date_range(start=start_date, end=end_date, freq="B")
-    price_df = pd.DataFrame(price_dict, index=dates)
+    # Use the dates from the generator instead of creating a new date range
+    price_df = pd.DataFrame(price_dict, index=generator.dates)
 
     return price_dict, price_df

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # tests/test_stats_model.py
 import pytest
 import pandas as pd

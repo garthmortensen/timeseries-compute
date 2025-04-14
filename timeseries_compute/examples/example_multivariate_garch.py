@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# timeseries_compute/examples/example_multivariate_garch.py
 """
 Multivariate GARCH Analysis Example with Spillover Effects.
 This script demonstrates the multivariate GARCH analysis functionality with added spillover analysis.

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# timeseries_compute/examples/example_univariate_garch.py
 """
 Basic example of using the timeseries_compute package.
 This script demos the key features of the package.
