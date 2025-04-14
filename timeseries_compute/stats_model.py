@@ -12,7 +12,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from arch import arch_model
 
 # type hinting
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Union, Optional
 from timeseries_compute import data_processor
 from timeseries_compute.data_processor import (
     calculate_ewma_covariance,

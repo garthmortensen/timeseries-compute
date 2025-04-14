@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union, List
 from timeseries_compute.stats_model import run_multivariate_garch
 
 
