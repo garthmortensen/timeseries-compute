@@ -1,6 +1,35 @@
 #!/usr/bin/env python3
 # timeseries_compute/spillover_processor.py - Simplified version
 
+"""
+Market Spillover Effects Analysis Module.
+
+This module extends the multivariate GARCH analysis with tools for analyzing
+how shocks and volatility spill over between different markets or assets.
+It implements methods for testing causality, measuring spillover magnitude,
+and visualizing the results.
+
+Key Components:
+- test_granger_causality: Test if one series helps predict another
+- analyze_shock_spillover: Analyze how shocks affect volatility in other markets
+- run_spillover_analysis: Comprehensive spillover effects analysis
+- plot_spillover_analysis: Visualization of spillover relationships
+
+Features:
+- Granger causality testing with optimal lag selection
+- Shock spillover analysis with significance testing
+- Visualization tools for interpreting spillover relationships
+
+Typical Usage Flow:
+1. Start with prepared stationary data from data_processor.py
+2. Run ARIMA and GARCH models (optional, can be done internally)
+3. Perform comprehensive spillover analysis
+4. Visualize and interpret the results
+
+This module depends on stats_model.py for the underlying GARCH modeling and
+extends its functionality with specific spillover analysis tools.
+"""
+
 import pandas as pd
 import numpy as np
 import logging

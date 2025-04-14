@@ -1,6 +1,44 @@
 #!/usr/bin/env python3
 # timeseries_compute/stats_model.py
 
+"""
+Time Series Statistical Modeling Module.
+
+This module implements various time series models for analyzing and forecasting
+financial and economic data, with a focus on ARIMA for conditional mean modeling
+and GARCH for volatility modeling. It supports both univariate and multivariate
+approaches.
+
+Key Components:
+- ModelARIMA: ARIMA model for conditional mean forecasting
+- ModelGARCH: GARCH model for volatility forecasting
+- ModelMultivariateGARCH: Multivariate GARCH for correlation/covariance modeling
+- ModelFactory: Factory pattern for creating appropriate model instances
+
+Key Functions:
+- run_arima: Convenience function for ARIMA modeling
+- run_garch: Convenience function for GARCH modeling
+- run_multivariate_garch: Function for multivariate GARCH analysis
+- calculate_correlation_matrix: Compute correlation matrices
+- calculate_portfolio_risk: Assess risk based on volatility and correlations
+
+Supported Models:
+- ARIMA(p,d,q): For modeling conditional means
+- GARCH(p,q): For modeling conditional volatility
+- CCC-GARCH: Constant Conditional Correlation
+- DCC-GARCH: Dynamic Conditional Correlation with EWMA
+
+Typical Usage Flow:
+1. Start with prepared data from data_processor.py
+2. Fit ARIMA models to capture conditional mean
+3. Extract residuals and fit GARCH models for volatility
+4. For multiple series, analyze correlations with multivariate GARCH
+5. Generate forecasts and risk metrics
+
+The models in this module follow standard econometric practices and use
+statsmodels and arch packages for the underlying implementations.
+"""
+
 import logging as l
 
 # handle data transformation and preparation tasks

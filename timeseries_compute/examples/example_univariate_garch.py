@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 # timeseries_compute/examples/example_univariate_garch.py
+
 """
-Basic example of using the timeseries_compute package.
-This script demos the key features of the package.
+Example: Univariate GARCH Analysis with Timeseries Compute.
+
+This example demonstrates the core functionality of the timeseries_compute
+package for univariate time series analysis. It shows a complete workflow:
+1. Generating synthetic price data
+2. Making the data stationary
+3. Testing for stationarity
+4. Fitting ARIMA models for conditional mean
+5. Fitting GARCH models for volatility
+6. Generating and interpreting forecasts
+
+The example uses simple AR(1) and GARCH(1,1) models with default parameters
+to demonstrate the basic usage pattern.
+
+To run this example:
+python -m timeseries_compute.examples.example_univariate_garch
 """
 
 import logging

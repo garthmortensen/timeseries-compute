@@ -1,8 +1,25 @@
 #!/usr/bin/env python3
 # timeseries_compute/examples/example_multivariate_garch.py
+
 """
-Multivariate GARCH Analysis Example with Spillover Effects.
-This script demonstrates the multivariate GARCH analysis functionality with added spillover analysis.
+Example: Multivariate GARCH Analysis with Spillover Effects.
+
+This example demonstrates advanced functionality of the timeseries_compute package
+for multivariate time series analysis with a focus on market interactions and
+spillover effects. It shows a complete workflow:
+1. Generating synthetic correlated price data for multiple markets
+2. Converting to returns and testing stationarity
+3. Scaling data appropriately for GARCH modeling
+4. Fitting ARIMA models to filter out conditional means
+5. Analyzing market interactions using multivariate GARCH
+6. Testing for spillover effects between markets
+7. Visualizing conditional volatilities and correlations
+
+The example integrates all components of the package to demonstrate a comprehensive
+analysis of multiple correlated time series.
+
+To run this example:
+python -m timeseries_compute.examples.example_multivariate_garch
 """
 
 import logging

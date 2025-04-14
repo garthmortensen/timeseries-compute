@@ -1,6 +1,27 @@
 #!/usr/bin/env python3
 # timeseries_compute/data_generator.py
 
+"""
+Time Series Data Generation Module.
+
+This module provides functionality for generating synthetic price series data with
+controlled statistical properties. It's designed as the first step in a typical
+time series analysis pipeline, creating test data with known characteristics.
+
+Key Components:
+- PriceSeriesGenerator: Class for generating correlated price series
+- generate_price_series: Convenience function with simplified interface
+- set_random_seed: Function to ensure reproducible results
+
+Typical Usage Flow:
+1. Create a PriceSeriesGenerator instance with desired date range
+2. Generate price series with specific initial values and correlations
+3. Proceed with the generated data to data_processor.py for preparation
+
+The generated price series follow a random walk with drift, with options
+to control cross-series correlations.
+"""
+
 import logging as l
 
 # script specific imports
