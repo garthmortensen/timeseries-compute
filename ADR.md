@@ -97,3 +97,12 @@ Consequences: Broader user base at the cost of more complex testing. Automated t
 Decision: Provide Docker support with optimized multi-stage builds.
 
 Consequences: Easier deployment and consistent environments for users at the cost of additional maintenance of Docker assets. Multi-stage builds help reduce the final image size.
+
+## ADR-006: Factory Pattern
+
+Code uses the Factory pattern through classes like ModelFactory, MissingDataHandlerFactory, etc. These factory classes create and return the appropriate object based on what you request.
+
+Benefits:
+- Simplifies client code: Instead of knowing how to create different model types, you just call ModelFactory.create_model("ARIMA", data, order=(1,1,1)).
+- Centralizes object creation: Makes it easier to maintain and modify how objects are created. 
+- Supports flexibility: The code can easily add new model types or strategies without changing how clients use them.

@@ -251,6 +251,8 @@ def scale_for_garch(df: pd.DataFrame, target_scale: float = 10.0) -> pd.DataFram
     Adaptively scales data to bring it into the optimal range (1-1000)
     for GARCH parameter estimation.
 
+    This is crucial because GARCH models can be sensitive to the scale of input data.
+
     Args:
         df (pd.DataFrame): Input data
         target_scale (float): Target scale to achieve
