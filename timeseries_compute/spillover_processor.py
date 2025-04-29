@@ -74,6 +74,12 @@ def test_granger_causality(
     """
     from statsmodels.tsa.stattools import grangercausalitytests
 
+        # Convert DataFrames with Date column to Series with Date index if needed
+    if isinstance(series1, pd.DataFrame) and "Date" in series1.columns:
+        series1 = series1.set_index("Date")[series1.columns[1]]
+    if isinstance(series2, pd.DataFrame) and "Date" in series2.columns:
+        series2 = series2.set_index("Date")[series2.columns[1]]
+
     # Combine series into a DataFrame
     data = pd.concat([series1, series2], axis=1)
     data.columns = ["series1", "series2"]
@@ -106,6 +112,13 @@ def analyze_shock_spillover(
     Returns:
         Dictionary with basic spillover metrics
     """
+
+    # Convert DataFrames with Date column to Series with Date index if needed
+    if isinstance(residuals1, pd.DataFrame) and "Date" in residuals1.columns:
+        residuals1 = residuals1.set_index("Date")[residuals1.columns[1]]
+    if isinstance(volatility2, pd.DataFrame) and "Date" in volatility2.columns:
+        volatility2 = volatility2.set_index("Date")[volatility2.columns[1]]
+    
     # Create a simple model using correlation with lags
     significant_lags = []
     correlations = {}

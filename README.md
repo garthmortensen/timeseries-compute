@@ -54,9 +54,9 @@ flowchart TB
     User((User)):::person
     %% Main Systems
     TimeSeriesFrontend["Timeseries Frontend
-    (Django App)"]:::system
+    (Django)"]:::system
     TimeSeriesPipeline["Timeseries Pipeline
-    (API App)"]:::system
+    (FastAPI)"]:::system
     TimeseriesCompute["Timeseries Compute
     (Python Package)"]:::system
     %% External Systems
@@ -67,7 +67,7 @@ flowchart TB
     TimeSeriesPipeline -- "Pip installs from" --> TimeseriesCompute
     User -- "Can use package directly" --> TimeseriesCompute  
     ExternalDataSource -- "Provides time series data" --> TimeSeriesPipeline
-    TimeseriesCompute -- "Publishes to" --> PyPI/DockerHub
+    TimeseriesCompute -- "Publishes to" --> PyPI/DockerHub/ReadTheDocs
 ```
 
 ## Quick Start

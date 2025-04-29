@@ -88,6 +88,13 @@ class ModelARIMA:
         \n
         \t> ARIMA <\n"""
         l.info(ascii_banner)
+
+        # If data has Date column, set it as index for time series operations
+        if "Date" in data.columns:
+            self.data = data.set_index("Date")
+        else:
+            self.data = data
+            
         self.data = data
         self.order = order
         self.steps = steps
@@ -163,19 +170,20 @@ def run_arima(
 
     # Ensure data is properly prepared
     df_stationary = data_processor.prepare_timeseries_data(df_stationary)
-
+    
+    # Create a copy with Date as index for ARIMA modeling
+    df_with_date_index = df_stationary.set_index("Date")
+    
     model_arima = ModelFactory.create_model(
         model_type="ARIMA",
-        data=df_stationary,
+        data=df_with_date_index,
         order=(p, d, q),
         steps=forecast_steps,
     )
     arima_fit = model_arima.fit()
 
-    # Log only core model information instead of full summary
     l.info(f"## ARIMA model fitted to columns: {list(arima_fit.keys())}")
 
-    # Generate and log forecast values concisely
     arima_forecast = model_arima.forecast()
     l.info(f"## ARIMA {forecast_steps}-step forecast values:")
     for col, value in arima_forecast.items():
@@ -212,6 +220,13 @@ class ModelGARCH:
         ascii_banner = """
         \n\t> GARCH <\n"""
         l.info(ascii_banner)
+
+        # If data has Date column, set it as index for time series operations
+        if "Date" in data.columns:
+            self.data = data.set_index("Date")
+        else:
+            self.data = data
+            
         self.data = data
         self.p = p
         self.q = q
@@ -277,6 +292,12 @@ class ModelMultivariateGARCH:
             q: ARCH order
             model_type: 'cc' for Constant Correlation or 'dcc' for Dynamic Conditional Correlation
         """
+        # If data has Date column, set it as index for time series operations
+        if "Date" in data.columns:
+            self.data = data.set_index("Date")
+        else:
+            self.data = data
+            
         self.data = data
         self.p = p
         self.q = q
@@ -620,7 +641,6 @@ def run_garch(
             - Second element: Dictionary of forecasted volatility values for each column
     """
     l.info(f"\n## Running GARCH(p={p}, q={q}, dist={dist})")
-
     # Ensure data is properly prepared for time series analysis
     try:
         df_stationary = data_processor.prepare_timeseries_data(df_stationary)
@@ -628,33 +648,22 @@ def run_garch(
         l.error(f"Error preparing data for GARCH model: {e}")
         raise ValueError(f"Failed to prepare data for GARCH model: {str(e)}")
 
-    # Check if we have enough data points for GARCH modeling (need at least p+q+1)
-    min_points = p + q + 1
-    if len(df_stationary) < min_points:
-        raise ValueError(
-            f"GARCH model requires at least {min_points} data points, but only {len(df_stationary)} provided"
-        )
-
-    # Verify data has variance (GARCH won't work on constant data)
-    for col in df_stationary.columns:
-        if df_stationary[col].std() == 0:
-            l.warning(f"Column {col} has zero variance, GARCH modeling may fail")
-
+    # Create a copy with Date as index for GARCH modeling
+    df_with_date_index = df_stationary.set_index("Date")
+    
     # Create and fit the GARCH model
     try:
         model_garch = ModelFactory.create_model(
             model_type="GARCH",
-            data=df_stationary,
+            data=df_with_date_index,
             p=p,
             q=q,
             dist=dist,
         )
         garch_fit = model_garch.fit()
 
-        # Log only core model information instead of full summary
         l.info(f"## GARCH model fitted to columns: {list(garch_fit.keys())}")
 
-        # Generate and log forecast values concisely
         garch_forecast = model_garch.forecast(steps=forecast_steps)
         l.info(f"## GARCH {forecast_steps}-step volatility forecast:")
         for col, value in garch_forecast.items():

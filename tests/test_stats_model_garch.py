@@ -7,59 +7,43 @@ from timeseries_compute.stats_model import ModelGARCH, run_garch
 
 
 @pytest.fixture
-def garch_sample_data():
-    """gen data w/ vol clustering for garch tests"""
-    np.random.seed(42)  # fixed seed
-    n = 100
+def stationary_sample_data():
+    """gen stationary data for modeling"""
+    np.random.seed(42)
+    n_points = 100
 
-    # model 1 parameters
-    constant_1 = 0.1  # base volatility level
-    arch_coef_1 = 0.2  # impact of past shocks
-    garch_coef_1 = 0.7  # persistence of past volatility
-    mean_ret = 0  # expected return
+    # ar(1) params
+    ar_coef = 0.7
+    noise_std = 1.0
 
-    # garch series 1
-    returns = np.zeros(n)
-    volatility = np.ones(n)
+    # garch params
+    constant = 0.1
+    arch_coef = 0.2
+    garch_coef = 0.7
 
-    # garch(1,1) process - model 1
-    for i in range(1, n):
-        # calculate today's volatility based on yesterday's values
-        prev_shock = returns[i - 1] ** 2  # previous squared return
-        prev_vol = volatility[i - 1]  # previous volatility
+    # create ar(1) series
+    ar_series = np.zeros(n_points)
+    for i in range(1, n_points):
+        ar_series[i] = ar_coef * ar_series[i - 1] + np.random.normal(0, noise_std)
 
-        # today's volatility equation
-        volatility[i] = constant_1 + arch_coef_1 * prev_shock + garch_coef_1 * prev_vol
+    # create garch series
+    garch_series = np.zeros(n_points)
+    volatility = np.ones(n_points)
 
-        # generate random return based on volatility
-        std_dev = np.sqrt(volatility[i])
-        returns[i] = np.random.normal(mean_ret, std_dev)
-
-    # model 2 parameters
-    constant_2 = 0.05  # lower base volatility
-    arch_coef_2 = 0.15  # less shock impact
-    garch_coef_2 = 0.8  # higher persistence
-
-    # garch series 2
-    returns2 = np.zeros(n)
-    volatility2 = np.ones(n)
-
-    # garch(1,1) process - model 2
-    for i in range(1, n):
-        prev_shock2 = returns2[i - 1] ** 2
-        prev_vol2 = volatility2[i - 1]
-
-        volatility2[i] = (
-            constant_2 + arch_coef_2 * prev_shock2 + garch_coef_2 * prev_vol2
+    for i in range(1, n_points):
+        volatility[i] = (
+            constant
+            + arch_coef * garch_series[i - 1] ** 2
+            + garch_coef * volatility[i - 1]
         )
+        garch_series[i] = np.random.normal(0, np.sqrt(volatility[i]))
 
-        std_dev2 = np.sqrt(volatility2[i])
-        returns2[i] = np.random.normal(mean_ret, std_dev2)
-
-    # make df w/ dates
-    dates = pd.date_range(start="2023-01-01", periods=n, freq="D")
-    data = {"returns1": returns, "returns2": returns2}
-    return pd.DataFrame(data, index=dates)
+    # Create dates
+    start_date = pd.Timestamp("2023-01-01")
+    dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+    data = {"Date": dates, "AR": ar_series, "GARCH": garch_series}
+    return pd.DataFrame(data)
 
 
 def test_model_garch_initialization(garch_sample_data):

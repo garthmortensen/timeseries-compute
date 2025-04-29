@@ -417,8 +417,22 @@ def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame of log returns
     """
-    return np.log(prices / prices.shift(1)).dropna()
-
+    # Keep Date column separate
+    dates = prices["Date"].copy()
+    price_df = prices.drop(columns=["Date"])
+    
+    # Calculate returns
+    returns_df = np.log(price_df / price_df.shift(1)).dropna()
+    
+    # Add Date column back (skip first date since we lose one row in differencing)
+    result_df = pd.DataFrame()
+    result_df["Date"] = dates.iloc[1:].reset_index(drop=True)
+    
+    # Add the return columns
+    for col in returns_df.columns:
+        result_df[col] = returns_df[col].values
+    
+    return result_df
 
 class StationaryReturnsProcessorFactory:
     """
@@ -540,32 +554,31 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # Handle date column if it exists and isn't already the index
-    if not isinstance(df.index, pd.DatetimeIndex):
-        date_cols = [col for col in df.columns if "date" in col.lower()]
-        if date_cols:
-            date_col = date_cols[0]
-            df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
-            df.set_index(date_col, inplace=True)
+    # Ensure Date column is datetime type
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+    else:
+        raise ValueError("DataFrame must contain a 'Date' column")
 
     # Convert numeric columns to proper type
     for col in df.columns:
-        if col.lower() not in ["date", "time", "datetime", "timestamp"]:
+        if col != "Date":  # Skip the Date column
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # Drop rows with NaN values
     df.dropna(inplace=True)
 
-    # Keep only numeric columns
-    numeric_df = df.select_dtypes(include=["number"])
+    # Keep only numeric columns and the Date column
+    numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
+    df = df[["Date"] + [col for col in numeric_cols if col != "Date"]]
 
-    if numeric_df.empty:
+    if len([col for col in numeric_cols if col != "Date"]) == 0:
         raise ValueError("No numeric columns found after data preparation")
 
     l.info("Data prepared for time series analysis")
-    l.info("\n" + tabulate(numeric_df.head(5), headers="keys", tablefmt="fancy_grid"))
+    l.info("\n" + tabulate(df.head(5), headers="keys", tablefmt="fancy_grid"))
 
-    return numeric_df
+    return df
 
 
 def calculate_ewma_covariance(
@@ -582,6 +595,11 @@ def calculate_ewma_covariance(
     Returns:
         Series of EWMA covariances
     """
+    if isinstance(series1, pd.DataFrame) and "Date" in series1.columns:
+        series1 = series1.set_index("Date")[series1.columns[1]]
+    if isinstance(series2, pd.DataFrame) and "Date" in series2.columns:
+        series2 = series2.set_index("Date")[series2.columns[1]]
+    
     # Initialize covariance series
     cov_series = pd.Series(index=series1.index)
 
@@ -611,13 +629,17 @@ def calculate_ewma_volatility(series: pd.Series, lambda_val: float = 0.95) -> pd
     Returns:
         Series of EWMA volatilities
     """
+    # Convert DataFrame with Date column to Series with Date index if needed
+    if isinstance(series, pd.DataFrame) and "Date" in series.columns:
+        series = series.set_index("Date")[series.columns[1]]
+    
     # Square the returns
     squared_returns = series**2
 
     # Calculate EWMA variance
     ewma_variance = squared_returns.ewm(alpha=1 - lambda_val, adjust=False).mean()
 
-    # Convert variance to volatility (standard deviation)
+    # Convert variance to volatility
     ewma_volatility = np.sqrt(ewma_variance)
 
     return ewma_volatility

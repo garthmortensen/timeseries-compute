@@ -58,7 +58,8 @@ def test_custom_date_range():
     # check dates
     expected_days = len(pd.date_range(start=start_date, end=end_date, freq="B"))
     assert len(price_df) == expected_days
-    assert price_df.index[0].strftime("%Y-%m-%d") == "2024-01-01"
+    # Check the Date column instead of the index
+    assert price_df["Date"].iloc[0].strftime("%Y-%m-%d") == "2024-01-01"
 
 
 def test_custom_anchor_prices():
@@ -87,6 +88,10 @@ def test_price_series_statistics():
     tolerance = 0.5  # allow some variation
 
     for ticker in price_df.columns:
+        # Skip the Date column
+        if ticker == "Date":
+            continue
+            
         series = price_df[ticker]
         diff = series.diff().dropna()
 
@@ -197,8 +202,6 @@ def test_data_scaler_factory_invalid_strategy():
 
 
 # -- stats model tests --
-
-
 @pytest.fixture
 def stationary_sample_data():
     """gen stationary data for modeling"""
@@ -231,7 +234,11 @@ def stationary_sample_data():
         )
         garch_series[i] = np.random.normal(0, np.sqrt(volatility[i]))
 
-    data = {"AR": ar_series, "GARCH": garch_series}
+    # Create dates
+    start_date = pd.Timestamp("2023-01-01")
+    dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+    data = {"Date": dates, "AR": ar_series, "GARCH": garch_series}
     return pd.DataFrame(data)
 
 
