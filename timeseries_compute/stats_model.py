@@ -94,8 +94,6 @@ class ModelARIMA:
             self.data = data.set_index("Date")
         else:
             self.data = data
-            
-        self.data = data
         self.order = order
         self.steps = steps
         self.models: Dict[str, ARIMA] = {}  # Store models for each column
@@ -226,8 +224,6 @@ class ModelGARCH:
             self.data = data.set_index("Date")
         else:
             self.data = data
-            
-        self.data = data
         self.p = p
         self.q = q
         self.dist = dist

@@ -1,0 +1,211 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.3, pytest-8.3.5, pluggy-1.5.0 -- /home/garth/projects/timeseries-compute/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/garth/projects/timeseries-compute
+configfile: pyproject.toml
+plugins: cov-6.0.0
+collecting ... collected 37 items
+
+tests/test_data_generator.py::test_price_series_generator_initialization PASSED [  2%]
+tests/test_data_generator.py::test_generate_prices PASSED                [  5%]
+tests/test_data_generator_advanced.py::test_generate_price_series_default_params PASSED [  8%]
+tests/test_data_generator_advanced.py::test_custom_date_range PASSED     [ 10%]
+tests/test_data_generator_advanced.py::test_custom_anchor_prices PASSED  [ 13%]
+tests/test_data_generator_advanced.py::test_price_series_statistics PASSED [ 16%]
+tests/test_data_generator_advanced.py::test_decimal_precision PASSED     [ 18%]
+tests/test_data_generator_advanced.py::test_scale_data_standardize PASSED [ 21%]
+tests/test_data_generator_advanced.py::test_scale_data_minmax PASSED     [ 24%]
+tests/test_data_generator_advanced.py::test_stationarize_data PASSED     [ 27%]
+tests/test_data_generator_advanced.py::test_data_scaler_factory_invalid_strategy PASSED [ 29%]
+tests/test_data_generator_advanced.py::test_model_factory_arima PASSED   [ 32%]
+tests/test_data_generator_advanced.py::test_model_factory_garch PASSED   [ 35%]
+tests/test_data_generator_advanced.py::test_model_factory_invalid PASSED [ 37%]
+tests/test_data_generator_advanced.py::test_model_garch_methods PASSED   [ 40%]
+tests/test_data_generator_advanced.py::test_run_arima PASSED             [ 43%]
+tests/test_data_generator_advanced.py::test_run_garch PASSED             [ 45%]
+tests/test_data_processor.py::test_stationarity PASSED                   [ 48%]
+tests/test_data_processor.py::test_create_handler_drop PASSED            [ 51%]
+tests/test_data_processor.py::test_create_handler_forward_fill PASSED    [ 54%]
+tests/test_data_processor.py::test_create_handler_invalid_strategy PASSED [ 56%]
+tests/test_data_processor.py::test_drop_na PASSED                        [ 59%]
+tests/test_data_processor.py::test_forward_fill PASSED                   [ 62%]
+tests/test_data_processor.py::test_fill_data PASSED                      [ 64%]
+tests/test_data_processor.py::test_ts_stationarity PASSED                [ 67%]
+tests/test_data_processor.py::test_stationarity_integration PASSED       [ 70%]
+tests/test_stats_model_arima.py::test_model_arima_initialization PASSED  [ 72%]
+tests/test_stats_model_arima.py::test_model_arima_fit PASSED             [ 75%]
+tests/test_stats_model_arima.py::test_model_arima_summary PASSED         [ 78%]
+tests/test_stats_model_arima.py::test_model_arima_forecast PASSED        [ 81%]
+tests/test_stats_model_garch.py::test_model_garch_initialization ERROR   [ 83%]
+tests/test_stats_model_garch.py::test_model_garch_fit ERROR              [ 86%]
+tests/test_stats_model_garch.py::test_model_garch_summary ERROR          [ 89%]
+tests/test_stats_model_garch.py::test_model_garch_forecast ERROR         [ 91%]
+tests/test_stats_model_garch.py::test_run_garch_function ERROR           [ 94%]
+tests/test_stats_model_garch.py::test_model_garch_different_params ERROR [ 97%]
+tests/test_stats_model_garch.py::test_model_garch_student_t_dist ERROR   [100%]
+
+==================================== ERRORS ====================================
+______________ ERROR at setup of test_model_garch_initialization _______________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+____________________ ERROR at setup of test_model_garch_fit ____________________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+__________________ ERROR at setup of test_model_garch_summary __________________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+_________________ ERROR at setup of test_model_garch_forecast __________________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+__________________ ERROR at setup of test_run_garch_function ___________________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+_____________ ERROR at setup of test_model_garch_different_params ______________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+______________ ERROR at setup of test_model_garch_student_t_dist _______________
+
+    @pytest.fixture
+    def garch_sample_data():
+        """Generate data with volatility clustering for GARCH tests"""
+        np.random.seed(42)
+        n_points = 100
+    
+        # Create time series data similar to your other fixture
+        # [Existing GARCH sample data generation code...]
+    
+        # Create dates
+        start_date = pd.Timestamp("2023-01-01")
+        dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+        # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+>       data = {"Date": dates, "returns1": returns, "returns2": returns2}
+E       NameError: name 'returns' is not defined
+
+tests/test_stats_model_garch.py:62: NameError
+=============================== warnings summary ===============================
+tests/test_data_generator_advanced.py::test_run_arima
+tests/test_data_generator_advanced.py::test_run_arima
+  /home/garth/projects/timeseries-compute/venv/lib64/python3.13/site-packages/statsmodels/tsa/base/tsa_model.py:473: ValueWarning: No frequency information was provided, so inferred frequency D will be used.
+    self._init_dates(dates, freq)
+
+tests/test_data_processor.py::test_stationarity
+  /home/garth/projects/timeseries-compute/venv/lib64/python3.13/site-packages/statsmodels/regression/linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+    llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+
+tests/test_data_processor.py::test_stationarity
+  /home/garth/projects/timeseries-compute/venv/lib64/python3.13/site-packages/_pytest/python.py:163: PytestReturnNotNoneWarning: Expected None, but tests/test_data_processor.py::test_stationarity returned {'A': {'ADF Statistic': np.float64(-0.34503277967117707), 'p-value': np.float64(0.9188797549667057)}, 'B': {'ADF Statistic': np.float64(0.2919371040605713), 'p-value': np.float64(0.9769715264677601)}}, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_stats_model_garch.py::test_model_garch_initialization - Name...
+ERROR tests/test_stats_model_garch.py::test_model_garch_fit - NameError: name...
+ERROR tests/test_stats_model_garch.py::test_model_garch_summary - NameError: ...
+ERROR tests/test_stats_model_garch.py::test_model_garch_forecast - NameError:...
+ERROR tests/test_stats_model_garch.py::test_run_garch_function - NameError: n...
+ERROR tests/test_stats_model_garch.py::test_model_garch_different_params - Na...
+ERROR tests/test_stats_model_garch.py::test_model_garch_student_t_dist - Name...
+=================== 30 passed, 4 warnings, 7 errors in 1.92s ===================

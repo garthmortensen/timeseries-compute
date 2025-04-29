@@ -45,6 +45,23 @@ def stationary_sample_data():
     data = {"Date": dates, "AR": ar_series, "GARCH": garch_series}
     return pd.DataFrame(data)
 
+@pytest.fixture
+def garch_sample_data():
+    """Generate data with volatility clustering for GARCH tests"""
+    np.random.seed(42)
+    n_points = 100
+
+    # Create time series data similar to your other fixture
+    # [Existing GARCH sample data generation code...]
+    
+    # Create dates
+    start_date = pd.Timestamp("2023-01-01")
+    dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
+    
+    # Instead of creating a DataFrame with DatetimeIndex, add Date as a column
+    data = {"Date": dates, "returns1": returns, "returns2": returns2}
+    return pd.DataFrame(data)
+
 
 def test_model_garch_initialization(garch_sample_data):
     """test garch init"""

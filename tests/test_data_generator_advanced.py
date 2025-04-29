@@ -291,7 +291,10 @@ def test_model_factory_invalid():
 
 def test_model_garch_methods(stationary_sample_data):
     """test garch model methods"""
-    model = ModelGARCH(data=stationary_sample_data, p=1, q=1)
+    # Create a copy with Date as index
+    data_with_index = stationary_sample_data.set_index("Date")
+    
+    model = ModelGARCH(data=data_with_index, p=1, q=1)
 
     # check fit
     fits = model.fit()

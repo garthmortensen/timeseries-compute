@@ -562,21 +562,11 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # Convert numeric columns to proper type
     for col in df.columns:
-        if col != "Date":  # Skip the Date column
+        if col != "Date":
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # Drop rows with NaN values
     df.dropna(inplace=True)
-
-    # Keep only numeric columns and the Date column
-    numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
-    df = df[["Date"] + [col for col in numeric_cols if col != "Date"]]
-
-    if len([col for col in numeric_cols if col != "Date"]) == 0:
-        raise ValueError("No numeric columns found after data preparation")
-
-    l.info("Data prepared for time series analysis")
-    l.info("\n" + tabulate(df.head(5), headers="keys", tablefmt="fancy_grid"))
 
     return df
 
