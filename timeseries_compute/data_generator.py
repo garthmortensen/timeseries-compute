@@ -213,5 +213,6 @@ def generate_price_series(
     # Use the dates from the generator instead of creating a new date range
     price_df = pd.DataFrame(price_dict, index=generator.dates)
     # Reset the index to make date a column and rename it to "Date"
-    price_df = price_df.reset_index().rename(columns={"index": "Date"})
+    price_df = price_df.reset_index(names=["Date"])
+
     return price_dict, price_df
