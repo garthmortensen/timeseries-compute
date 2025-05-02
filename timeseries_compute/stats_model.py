@@ -89,11 +89,12 @@ class ModelARIMA:
         \t> ARIMA <\n"""
         l.info(ascii_banner)
 
-        # If data has Date column, set it as index for time series operations
-        if "Date" in data.columns:
-            self.data = data.set_index("Date")
+        # Ensure data has DatetimeIndex
+        if 'Date' in data.columns:
+            self.data = data.set_index('Date')
         else:
             self.data = data
+            
         self.order = order
         self.steps = steps
         self.models: Dict[str, ARIMA] = {}  # Store models for each column
@@ -166,15 +167,12 @@ def run_arima(
     """
     l.info(f"\n## Running ARIMA(p={p}, d={d}, q={q})")
 
-    # Ensure data is properly prepared
+    # Ensure data is properly prepared with Date as index
     df_stationary = data_processor.prepare_timeseries_data(df_stationary)
-    
-    # Create a copy with Date as index for ARIMA modeling
-    df_with_date_index = df_stationary.set_index("Date")
     
     model_arima = ModelFactory.create_model(
         model_type="ARIMA",
-        data=df_with_date_index,
+        data=df_stationary,
         order=(p, d, q),
         steps=forecast_steps,
     )
@@ -219,17 +217,17 @@ class ModelGARCH:
         \n\t> GARCH <\n"""
         l.info(ascii_banner)
 
-        # If data has Date column, set it as index for time series operations
-        if "Date" in data.columns:
-            self.data = data.set_index("Date")
+        # Ensure data has DatetimeIndex
+        if 'Date' in data.columns:
+            self.data = data.set_index('Date')
         else:
             self.data = data
+            
         self.p = p
         self.q = q
         self.dist = dist
         self.models: Dict[str, arch_model] = {}  # Store models for each column
         self.fits: Dict[str, arch_model] = {}  # Store fits for each column
-
     def fit(self) -> Dict[str, arch_model]:
         """
         Fits a GARCH model to each column of the data.
@@ -643,15 +641,12 @@ def run_garch(
     except Exception as e:
         l.error(f"Error preparing data for GARCH model: {e}")
         raise ValueError(f"Failed to prepare data for GARCH model: {str(e)}")
-
-    # Create a copy with Date as index for GARCH modeling
-    df_with_date_index = df_stationary.set_index("Date")
     
     # Create and fit the GARCH model
     try:
         model_garch = ModelFactory.create_model(
             model_type="GARCH",
-            data=df_with_date_index,
+            data=df_stationary,
             p=p,
             q=q,
             dist=dist,

@@ -415,24 +415,26 @@ def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
         prices: DataFrame of price series
 
     Returns:
-        DataFrame of log returns
+        DataFrame of log returns with Date as index
     """
-    # Keep Date column separate
-    dates = prices["Date"].copy()
-    price_df = prices.drop(columns=["Date"])
+    # Keep a copy of the Date column/index for later use
+    if 'Date' in prices.columns:
+        dates = prices['Date'].copy()
+        price_df = prices.drop(columns=['Date'])
+    else:
+        dates = prices.index
+        price_df = prices.copy()
     
     # Calculate returns
     returns_df = np.log(price_df / price_df.shift(1)).dropna()
     
-    # Add Date column back (skip first date since we lose one row in differencing)
-    result_df = pd.DataFrame()
-    result_df["Date"] = dates.iloc[1:].reset_index(drop=True)
+    # Set the Date as index (skip first date since we lose one row in differencing)
+    if isinstance(dates, pd.Series):
+        returns_df.index = dates.iloc[1:].reset_index(drop=True)
+    else:
+        returns_df.index = dates[1:]
     
-    # Add the return columns
-    for col in returns_df.columns:
-        result_df[col] = returns_df[col].values
-    
-    return result_df
+    return returns_df
 
 class StationaryReturnsProcessorFactory:
     """
@@ -554,16 +556,17 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # Ensure Date column is datetime type
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-    else:
-        raise ValueError("DataFrame must contain a 'Date' column")
+    # Ensure Date column is datetime type and set as index
+    if 'Date' in df.columns:
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df = df.set_index('Date')
+    elif not isinstance(df.index, pd.DatetimeIndex):
+        # If it's not already a DatetimeIndex, try to convert
+        df.index = pd.to_datetime(df.index, errors='coerce')
 
     # Convert numeric columns to proper type
     for col in df.columns:
-        if col != "Date":
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+        df[col] = pd.to_numeric(df[col], errors='coerce')
 
     # Drop rows with NaN values
     df.dropna(inplace=True)
