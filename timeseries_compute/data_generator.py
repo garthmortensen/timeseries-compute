@@ -23,7 +23,6 @@ to control cross-series correlations.
 """
 
 import logging as l
-from export_util import export_df
 
 # script specific imports
 import numpy as np  # for sqrt function

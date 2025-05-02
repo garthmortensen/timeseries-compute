@@ -16,7 +16,7 @@ from tabulate import tabulate
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from timeseries_compute import data_generator, data_processor, stats_model
-from timeseries_compute.export_util import export_df
+from timeseries_compute.export_util import export_df 
 
 # Set up logging
 logging.basicConfig(
@@ -38,12 +38,13 @@ def main():
     )
     l.info(f"Generated price series for assets: {list(price_df.columns)}")
     l.info(f"Number of observations: {len(price_df)}")
-    price_df.export_df()
+    export_df(price_df)
 
     # 2. Calculate log returns
     l.info("Calculating log returns...")
     returns_df = data_processor.price_to_returns(price_df)
-    
+    export_df(returns_df)
+
     # 3. Test for stationarity
     l.info("Testing stationarity of returns...")
     adf_results = data_processor.test_stationarity(returns_df)
@@ -53,6 +54,7 @@ def main():
     # 4. Scale data for GARCH modeling
     l.info("Scaling data for GARCH modeling...")
     scaled_returns_df = data_processor.scale_for_garch(returns_df)
+    export_df(scaled_returns_df)
 
     # 5. Fit ARIMA models for conditional mean
     l.info("Fitting ARIMA models...")
