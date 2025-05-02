@@ -89,12 +89,7 @@ class ModelARIMA:
         \t> ARIMA <\n"""
         l.info(ascii_banner)
 
-        # Ensure data has DatetimeIndex
-        if 'Date' in data.columns:
-            self.data = data.set_index('Date')
-        else:
-            self.data = data
-            
+        self.data = data            
         self.order = order
         self.steps = steps
         self.models: Dict[str, ARIMA] = {}  # Store models for each column
@@ -217,12 +212,7 @@ class ModelGARCH:
         \n\t> GARCH <\n"""
         l.info(ascii_banner)
 
-        # Ensure data has DatetimeIndex
-        if 'Date' in data.columns:
-            self.data = data.set_index('Date')
-        else:
-            self.data = data
-            
+        self.data = data            
         self.p = p
         self.q = q
         self.dist = dist
@@ -287,11 +277,7 @@ class ModelMultivariateGARCH:
             model_type: 'cc' for Constant Correlation or 'dcc' for Dynamic Conditional Correlation
         """
         # If data has Date column, set it as index for time series operations
-        if "Date" in data.columns:
-            self.data = data.set_index("Date")
-        else:
-            self.data = data
-            
+        self.data = data    
         self.data = data
         self.p = p
         self.q = q

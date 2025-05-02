@@ -52,8 +52,7 @@ class MissingDataHandler:
         Logs an ASCII banner for initialization.
         """
         ascii_banner = """
-        \n
-        \t> MissingDataHandler <\n"""
+        \n\t> MissingDataHandler <\n"""
         l.info(ascii_banner)
 
     def drop_na(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -417,23 +416,9 @@ def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame of log returns with Date as index
     """
-    # Keep a copy of the Date column/index for later use
-    if 'Date' in prices.columns:
-        dates = prices['Date'].copy()
-        price_df = prices.drop(columns=['Date'])
-    else:
-        dates = prices.index
-        price_df = prices.copy()
-    
+    price_df = prices.copy()
     # Calculate returns
-    returns_df = np.log(price_df / price_df.shift(1)).dropna()
-    
-    # Set the Date as index (skip first date since we lose one row in differencing)
-    if isinstance(dates, pd.Series):
-        returns_df.index = dates.iloc[1:].reset_index(drop=True)
-    else:
-        returns_df.index = dates[1:]
-    
+    returns_df = np.log(price_df / price_df.shift(1)).dropna()    
     return returns_df
 
 class StationaryReturnsProcessorFactory:
@@ -556,12 +541,8 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # Ensure Date column is datetime type and set as index
-    if 'Date' in df.columns:
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-        df = df.set_index('Date')
-    elif not isinstance(df.index, pd.DatetimeIndex):
-        # If it's not already a DatetimeIndex, try to convert
+    # Ensure index is datetime type if not already
+    if not isinstance(df.index, pd.DatetimeIndex):
         df.index = pd.to_datetime(df.index, errors='coerce')
 
     # Convert numeric columns to proper type
@@ -588,11 +569,6 @@ def calculate_ewma_covariance(
     Returns:
         Series of EWMA covariances
     """
-    if isinstance(series1, pd.DataFrame) and "Date" in series1.columns:
-        series1 = series1.set_index("Date")[series1.columns[1]]
-    if isinstance(series2, pd.DataFrame) and "Date" in series2.columns:
-        series2 = series2.set_index("Date")[series2.columns[1]]
-    
     # Initialize covariance series
     cov_series = pd.Series(index=series1.index)
 
@@ -622,10 +598,6 @@ def calculate_ewma_volatility(series: pd.Series, lambda_val: float = 0.95) -> pd
     Returns:
         Series of EWMA volatilities
     """
-    # Convert DataFrame with Date column to Series with Date index if needed
-    if isinstance(series, pd.DataFrame) and "Date" in series.columns:
-        series = series.set_index("Date")[series.columns[1]]
-    
     # Square the returns
     squared_returns = series**2
 

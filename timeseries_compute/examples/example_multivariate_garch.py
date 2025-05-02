@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
-# timeseries_compute/examples/example_univariate_garch.py
+# timeseries_compute/examples/example_multivariate_garch.py
 
 """
-Example: Univariate GARCH Analysis with Timeseries Compute.
-
-This simplified example demonstrates the core functionality of the 
-timeseries_compute package for univariate time series analysis:
-1. Generating synthetic price data
-2. Converting to returns
-3. Fitting ARIMA models for conditional mean
-4. Fitting GARCH models for volatility
-5. Generating and interpreting forecasts
+Example: Multivariate GARCH Analysis with Timeseries Compute.
 
 To run this example:
-python -m timeseries_compute.examples.example_univariate_garch
+python -m timeseries_compute.examples.example_multivariate_garch
 """
 
 import logging
@@ -24,6 +16,7 @@ from tabulate import tabulate
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from timeseries_compute import data_generator, data_processor, stats_model
+from timeseries_compute.export_util import export_df
 
 # Set up logging
 logging.basicConfig(
@@ -45,6 +38,7 @@ def main():
     )
     l.info(f"Generated price series for assets: {list(price_df.columns)}")
     l.info(f"Number of observations: {len(price_df)}")
+    price_df.export_df()
 
     # 2. Calculate log returns
     l.info("Calculating log returns...")
