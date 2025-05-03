@@ -16,7 +16,7 @@ from tabulate import tabulate
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from timeseries_compute import data_generator, data_processor, stats_model
-from timeseries_compute.export_util import export_df 
+from timeseries_compute.export_util import export_data 
 
 # Set up logging
 logging.basicConfig(
@@ -38,12 +38,12 @@ def main():
     )
     l.info(f"Generated price series for assets: {list(price_df.columns)}")
     l.info(f"Number of observations: {len(price_df)}")
-    export_df(price_df)
+    export_data(price_df)
 
     # 2. Calculate log returns
     l.info("Calculating log returns...")
     returns_df = data_processor.price_to_returns(price_df)
-    export_df(returns_df)
+    export_data(returns_df)
 
     # 3. Test for stationarity
     l.info("Testing stationarity of returns...")
@@ -54,7 +54,7 @@ def main():
     # 4. Scale data for GARCH modeling
     l.info("Scaling data for GARCH modeling...")
     scaled_returns_df = data_processor.scale_for_garch(returns_df)
-    export_df(scaled_returns_df)
+    export_data(scaled_returns_df)
 
     # 5. Fit ARIMA models for conditional mean
     l.info("Fitting ARIMA models...")
@@ -113,14 +113,17 @@ def main():
             correlation_matrix = std_residuals.corr()
             l.info("Correlation matrix of standardized residuals:")
             l.info(f"\n{tabulate(correlation_matrix, headers='keys', tablefmt='fancy_grid')}")
-            
+            export_data(correlation_matrix)
+
             # Calculate portfolio metrics for equal weights
             num_assets = len(returns_df.columns)
             weights = np.ones(num_assets) / num_assets
+            export_data(weights)
             
             # Get recent volatilities for a simplified covariance matrix
             latest_vol_vector = np.array([cond_vol[col].iloc[-1] for col in cond_vol.columns])
             cov_matrix = np.outer(latest_vol_vector, latest_vol_vector) * correlation_matrix.values
+            export_data(cov_matrix)
             
             # Calculate portfolio risk
             portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
@@ -128,7 +131,7 @@ def main():
             annualized_volatility = portfolio_volatility * np.sqrt(252)  # Annualized
             
             l.info("Portfolio risk metrics (equal-weighted):")
-            l.info(f"  Daily volatility: {portfolio_volatility:.6f}")
+            l.info(f"  Daily volatility: {portfolio_volatility:.6f}")   
             l.info(f"  Annualized volatility: {annualized_volatility:.6f}")
             l.info(f"  1-day Value at Risk (99%): {2.326 * portfolio_volatility:.6f}")
         
