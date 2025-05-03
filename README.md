@@ -550,7 +550,7 @@ pytest --cov=timeseries_compute
 # Bump version in pyproject.toml and README.md
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.2.1
+git tag v0.2.2
 git push && git push --tags
 ```
 
