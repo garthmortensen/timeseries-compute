@@ -58,8 +58,8 @@ def test_custom_date_range():
     # check dates
     expected_days = len(pd.date_range(start=start_date, end=end_date, freq="B"))
     assert len(price_df) == expected_days
-    # Check the Date column instead of the index
-    assert price_df["Date"].iloc[0].strftime("%Y-%m-%d") == "2024-01-01"
+    # Check the index (which is the date) instead of looking for a Date column
+    assert price_df.index[0].strftime("%Y-%m-%d") == "2024-01-01"
 
 
 def test_custom_anchor_prices():
