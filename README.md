@@ -19,12 +19,12 @@
    ██║   ██║██║╚██╔╝██║██╔══╝  ╚════██║██╔══╝  ██╔══██╗██║██╔══╝m ╚════██║
    ██║   ██║██║ ╚═╝ ██║███████╗███████║███████╗██║  ██║██║███████╗███████║
    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝
- ██████╗ ██████╗ ███╗   ███╗██████╗ ██╗   ██╗████████╗███████╗
-██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║   ██║╚══██╔══╝██╔════╝
-██║     ██║   ██║██╔████╔██║██████╔╝██║   ██║   ██║   █████╗
-██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║   ██║   ██╔══╝
-╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝   ██║   ███████╗
- ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝    ╚═╝   ╚══════╝
+             ██████╗ ██████╗ ███╗   ███╗██████╗ ██╗   ██╗████████╗███████╗
+            ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║   ██║╚══██╔══╝██╔════╝
+            ██║     ██║   ██║██╔████╔██║██████╔╝██║   ██║   ██║   █████╗
+            ██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║   ██║   ██╔══╝
+            ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝   ██║   ███████╗
+             ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝    ╚═╝   ╚══════╝
 ```
 
 A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and multivariate capabilities.
@@ -50,24 +50,34 @@ flowchart TB
     classDef person fill:#08427B,color:#fff,stroke:#052E56,stroke-width:1px
     classDef system fill:#1168BD,color:#fff,stroke:#0B4884,stroke-width:1px
     classDef external fill:#999999,color:#fff,stroke:#6B6B6B,stroke-width:1px
+    classDef database fill:#2E7C8F,color:#fff,stroke:#1D4E5E,stroke-width:1px
+    
     %% Actors and Systems
     User((User)):::person
+    
     %% Main Systems
-    TimeSeriesFrontend["Timeseries Frontend
+    TimeSeriesFrontend["Frontend App
     (Django)"]:::system
-    TimeSeriesPipeline["Timeseries Pipeline
+    TimeSeriesPipeline["RESTful Pipeline
     (FastAPI)"]:::system
-    TimeseriesCompute["Timeseries Compute
+    TimeseriesCompute["timeseries-compute
     (Python Package)"]:::system
+    
+    %% Database
+    TimeSeriesDB[("Database
+    (Postgres)")]:::database
+    
     %% External Systems
     ExternalDataSource[(Yahoo Finance)]:::external
+    
     %% Relationships
     User -- "Uses" --> TimeSeriesFrontend
     TimeSeriesFrontend -- "Makes API calls to" --> TimeSeriesPipeline
+    TimeSeriesPipeline -- "Writes executions to" --> TimeSeriesDB
     TimeSeriesPipeline -- "Pip installs from" --> TimeseriesCompute
-    User -- "Can use package directly" --> TimeseriesCompute  
+    User -- "Can pip install from" --> TimeseriesCompute
     ExternalDataSource -- "Provides time series data" --> TimeSeriesPipeline
-    TimeseriesCompute -- "Publishes to" --> PyPI/DockerHub/ReadTheDocs
+    TimeseriesCompute -- "Publishes to" --> Github/DockerHub/PyPI/ReadTheDocs
 ```
 
 ## Quick Start
@@ -564,7 +574,7 @@ Bump version in pyproject.toml and README.md
 ```bash
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.2.36
+git tag v0.2.37
 git push && git push --tags
 ```
 
