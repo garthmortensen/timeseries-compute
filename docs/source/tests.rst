@@ -20,10 +20,18 @@ tests.test\_data\_processor module
    :show-inheritance:
    :undoc-members:
 
-tests.test\_stats\_model module
-----------------------------------
+tests.test\_stats\_model\_arima module
+--------------------------------------
 
-.. automodule:: tests.test_stats_model
+.. automodule:: tests.test_stats_model_arima
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+tests.test\_stats\_model\_garch module
+--------------------------------------
+
+.. automodule:: tests.test_stats_model_garch
    :members:
    :show-inheritance:
    :undoc-members:

@@ -10,7 +10,7 @@ Welcome to the **Timeseries Compute** project documentation!
 This project is a pet project for recreating a thesis in Python, focusing on time series modeling using ARIMA and GARCH models for financial data analysis, volatility forecasting, and market spillover effects.
 
 Project Overview
----------------
+----------------
 
 Timeseries Compute provides tools for:
 
