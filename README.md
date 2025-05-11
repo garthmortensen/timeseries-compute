@@ -1,10 +1,10 @@
 # Timeseries Compute
 
-[![Python Versions](https://img.shields.io/pypi/pyversions/timeseries-compute)]((https://pypi.org/project/timeseries-compute/))
+[![Python Versions](https://img.shields.io/pypi/pyversions/timeseries-compute)](https://pypi.org/project/timeseries-compute/)
 [![PyPI](https://img.shields.io/pypi/v/timeseries-compute?color=blue&label=PyPI)](https://pypi.org/project/timeseries-compute/)
-[![GitHub](https://img.shields.io/badge/GitHub-generalized--timeseries-blue?logo=github)](https://github.com/garthmortensen/timeseries-compute)
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-generalized--timeseries-blue)](https://hub.docker.com/r/goattheprofessionalmeower/timeseries-compute)
-[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-generalized--timeseries-blue)](https://timeseries-compute.readthedocs.io/en/latest/)
+[![GitHub](https://img.shields.io/badge/GitHub-timeseries--compute-blue?logo=github)](https://github.com/garthmortensen/timeseries-compute)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-timeseries--compute-blue)](https://hub.docker.com/r/goattheprofessionalmeower/timeseries-compute)
+[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-timeseries--compute-blue)](https://timeseries-compute.readthedocs.io/en/latest/)
 
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/garthmortensen/timeseries-compute/cicd.yml?label=CI%2FCD)](https://github.com/garthmortensen/timeseries-compute/actions/workflows/cicd.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a55633cfb8324f379b0b5ec16f03c268)](https://app.codacy.com/gh/garthmortensen/timeseries-compute/dashboard)
@@ -550,7 +550,7 @@ Bump version in pyproject.toml and README.md
 ```bash
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.2.33
+git tag v0.2.34
 git push && git push --tags
 ```
 
