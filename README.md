@@ -125,23 +125,24 @@ docker run -it --entrypoint /bin/bash timeseries-compute:latest
 ### Project Structure
 
 ```text
-timeseries_compute/..................
-├── __init__.py                     # Package initialization
-├── data_generator.py               # For creating synthetic price data with random walks and specific statistical properties
-├── data_processor.py               # For handling missing data, scaling, stationarizing, and testing time series stationarity
-├── stats_model.py                  # For implementing ARIMA, GARCH, and multivariate GARCH models with factory pattern
-├── spillover_processor.py          # For analyzing market interactions, shock transmission, and volatility spillovers between markets
-├── examples/........................
-│   ├── __init__.py                 # Makes examples importable as a module
-│   ├── example_multivariate_garch.py  # For demonstrating correlation analysis between multiple markets with CC-GARCH and DCC-GARCH
-│   └── example_univariate_garch.py # For showing basic usage of ARIMA and GARCH for single-series forecasting
-└── tests/...........................
-    ├── __init__.py                 # Makes tests discoverable
-    ├── test_data_generator.py      # test basic price generation functionality
+timeseries_compute/......................
+├── __init__.py                         # Package initialization
+├── data_generator.py                   # For creating synthetic price data with random walks and specific statistical properties
+├── data_processor.py                   # For handling missing data, scaling, stationarizing, and testing time series stationarity
+├── export_util.py                      # For writing intermediate output to track data lineage
+├── stats_model.py                      # For implementing ARIMA, GARCH, and multivariate GARCH models with factory pattern
+├── spillover_processor.py              # For analyzing market interactions, shock transmission, and volatility spillovers between markets
+├── examples/............................
+│   ├── __init__.py                     # Makes examples importable as a module
+│   ├── example_multivariate_garch.py   # For demonstrating correlation analysis between multiple markets with CC-GARCH and DCC-GARCH
+│   └── example_univariate_garch.py     # For showing basic usage of ARIMA and GARCH for single-series forecasting
+└── tests/...............................
+    ├── __init__.py                     # Makes tests discoverable
     ├── test_data_generator_advanced.py # test advanced features like customization and statistical properties
-    ├── test_data_processor.py      # test data transformation, scaling, and stationarity testing
-    ├── test_stats_model_arima.py   # test ARIMA modeling separately with specialized fixtures
-    └── test_stats_model_garch.py   # test GARCH volatility modeling with different distributions
+    ├── test_data_generator.py          # test basic price generation functionality
+    ├── test_data_processor.py          # test data transformation, scaling, and stationarity testing
+    ├── test_stats_model_arima.py       # test ARIMA modeling separately with specialized fixtures
+    └── test_stats_model_garch.py       # test GARCH volatility modeling with different distributions
 ```
 
 ### Architectural Diagrams
@@ -172,6 +173,7 @@ flowchart TB
     ExternalDataSource[(External Data Source)]:::external
     AnalysisTool[Analysis & Visualization Tools]:::external
     PyPI[PyPI Repository]:::external
+    DockerHub[Docker Hub Repository]:::external
     
     %% Relationships
     User -- "Imports [Python]" --> PythonPackage
@@ -181,10 +183,12 @@ flowchart TB
     PythonPackage -- "Packaged into" --> Dockerized
     CIpipeline -- "Builds and tests" --> Dockerized
     CIpipeline -- "Publishes" --> PyPI
+    CIpipeline -- "Publishes" --> DockerHub
     CIpipeline -- "Updates" --> Documentation
     ExternalDataSource -- "Provides data to" --> PythonPackage
     PythonPackage -- "Exports analysis to" --> AnalysisTool
     User -- "Downloads from" --> PyPI
+    User -- "Runs with" --> DockerHub
 ```
 
 #### Level 3: Component Diagram
@@ -206,6 +210,7 @@ flowchart TB
         DataProcessor["Data Processor<br>[Python]<br>Transforms and tests data"]:::component
         StatsModels["Statistical Models<br>[Python]<br>ARIMA and GARCH models"]:::component
         SpilloverProcessor["Spillover Processor<br>[Python]<br>Market interaction analysis"]:::component
+        ExportUtil["Export Utility<br>[Python]<br>Data export functions"]:::component
         ExampleScripts["Example Scripts<br>[Python]<br>Usage demonstrations"]:::component
         TestSuite["Test Suite<br>[pytest]<br>Validates functionality"]:::component
         
@@ -214,6 +219,7 @@ flowchart TB
         ExampleScripts --> DataProcessor
         ExampleScripts --> StatsModels
         ExampleScripts --> SpilloverProcessor
+        ExampleScripts --> ExportUtil
         DataProcessor --> DataGenerator
         StatsModels --> DataProcessor
         SpilloverProcessor --> StatsModels
@@ -234,12 +240,14 @@ flowchart TB
     User -- "Uses directly" --> DataGenerator
     User -- "Uses directly" --> DataProcessor
     User -- "Uses directly" --> StatsModels
+    User -- "Uses directly" --> SpilloverProcessor
     DataGenerator -- "Uses" --> DataLibraries
     DataProcessor -- "Uses" --> DataLibraries
     StatsModels -- "Uses" --> StatsLibraries
     StatsModels -- "Uses" --> DataLibraries
     ExampleScripts -- "Uses" --> VisualizationLibraries
     SpilloverProcessor -- "Uses" --> VisualizationLibraries
+    ExportUtil -- "Uses" --> DataLibraries
 ```
 
 #### Level 4: Code/Class Diagram
@@ -256,6 +264,7 @@ classDiagram
     }
     
     class MissingDataHandler {
+        +__init__()
         +drop_na(data): pd.DataFrame
         +forward_fill(data): pd.DataFrame
     }
@@ -328,14 +337,15 @@ classDiagram
         +create_handler(strategy): StationaryReturnsProcessor
     }
     
-    %% Helper Functions
-    class DataGeneratorHelpers {
+    %% Functions from data_generator
+    class DataGeneratorFunctions {
         <<static>>
         +set_random_seed(seed): None
         +generate_price_series(start_date, end_date, anchor_prices, random_seed): Tuple[Dict, pd.DataFrame]
     }
     
-    class DataProcessorHelpers {
+    %% Functions from data_processor
+    class DataProcessorFunctions {
         <<static>>
         +fill_data(df, strategy): pd.DataFrame
         +scale_data(df, method): pd.DataFrame
@@ -346,9 +356,11 @@ classDiagram
         +prepare_timeseries_data(df): pd.DataFrame
         +calculate_ewma_covariance(series1, series2, lambda_val): pd.Series
         +calculate_ewma_volatility(series, lambda_val): pd.Series
+        +scale_for_garch(df, target_scale): pd.DataFrame
     }
     
-    class StatsModelHelpers {
+    %% Functions from stats_model
+    class StatsModelFunctions {
         <<static>>
         +run_arima(df_stationary, p, d, q, forecast_steps): Tuple[Dict, Dict]
         +run_garch(df_stationary, p, q, dist, forecast_steps): Tuple[Dict, Dict]
@@ -360,12 +372,18 @@ classDiagram
         +calculate_stats(series): Dict
     }
 
+    %% Functions from spillover_processor
     class SpilloverProcessorFunctions {
         <<static>>
         +test_granger_causality(series1, series2, max_lag, significance_level): Dict
         +analyze_shock_spillover(residuals1, volatility2, max_lag): Dict
         +run_spillover_analysis(df_stationary, arima_fits, garch_fits, lambda_val, max_lag, significance_level): Dict
-        +plot_spillover_analysis(spillover_results, output_path): plt.Figure
+    }
+    
+    %% Functions from export_util
+    class ExportUtilFunctions {
+        <<static>>
+        +export_data(data, folder, name): Any
     }
     
     %% Example Scripts
@@ -374,34 +392,35 @@ classDiagram
         +main(): None
     }
     
-    class ExamplemultivariateGARCH {
+    class ExampleMultivariateGARCH {
         <<static>>
         +main(): None
     }
     
-    %% Relationships
-    DataGeneratorHelpers --> PriceSeriesGenerator: uses
+    %% Relationships - more accurate dependencies
+    DataProcessorFunctions --> MissingDataHandler: uses
+    DataProcessorFunctions --> DataScaler: uses
+    DataProcessorFunctions --> StationaryReturnsProcessor: uses
+    DataProcessorFunctions --> MissingDataHandlerFactory: uses
+    DataProcessorFunctions --> DataScalerFactory: uses
+    DataProcessorFunctions --> StationaryReturnsProcessorFactory: uses
     
-    DataProcessorHelpers --> MissingDataHandler: uses
-    DataProcessorHelpers --> DataScaler: uses
-    DataProcessorHelpers --> StationaryReturnsProcessor: uses
-    DataProcessorHelpers --> MissingDataHandlerFactory: uses
-    DataProcessorHelpers --> DataScalerFactory: uses
-    DataProcessorHelpers --> StationaryReturnsProcessorFactory: uses
+    StatsModelFunctions --> ModelARIMA: uses
+    StatsModelFunctions --> ModelGARCH: uses
+    StatsModelFunctions --> ModelMultivariateGARCH: uses
+    StatsModelFunctions --> ModelFactory: uses
+    StatsModelFunctions --> DataProcessorFunctions: uses
     
-    StatsModelHelpers --> ModelARIMA: uses
-    StatsModelHelpers --> ModelGARCH: uses
-    StatsModelHelpers --> ModelMultivariateGARCH: uses
-    StatsModelHelpers --> ModelFactory: uses
-    StatsModelHelpers --> DataProcessorHelpers: uses
+    SpilloverProcessorFunctions --> StatsModelFunctions: uses
     
-    ExampleUnivariateGARCH --> DataGeneratorHelpers: uses
-    ExampleUnivariateGARCH --> DataProcessorHelpers: uses
-    ExampleUnivariateGARCH --> StatsModelHelpers: uses
+    ExampleUnivariateGARCH --> DataGeneratorFunctions: uses
+    ExampleUnivariateGARCH --> DataProcessorFunctions: uses
+    ExampleUnivariateGARCH --> StatsModelFunctions: uses
     
-    ExamplemultivariateGARCH --> DataGeneratorHelpers: uses
-    ExamplemultivariateGARCH --> DataProcessorHelpers: uses
-    ExamplemultivariateGARCH --> StatsModelHelpers: uses
+    ExampleMultivariateGARCH --> DataGeneratorFunctions: uses
+    ExampleMultivariateGARCH --> DataProcessorFunctions: uses
+    ExampleMultivariateGARCH --> StatsModelFunctions: uses
+    ExampleMultivariateGARCH --> ExportUtilFunctions: uses
     
     MissingDataHandlerFactory --> MissingDataHandler: creates
     DataScalerFactory --> DataScaler: creates
@@ -409,11 +428,6 @@ classDiagram
     ModelFactory --> ModelARIMA: creates
     ModelFactory --> ModelGARCH: creates
     ModelFactory --> ModelMultivariateGARCH: creates
-
-    SpilloverProcessorFunctions --> StatsModelHelpers: uses
-    SpilloverProcessorFunctions --> DataProcessorHelpers: uses
-    ExampleUnivariateGARCH --> SpilloverProcessorFunctions: may use
-    ExampleBivariateGARCH --> SpilloverProcessorFunctions: may use
 ```
 
 #### CI/CD Process
@@ -550,7 +564,7 @@ Bump version in pyproject.toml and README.md
 ```bash
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.2.35
+git tag v0.2.36
 git push && git push --tags
 ```
 
