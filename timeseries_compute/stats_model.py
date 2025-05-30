@@ -88,8 +88,7 @@ class ModelARIMA:
         \n
         \t> ARIMA <\n"""
         l.info(ascii_banner)
-
-        self.data = data            
+        self.data = data
         self.order = order
         self.steps = steps
         self.models: Dict[str, ARIMA] = {}  # Store models for each column
@@ -120,21 +119,17 @@ class ModelARIMA:
             summaries[column] = str(fit.summary())
         return summaries
 
-    def forecast(self) -> Dict[str, Union[float, list]]:
+    def forecast(self) -> Dict[str, float]:
         """
         Generates forecasts for each fitted model.
 
         Returns:
-            Dict[str, Union[float, list]]: A dictionary where the keys are the column names and the values
-                are the forecasted values. If steps=1, returns a float. If steps>1, returns a list.
+            Dict[str, float]: A dictionary where the keys are the column names and the values
+                are the forecasted values for the first step.
         """
         forecasts = {}
         for column, fit in self.fits.items():
-            forecast_result = fit.forecast(steps=self.steps)
-            if self.steps == 1:
-                forecasts[column] = forecast_result.iloc[0]
-            else:
-                forecasts[column] = forecast_result.tolist()
+            forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
         return forecasts
 
 
@@ -166,9 +161,9 @@ def run_arima(
     """
     l.info(f"\n## Running ARIMA(p={p}, d={d}, q={q})")
 
-    # Ensure data is properly prepared with Date as index
+    # Ensure data is properly prepared
     df_stationary = data_processor.prepare_timeseries_data(df_stationary)
-    
+
     model_arima = ModelFactory.create_model(
         model_type="ARIMA",
         data=df_stationary,
@@ -177,8 +172,10 @@ def run_arima(
     )
     arima_fit = model_arima.fit()
 
+    # Log only core model information instead of full summary
     l.info(f"## ARIMA model fitted to columns: {list(arima_fit.keys())}")
 
+    # Generate and log forecast values concisely
     arima_forecast = model_arima.forecast()
     l.info(f"## ARIMA {forecast_steps}-step forecast values:")
     for col, value in arima_forecast.items():
@@ -215,13 +212,13 @@ class ModelGARCH:
         ascii_banner = """
         \n\t> GARCH <\n"""
         l.info(ascii_banner)
-
-        self.data = data            
+        self.data = data
         self.p = p
         self.q = q
         self.dist = dist
         self.models: Dict[str, arch_model] = {}  # Store models for each column
         self.fits: Dict[str, arch_model] = {}  # Store fits for each column
+
     def fit(self) -> Dict[str, arch_model]:
         """
         Fits a GARCH model to each column of the data.
@@ -280,8 +277,6 @@ class ModelMultivariateGARCH:
             q: ARCH order
             model_type: 'cc' for Constant Correlation or 'dcc' for Dynamic Conditional Correlation
         """
-        # If data has Date column, set it as index for time series operations
-        self.data = data    
         self.data = data
         self.p = p
         self.q = q
@@ -625,13 +620,26 @@ def run_garch(
             - Second element: Dictionary of forecasted volatility values for each column
     """
     l.info(f"\n## Running GARCH(p={p}, q={q}, dist={dist})")
+
     # Ensure data is properly prepared for time series analysis
     try:
         df_stationary = data_processor.prepare_timeseries_data(df_stationary)
     except Exception as e:
         l.error(f"Error preparing data for GARCH model: {e}")
         raise ValueError(f"Failed to prepare data for GARCH model: {str(e)}")
-    
+
+    # Check if we have enough data points for GARCH modeling (need at least p+q+1)
+    min_points = p + q + 1
+    if len(df_stationary) < min_points:
+        raise ValueError(
+            f"GARCH model requires at least {min_points} data points, but only {len(df_stationary)} provided"
+        )
+
+    # Verify data has variance (GARCH won't work on constant data)
+    for col in df_stationary.columns:
+        if df_stationary[col].std() == 0:
+            l.warning(f"Column {col} has zero variance, GARCH modeling may fail")
+
     # Create and fit the GARCH model
     try:
         model_garch = ModelFactory.create_model(
@@ -643,8 +651,10 @@ def run_garch(
         )
         garch_fit = model_garch.fit()
 
+        # Log only core model information instead of full summary
         l.info(f"## GARCH model fitted to columns: {list(garch_fit.keys())}")
 
+        # Generate and log forecast values concisely
         garch_forecast = model_garch.forecast(steps=forecast_steps)
         l.info(f"## GARCH {forecast_steps}-step volatility forecast:")
         for col, value in garch_forecast.items():
