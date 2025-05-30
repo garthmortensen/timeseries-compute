@@ -120,17 +120,21 @@ class ModelARIMA:
             summaries[column] = str(fit.summary())
         return summaries
 
-    def forecast(self) -> Dict[str, float]:
+    def forecast(self) -> Dict[str, Union[float, list]]:
         """
         Generates forecasts for each fitted model.
 
         Returns:
-            Dict[str, float]: A dictionary where the keys are the column names and the values
-                are the forecasted values for the first step.
+            Dict[str, Union[float, list]]: A dictionary where the keys are the column names and the values
+                are the forecasted values. If steps=1, returns a float. If steps>1, returns a list.
         """
         forecasts = {}
         for column, fit in self.fits.items():
-            forecasts[column] = fit.forecast(steps=self.steps).iloc[0]
+            forecast_result = fit.forecast(steps=self.steps)
+            if self.steps == 1:
+                forecasts[column] = forecast_result.iloc[0]
+            else:
+                forecasts[column] = forecast_result.tolist()
         return forecasts
 
 

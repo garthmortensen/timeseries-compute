@@ -101,5 +101,33 @@ def test_model_arima_forecast(sample_data):
     assert isinstance(forecasts, dict)
     assert "A" in forecasts
     assert "B" in forecasts
-    assert isinstance(forecasts["A"], float)
-    assert isinstance(forecasts["B"], float)
+    
+    # For multi-step forecasts (steps > 1), we should get lists
+    assert isinstance(forecasts["A"], list)
+    assert isinstance(forecasts["B"], list)
+    assert len(forecasts["A"]) == forecast_horizon
+    assert len(forecasts["B"]) == forecast_horizon
+
+    # test multi-step forecasting - ensure more than 1 data point is forecasted
+    multi_step_horizon = 5  # forecast 5 steps ahead
+    multi_model = ModelARIMA(data=sample_data, order=model_order, steps=multi_step_horizon)
+    multi_model.fit()
+    multi_forecasts = multi_model.forecast()
+
+    # verify that we get forecasts for multiple steps
+    assert isinstance(multi_forecasts, dict)
+    assert "A" in multi_forecasts
+    assert "B" in multi_forecasts
+    
+    # Should get lists with the correct number of forecast steps
+    assert isinstance(multi_forecasts["A"], list)
+    assert isinstance(multi_forecasts["B"], list)
+    assert len(multi_forecasts["A"]) == multi_step_horizon
+    assert len(multi_forecasts["B"]) == multi_step_horizon
+    
+    # Test single-step forecast returns a float
+    single_step_model = ModelARIMA(data=sample_data, order=model_order, steps=1)
+    single_step_model.fit()
+    single_forecasts = single_step_model.forecast()
+    assert isinstance(single_forecasts["A"], float)
+    assert isinstance(single_forecasts["B"], float)
