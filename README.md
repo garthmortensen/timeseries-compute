@@ -575,7 +575,7 @@ Bump version in pyproject.toml and README.md
 ```bash
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.2.39
+git tag v0.2.40
 git push && git push --tags
 ```
 
