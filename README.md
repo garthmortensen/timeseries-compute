@@ -27,6 +27,8 @@
              ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝    ╚═╝   ╚══════╝
 ```
 
+Implementation hosted at www.spilloverlab.com.
+
 A Python package for timeseries data processing and modeling using ARIMA and GARCH models with both univariate and multivariate capabilities.
 
 ### Features
@@ -591,7 +593,7 @@ Bump version in pyproject.toml and README.md
 ```bash
 git add pyproject.toml README.md
 git commit -m "version bump"
-git tag v0.2.40
+git tag v0.2.41
 git push && git push --tags
 ```
 
