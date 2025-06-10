@@ -50,7 +50,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from arch import arch_model
 
 # type hinting
-from typing import Dict, Any, Tuple, Union, Optional
+from typing import Dict, Any, Tuple, Union, Optional, List
 from timeseries_compute import data_processor
 from timeseries_compute.data_processor import (
     calculate_ewma_covariance,
@@ -130,11 +130,17 @@ class ModelARIMA:
         """
         forecasts = {}
         for column, fit in self.fits.items():
+            # Force use the steps parameter directly to avoid any override issues
             forecast_result = fit.forecast(steps=self.steps)
-            if self.steps == 1:
-                forecasts[column] = forecast_result.iloc[0]
-            else:
+            
+            # CRITICAL FIX: Always check the actual forecast length, not just self.steps
+            if hasattr(forecast_result, '__len__') and len(forecast_result) > 1:
+                # Multiple forecast values - return as list
                 forecasts[column] = forecast_result.tolist()
+            else:
+                # Single forecast value - return as float
+                forecasts[column] = forecast_result.iloc[0] if hasattr(forecast_result, 'iloc') else float(forecast_result)
+                
         return forecasts
 
 
@@ -144,7 +150,7 @@ def run_arima(
     d: int = 1,
     q: int = 1,
     forecast_steps: int = 5,
-) -> Tuple[Dict[str, object], Dict[str, float]]:
+) -> Tuple[Dict[str, object], Dict[str, Union[float, List[float]]]]:
     """
     Runs an ARIMA model on stationary time series data.
 
@@ -160,7 +166,7 @@ def run_arima(
         forecast_steps (int): Number of steps to forecast, default=5
 
     Returns:
-        Tuple[Dict[str, object], Dict[str, float]]:
+        Tuple[Dict[str, object], Dict[str, Union[float, List[float]]]]:
             - First element: Dictionary of fitted ARIMA models for each column
             - Second element: Dictionary of forecasted values for each column
     """
@@ -180,6 +186,12 @@ def run_arima(
     l.info(f"## ARIMA model fitted to columns: {list(arima_fit.keys())}")
 
     arima_forecast = model_arima.forecast()
+    
+    # Debug: Check what we actually got from forecast
+    l.info(f"## DEBUG: Raw forecast results from model_arima.forecast():")
+    for col, value in arima_forecast.items():
+        l.info(f"   DEBUG {col}: type={type(value)}, length={len(value) if hasattr(value, '__len__') else 'N/A'}, value={value}")
+    
     l.info(f"## ARIMA {forecast_steps}-step forecast values:")
     for col, value in arima_forecast.items():
         if isinstance(value, list):
