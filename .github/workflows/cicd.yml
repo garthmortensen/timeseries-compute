@@ -3,7 +3,7 @@ name: cicd
 # Run workflow on push
 on: 
   push:
-    branches: [ main, dev ]  # Only run on main and develop branches for pushes
+    branches: ['**']  # Run on all branches
 
 jobs:
   test:
