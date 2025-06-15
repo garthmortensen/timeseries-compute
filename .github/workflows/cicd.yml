@@ -38,7 +38,9 @@ jobs:
       # Install dependencies with uv
       - name: Install dependencies
         run: |
-          echo "Installing project with dev dependencies..."
+          echo "Creating virtual environment..."
+          uv venv # This will create .venv using the Python selected by 'uv python install'
+          echo "Installing project with dev dependencies into the virtual environment..."
           uv pip install -e ".[dev]" -v # Editable install with dev dependencies, verbose
         shell: bash
       
