@@ -14,7 +14,11 @@ WORKDIR /app
 
 COPY requirements.txt .
 # install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install uv && \
+    uv venv && \
+    source .venv/bin/activate && \
+    uv pip install -r requirements.txt && \
+    uv pip install --editable .
 
 # copy everything in souce into app working dir
 COPY ./ /app
