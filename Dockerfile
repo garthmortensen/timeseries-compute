@@ -1,5 +1,4 @@
 # lightweight and fast
-# FROM python:3.9-slim
 FROM python:3.13-slim
 
 # bc running as a non-root, create a user that matches host UID/GID
@@ -7,31 +6,25 @@ ARG USER_ID=1000
 ARG GROUP_ID=1000
 RUN groupadd -g ${GROUP_ID} timeseriesapp && \
     useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash timeseriesapp
-USER timeseriesapp
 
 # set containers working dir
 WORKDIR /app
 
-COPY requirements.txt .
-# install dependencies
-RUN pip install uv && \
-    uv venv && \
-    source .venv/bin/activate && \
-    uv pip install -r requirements.txt && \
-    uv pip install --editable .
-
-# copy everything in souce into app working dir
+# copy everything in source into app working dir first
 COPY ./ /app
 
-# overcome permissions issues
+# Install uv as root for system-wide availability
 USER root
+RUN pip install uv
 RUN chown -R timeseriesapp:timeseriesapp /app
+
+# Switch to non-root user for dependency installation
 USER timeseriesapp
 
-
-# install the package in development mode
-# editable mode allows you to modify the source code and see the changes reflected in the package without having to reinstall it
-RUN pip install --editable .
+# Install dependencies and package using uv
+RUN uv venv && \
+    source .venv/bin/activate && \
+    uv pip install -e ".[dev]"
 
 # Set the entrypoint to python
 ENTRYPOINT ["python"]
