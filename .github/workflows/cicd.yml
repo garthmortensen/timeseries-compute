@@ -50,26 +50,30 @@ jobs:
           echo "Upgrading pip, setuptools, wheel for the base Python..."
           python -m pip install --upgrade pip setuptools wheel
 
-          echo "Running uv venv with verbose output..."
-          uv -vvv venv # Max verbosity for uv
+          echo "Running uv venv with --seed and verbose output..."
+          # Explicitly seed pip, setuptools, and wheel into the virtual environment
+          uv -vvv venv --seed .venv
           
           echo "Activating venv..."
           source .venv/bin/activate
           echo "Python version from .venv:"
           python --version
-          echo "Pip version from .venv (should be present now):"
+          echo "Pip version from .venv (should be present now with --seed):"
           python -m pip --version || echo ".venv pip not found or python -m pip failed"
 
-          echo "Installing uv into .venv for uv.build..."
-          uv pip install uv 
+          # If pip is now in .venv, then installing uv into it should work as expected
+          echo "Installing uv Python package into .venv for uv.build..."
+          python -m pip install uv 
           
-          echo "Installing other dependencies..."
+          echo "Installing other dependencies using uv pip..."
           uv pip install flake8 pytest pytest-cov
           uv pip install -r requirements.txt
           
           echo "Attempting editable install with verbose uv pip..."
+          # Now that .venv has pip and the uv package, this should have a better chance.
+          # uv pip will use the uv package from .venv to handle its own build backend.
           uv pip install -e . -v
-        shell: bash  # ensure consistent shell across all OS
+        shell: bash # ensure consistent shell across all OS
       
       - name: Lint with flake8
         run: |
