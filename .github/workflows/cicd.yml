@@ -40,18 +40,34 @@ jobs:
       # Install dependencies with uv
       - name: Install dependencies
         run: |
-          uv venv
+          echo "Python version from setup-python:"
+          python --version
+          echo "Verifying base pip..."
+          python -m pip --version || echo "Base pip not found or python -m pip failed"
+          
+          echo "Ensuring pip is available for the base Python using ensurepip..."
+          python -m ensurepip --upgrade
+          echo "Upgrading pip, setuptools, wheel for the base Python..."
+          python -m pip install --upgrade pip setuptools wheel
+
+          echo "Running uv venv with verbose output..."
+          uv -vvv venv # Max verbosity for uv
+          
+          echo "Activating venv..."
           source .venv/bin/activate
-          # Upgrade pip in the created virtual environment
-          python -m pip install --upgrade pip
-          # Install 'uv' Python package into the main virtual environment
-          # This makes the uv.build module available.
-          uv pip install uv
-          # Install development dependencies and project dependencies using uv pip
+          echo "Python version from .venv:"
+          python --version
+          echo "Pip version from .venv (should be present now):"
+          python -m pip --version || echo ".venv pip not found or python -m pip failed"
+
+          echo "Installing uv into .venv for uv.build..."
+          uv pip install uv 
+          
+          echo "Installing other dependencies..."
           uv pip install flake8 pytest pytest-cov
           uv pip install -r requirements.txt
+          
           echo "Attempting editable install with verbose uv pip..."
-          # Use uv pip for the editable install, as uv is the build system
           uv pip install -e . -v
         shell: bash  # ensure consistent shell across all OS
       
