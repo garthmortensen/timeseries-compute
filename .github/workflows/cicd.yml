@@ -61,18 +61,22 @@ jobs:
           echo "Pip version from .venv (should be present now with --seed):"
           python -m pip --version || echo ".venv pip not found or python -m pip failed"
 
-          # If pip is now in .venv, then installing uv into it should work as expected
-          echo "Installing uv Python package into .venv for uv.build..."
+          echo "Installing uv Python package into .venv (so pip can find/use uv.build if needed, and for other uv commands)..."
+          # This ensures the uv Python package (containing uv.build) is in the main venv.
+          # Standard pip, when doing the editable install, will create its own isolated build env
+          # and install 'uv' into that isolated env based on pyproject.toml's build-system.requires.
           python -m pip install uv 
           
           echo "Installing other dependencies using uv pip..."
           uv pip install flake8 pytest pytest-cov
           uv pip install -r requirements.txt
           
-          echo "Attempting editable install with verbose uv pip..."
-          # Now that .venv has pip and the uv package, this should have a better chance.
-          # uv pip will use the uv package from .venv to handle its own build backend.
-          uv pip install -e . -v
+          echo "Attempting editable install with verbose standard pip..."
+          # Use standard pip from the .venv for the editable install.
+          # pip will act as the PEP 517 frontend, read pyproject.toml,
+          # create an isolated build environment, install 'uv' (Python package) into it,
+          # and then call the 'uv.build' backend.
+          python -m pip install -e . -v
         shell: bash # ensure consistent shell across all OS
       
       - name: Lint with flake8
