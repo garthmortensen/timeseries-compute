@@ -23,75 +23,36 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
       
-      # Set up Python environment with specified version
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      
       # Install and setup uv
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
           enable-cache: true
-          cache-dependency-glob: "requirements.txt"
+          # Updated cache key to reflect pyproject.toml as the source of truth
+          cache-dependency-glob: "pyproject.toml"
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
       
       # Install dependencies with uv
       - name: Install dependencies
         run: |
-          echo "Python version from setup-python:"
-          python --version
-          echo "Verifying base pip..."
-          python -m pip --version || echo "Base pip not found or python -m pip failed"
-          
-          echo "Ensuring pip is available for the base Python using ensurepip..."
-          python -m ensurepip --upgrade
-          echo "Upgrading pip, setuptools, wheel for the base Python..."
-          python -m pip install --upgrade pip setuptools wheel
-
-          echo "Running uv venv with --seed and verbose output..."
-          # Explicitly seed pip, setuptools, and wheel into the virtual environment
-          uv -vvv venv --seed .venv
-          
-          echo "Activating venv..."
-          source .venv/bin/activate
-          echo "Python version from .venv:"
-          python --version
-          echo "Pip version from .venv (should be present now with --seed):"
-          python -m pip --version || echo ".venv pip not found or python -m pip failed"
-
-          echo "Installing uv Python package into .venv (so pip can find/use uv.build if needed, and for other uv commands)..."
-          # This ensures the uv Python package (containing uv.build) is in the main venv.
-          # Standard pip, when doing the editable install, will create its own isolated build env
-          # and install 'uv' into that isolated env based on pyproject.toml's build-system.requires.
-          python -m pip install uv 
-          
-          echo "Installing other dependencies using uv pip..."
-          uv pip install flake8 pytest pytest-cov
-          uv pip install -r requirements.txt
-          
-          echo "Attempting editable install with verbose standard pip..."
-          # Use standard pip from the .venv for the editable install.
-          # pip will act as the PEP 517 frontend, read pyproject.toml,
-          # create an isolated build environment, install 'uv' (Python package) into it,
-          # and then call the 'uv.build' backend.
-          python -m pip install -e . -v
-        shell: bash # ensure consistent shell across all OS
+          echo "Installing project with dev dependencies..."
+          uv pip install -e ".[dev]" -v # Editable install with dev dependencies, verbose
+        shell: bash
       
       - name: Lint with flake8
         run: |
-          source .venv/bin/activate
-          # Stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Exit-zero treats all errors as warnings
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          echo "Running flake8 linter..."
+          uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          uv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         shell: bash
       
       - name: Test with pytest and collect coverage
         run: |
-          source .venv/bin/activate
-          pytest --cov=timeseries_compute --cov-report=xml --cov-report=term
+          echo "Running pytest..."
+          uv run pytest --cov=timeseries_compute --cov-report=xml --cov-report=term
         shell: bash
       
       - name: Upload coverage reports to Codecov
