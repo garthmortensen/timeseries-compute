@@ -42,9 +42,10 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
+          uv pip install uv  # Ensure uv Python package is in the venv
           uv pip install flake8 pytest pytest-cov
           uv pip install -r requirements.txt
-          uv pip install -e ".[dev]"
+          uv pip install -e .
         shell: bash  # ensure consistent shell across all OS
       
       - name: Lint with flake8
@@ -134,6 +135,7 @@ jobs:
           source ~/.cargo/env
           uv venv
           source .venv/bin/activate
+          uv pip install uv  # Ensure uv Python package is in the venv
           uv pip install build twine
       
       # Build both wheel and source distribution
