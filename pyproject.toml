@@ -1,7 +1,7 @@
 # project metadata
 [project]
 name = "timeseries_compute"
-version = "v0.2.41"
+version = "0.3.0"
 authors = [
     { name="Garth Mortensen", email="mortensengarth@hotmail.com" }
 ]
@@ -45,6 +45,3 @@ major_version_zero = true
 [build-system]
 requires = ["uv"]
 build-backend = "uv.build"
-
-[tool.uv]
-lockfile = "uv.lock"
