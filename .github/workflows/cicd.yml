@@ -42,10 +42,17 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
-          uv pip install uv  # Ensure uv Python package is in the venv
+          # Upgrade pip in the created virtual environment
+          python -m pip install --upgrade pip
+          # Install 'uv' Python package into the main virtual environment
+          # This makes the uv.build module available.
+          uv pip install uv
+          # Install development dependencies and project dependencies using uv pip
           uv pip install flake8 pytest pytest-cov
           uv pip install -r requirements.txt
-          uv pip install -e .
+          echo "Attempting editable install with verbose uv pip..."
+          # Use uv pip for the editable install, as uv is the build system
+          uv pip install -e . -v
         shell: bash  # ensure consistent shell across all OS
       
       - name: Lint with flake8
