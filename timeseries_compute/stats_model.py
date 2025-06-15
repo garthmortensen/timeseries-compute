@@ -89,7 +89,7 @@ class ModelARIMA:
         \t> ARIMA <\n"""
         l.info(ascii_banner)
 
-        self.data = data            
+        self.data = data
         self.order = order
         self.steps = steps
         self.models: Dict[str, ARIMA] = {}  # Store models for each column
@@ -132,15 +132,19 @@ class ModelARIMA:
         for column, fit in self.fits.items():
             # Force use the steps parameter directly to avoid any override issues
             forecast_result = fit.forecast(steps=self.steps)
-            
+
             # CRITICAL FIX: Always check the actual forecast length, not just self.steps
-            if hasattr(forecast_result, '__len__') and len(forecast_result) > 1:
+            if hasattr(forecast_result, "__len__") and len(forecast_result) > 1:
                 # Multiple forecast values - return as list
                 forecasts[column] = forecast_result.tolist()
             else:
                 # Single forecast value - return as float
-                forecasts[column] = forecast_result.iloc[0] if hasattr(forecast_result, 'iloc') else float(forecast_result)
-                
+                forecasts[column] = (
+                    forecast_result.iloc[0]
+                    if hasattr(forecast_result, "iloc")
+                    else float(forecast_result)
+                )
+
         return forecasts
 
 
@@ -174,7 +178,7 @@ def run_arima(
 
     # Ensure data is properly prepared with Date as index
     df_stationary = data_processor.prepare_timeseries_data(df_stationary)
-    
+
     model_arima = ModelFactory.create_model(
         model_type="ARIMA",
         data=df_stationary,
@@ -186,12 +190,14 @@ def run_arima(
     l.info(f"## ARIMA model fitted to columns: {list(arima_fit.keys())}")
 
     arima_forecast = model_arima.forecast()
-    
+
     # Debug: Check what we actually got from forecast
     l.info(f"## DEBUG: Raw forecast results from model_arima.forecast():")
     for col, value in arima_forecast.items():
-        l.info(f"   DEBUG {col}: type={type(value)}, length={len(value) if hasattr(value, '__len__') else 'N/A'}, value={value}")
-    
+        l.info(
+            f"   DEBUG {col}: type={type(value)}, length={len(value) if hasattr(value, '__len__') else 'N/A'}, value={value}"
+        )
+
     l.info(f"## ARIMA {forecast_steps}-step forecast values:")
     for col, value in arima_forecast.items():
         if isinstance(value, list):
@@ -234,12 +240,13 @@ class ModelGARCH:
         \n\t> GARCH <\n"""
         l.info(ascii_banner)
 
-        self.data = data            
+        self.data = data
         self.p = p
         self.q = q
         self.dist = dist
         self.models: Dict[str, arch_model] = {}  # Store models for each column
         self.fits: Dict[str, arch_model] = {}  # Store fits for each column
+
     def fit(self) -> Dict[str, arch_model]:
         """
         Fits a GARCH model to each column of the data.
@@ -299,7 +306,7 @@ class ModelMultivariateGARCH:
             model_type: 'cc' for Constant Correlation or 'dcc' for Dynamic Conditional Correlation
         """
         # If data has Date column, set it as index for time series operations
-        self.data = data    
+        self.data = data
         self.data = data
         self.p = p
         self.q = q
@@ -464,7 +471,7 @@ def run_multivariate_garch(
             - 'cc_covariance_matrix': Covariance matrix using CCC
             - 'dcc_correlation': Series of dynamic conditional correlations
             - 'dcc_covariance': Series of dynamic conditional covariances
-            
+
     Example:
         >>> # Create stationary returns for two assets
         >>> returns = pd.DataFrame({
@@ -588,7 +595,7 @@ class ModelFactory:
     ) -> Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]:
         """
         Creates and returns an instance of a statistical model based on the specified type.
-        
+
         Args:
             model_type (str): Type of model to create ("ARIMA", "GARCH", or "MVGARCH")
             data (pd.DataFrame): Input data for the model
@@ -598,10 +605,10 @@ class ModelFactory:
             q (int): ARCH order parameter
             dist (str): Error distribution for GARCH models
             mv_model_type (str): Type of multivariate GARCH model ("cc" or "dcc")
-            
+
         Returns:
             Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]: The created model instance
-            
+
         Raises:
             ValueError: If an unsupported model type is provided
         """
@@ -649,7 +656,7 @@ def run_garch(
     except Exception as e:
         l.error(f"Error preparing data for GARCH model: {e}")
         raise ValueError(f"Failed to prepare data for GARCH model: {str(e)}")
-    
+
     # Create and fit the GARCH model
     try:
         model_garch = ModelFactory.create_model(

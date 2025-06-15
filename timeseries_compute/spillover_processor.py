@@ -46,7 +46,7 @@ def test_granger_causality(
 ) -> Dict[str, Any]:
     """
     Test if series1 Granger-causes series2.
-    
+
     Granger causality tests if past values of series1 help predict future values of series2
     beyond what past values of series2 alone can predict.
 
@@ -62,7 +62,7 @@ def test_granger_causality(
             - 'p_values' (Dict[int, float]): Dictionary mapping each lag to its p-value
             - 'optimal_lag' (int or None): Lag with the smallest p-value if causality exists,
               None otherwise
-            
+
     Example:
         >>> # Test if returns of Market A cause returns of Market B
         >>> market_a = pd.Series([0.01, -0.015, 0.02, -0.01, 0.015])
@@ -74,7 +74,7 @@ def test_granger_causality(
     """
     from statsmodels.tsa.stattools import grangercausalitytests
 
-        # Convert DataFrames with Date column to Series with Date index if needed
+    # Convert DataFrames with Date column to Series with Date index if needed
     if isinstance(series1, pd.DataFrame) and "Date" in series1.columns:
         series1 = series1.set_index("Date")[series1.columns[1]]
     if isinstance(series2, pd.DataFrame) and "Date" in series2.columns:
@@ -97,9 +97,7 @@ def test_granger_causality(
 
 
 def analyze_shock_spillover(
-    residuals1: pd.Series, 
-    volatility2: pd.Series, 
-    max_lag: int = 5
+    residuals1: pd.Series, volatility2: pd.Series, max_lag: int = 5
 ) -> Dict[str, Union[List[int], float]]:
     """
     Simplified analysis of how shocks in one market affect volatility in another.
@@ -118,7 +116,7 @@ def analyze_shock_spillover(
         residuals1 = residuals1.set_index("Date")[residuals1.columns[1]]
     if isinstance(volatility2, pd.DataFrame) and "Date" in volatility2.columns:
         volatility2 = volatility2.set_index("Date")[volatility2.columns[1]]
-    
+
     # Create a simple model using correlation with lags
     significant_lags = []
     correlations = {}
@@ -174,7 +172,7 @@ def run_spillover_analysis(
                 - 'shock_spillover': Results from shock spillover analysis
                 - 'spillover_magnitude': Information about the strength of spillover effects
                 - 'impulse_response': Impulse response function results
-            
+
     Example:
         >>> # Create returns data for two markets
         >>> returns = pd.DataFrame({

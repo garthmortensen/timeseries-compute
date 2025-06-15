@@ -5,44 +5,45 @@ import pandas as pd
 import numpy as np
 from timeseries_compute.stats_model import ModelGARCH, run_garch
 
+
 @pytest.fixture
 def garch_sample_data():
     """Generate data with volatility clustering for GARCH tests"""
     np.random.seed(42)
     n_points = 100
-    
+
     # model 1 parameters
     constant_1 = 0.1  # base volatility level
     arch_coef_1 = 0.2  # impact of past shocks
     garch_coef_1 = 0.7  # persistence of past volatility
     mean_ret = 0  # expected return
-    
+
     # garch series 1
     returns1 = np.zeros(n_points)
     volatility = np.ones(n_points)
-    
+
     # garch(1,1) process - model 1
     for i in range(1, n_points):
         # calculate today's volatility based on yesterday's values
         prev_shock = returns1[i - 1] ** 2  # previous squared return
         prev_vol = volatility[i - 1]  # previous volatility
-        
+
         # today's volatility equation
         volatility[i] = constant_1 + arch_coef_1 * prev_shock + garch_coef_1 * prev_vol
-        
+
         # generate random return based on volatility
         std_dev = np.sqrt(volatility[i])
         returns1[i] = np.random.normal(mean_ret, std_dev)
-    
+
     # model 2 parameters
     constant_2 = 0.05  # lower base volatility
     arch_coef_2 = 0.15  # less shock impact
     garch_coef_2 = 0.8  # higher persistence
-    
+
     # garch series 2
     returns2 = np.zeros(n_points)
     volatility2 = np.ones(n_points)
-    
+
     # garch(1,1) process - model 2
     for i in range(1, n_points):
         prev_shock2 = returns2[i - 1] ** 2
@@ -52,14 +53,15 @@ def garch_sample_data():
         )
         std_dev2 = np.sqrt(volatility2[i])
         returns2[i] = np.random.normal(mean_ret, std_dev2)
-    
+
     # Create dates
     start_date = pd.Timestamp("2023-01-01")
-    dates = pd.date_range(start=start_date, periods=n_points, freq='D')
-    
+    dates = pd.date_range(start=start_date, periods=n_points, freq="D")
+
     # Create DataFrame with returns data only (no Date column)
     data = pd.DataFrame({"returns1": returns1, "returns2": returns2}, index=dates)
     return data
+
 
 @pytest.fixture
 def stationary_sample_data():
@@ -96,7 +98,7 @@ def stationary_sample_data():
     # Create dates
     start_date = pd.Timestamp("2023-01-01")
     dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
-    
+
     data = {"Date": dates, "AR": ar_series, "GARCH": garch_series}
     return pd.DataFrame(data)
 
@@ -114,10 +116,11 @@ def test_model_garch_initialization(garch_sample_data):
 
     # Model should preserve the data as-is since it's already properly formatted with DatetimeIndex
     assert model.data.equals(garch_sample_data)
-        
+
     assert model.p == garch_lag
     assert model.q == arch_lag
     assert model.dist == distribution
+
 
 def test_model_garch_fit(garch_sample_data):
     """test fitting garch"""

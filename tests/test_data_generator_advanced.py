@@ -91,7 +91,7 @@ def test_price_series_statistics():
         # Skip the Date column
         if ticker == "Date":
             continue
-            
+
         series = price_df[ticker]
         diff = series.diff().dropna()
 
@@ -237,7 +237,7 @@ def stationary_sample_data():
     # Create dates
     start_date = pd.Timestamp("2023-01-01")
     dates = [start_date + pd.Timedelta(days=i) for i in range(n_points)]
-    
+
     data = {"Date": dates, "AR": ar_series, "GARCH": garch_series}
     return pd.DataFrame(data)
 
@@ -293,7 +293,7 @@ def test_model_garch_methods(stationary_sample_data):
     """test garch model methods"""
     # Create a copy with Date as index
     data_with_index = stationary_sample_data.set_index("Date")
-    
+
     model = ModelGARCH(data=data_with_index, p=1, q=1)
 
     # check fit

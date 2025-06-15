@@ -102,7 +102,18 @@ flowchart TB
 
 ### Installation
 
-Install from PyPI (recommended):
+Using uv (fastest):
+
+```bash
+# Install uv
+pip install uv
+# create venv
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+Using venv (classic):
 
 ```bash
 python -m venv venv
@@ -110,7 +121,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install timeseries-compute
 ```
 
-Install from GitHub (latest development version):
+Install from GitHub using venv (latest development version):
 
 ```bash
 python -m venv venv

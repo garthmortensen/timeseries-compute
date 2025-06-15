@@ -79,19 +79,19 @@ class PriceSeriesGenerator:
         Create price series for given tickers with initial prices and correlations.
 
         Args:
-            anchor_prices (Dict[str, float]): Dictionary where keys are ticker symbols 
+            anchor_prices (Dict[str, float]): Dictionary where keys are ticker symbols
                 (e.g., 'AAPL', 'MSFT') and values are their respective initial prices.
-            correlation_matrix (Dict[Tuple[str, str], float], optional): Dictionary specifying 
-                correlations between ticker pairs. Each key should be a tuple of two ticker 
-                symbols (e.g., ('AAPL', 'MSFT')), and each value should be the desired 
+            correlation_matrix (Dict[Tuple[str, str], float], optional): Dictionary specifying
+                correlations between ticker pairs. Each key should be a tuple of two ticker
+                symbols (e.g., ('AAPL', 'MSFT')), and each value should be the desired
                 correlation coefficient between -1.0 and 1.0. For example:
                 {('AAPL', 'MSFT'): 0.7, ('AAPL', 'GOOG'): 0.5, ('MSFT', 'GOOG'): 0.6}
                 If None, a default correlation of 0.6 will be used for all pairs.
 
         Returns:
-            Dict[str, list]: Dictionary where keys are ticker symbols and values are lists 
+            Dict[str, list]: Dictionary where keys are ticker symbols and values are lists
                 containing the generated price series for each ticker.
-                
+
         Example:
             >>> generator = PriceSeriesGenerator(start_date="2023-01-01", end_date="2023-01-31")
             >>> anchor_prices = {"AAA": 150.0, "BBB": 250.0}

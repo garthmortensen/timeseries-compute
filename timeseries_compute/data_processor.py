@@ -418,8 +418,9 @@ def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
     """
     price_df = prices.copy()
     # Calculate returns
-    returns_df = np.log(price_df / price_df.shift(1)).dropna()    
+    returns_df = np.log(price_df / price_df.shift(1)).dropna()
     return returns_df
+
 
 class StationaryReturnsProcessorFactory:
     """
@@ -543,11 +544,11 @@ def prepare_timeseries_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # Ensure index is datetime type if not already
     if not isinstance(df.index, pd.DatetimeIndex):
-        df.index = pd.to_datetime(df.index, errors='coerce')
+        df.index = pd.to_datetime(df.index, errors="coerce")
 
     # Convert numeric columns to proper type
     for col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # Drop rows with NaN values
     df.dropna(inplace=True)
