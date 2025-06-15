@@ -23,7 +23,7 @@ USER timeseriesapp
 
 # Install dependencies and package using uv
 RUN uv venv && \
-    source .venv/bin/activate && \
+    . .venv/bin/activate && \
     uv pip install -e ".[dev]"
 
 # Set the entrypoint to python
