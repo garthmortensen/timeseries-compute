@@ -1,41 +1,234 @@
 #!/usr/bin/env python3
-# timeseries_compute/spillover_processor.py - Simplified version
+# timeseries_compute/spillover_processor.py - Standard Diebold-Yilmaz Implementation
 
 """
-Market Spillover Effects Analysis Module.
+Market Spillover Effects Analysis Module - Standard Diebold-Yilmaz Implementation.
 
-This module extends the multivariate GARCH analysis with tools for analyzing
-how shocks and volatility spill over between different markets or assets.
-It implements methods for testing causality, measuring spillover magnitude,
-and visualizing the results.
+This module implements the standard Diebold-Yilmaz (2012) methodology for measuring
+spillover effects between financial markets using Vector Autoregression (VAR) models
+and Forecast Error Variance Decomposition (FEVD).
 
 Key Components:
-- test_granger_causality: Test if one series helps predict another
-- analyze_shock_spillover: Analyze how shocks affect volatility in other markets
-- run_spillover_analysis: Comprehensive spillover effects analysis
-- plot_spillover_analysis: Visualization of spillover relationships
+- fit_var_model: Fit Vector Autoregression model to returns data
+- calculate_fevd: Calculate Forecast Error Variance Decomposition
+- calculate_spillover_index: Calculate Total Connectedness Index and directional spillovers
+- run_diebold_yilmaz_analysis: Complete Diebold-Yilmaz spillover analysis
+- test_granger_causality: Granger causality testing (supplementary)
 
-Features:
-- Granger causality testing with optimal lag selection
-- Shock spillover analysis with significance testing
-- Visualization tools for interpreting spillover relationships
+The methodology follows these steps:
+1. Fit VAR model to stationary returns
+2. Calculate FEVD at specified horizon
+3. Compute spillover indices from FEVD matrix
+4. Extract directional and net spillovers
 
-Typical Usage Flow:
-1. Start with prepared stationary data from data_processor.py
-2. Run ARIMA and GARCH models (optional, can be done internally)
-3. Perform comprehensive spillover analysis
-4. Visualize and interpret the results
-
-This module depends on stats_model.py for the underlying GARCH modeling and
-extends its functionality with specific spillover analysis tools.
+References:
+- Diebold, F.X. & Yilmaz, K. (2012). Better to Give than to Receive: 
+  Predictive Directional Measurement of Volatility Spillovers. 
+  International Journal of Forecasting, 28(1), 57-66.
 """
 
 import pandas as pd
 import numpy as np
 import logging
-import matplotlib.pyplot as plt
-from typing import Dict, Any, Optional, Union, List
-from timeseries_compute.stats_model import run_multivariate_garch
+from typing import Dict, Any, Optional, Tuple
+from statsmodels.tsa.api import VAR
+from statsmodels.tsa.stattools import grangercausalitytests
+
+logger = logging.getLogger(__name__)
+
+
+def fit_var_model(
+    returns_df: pd.DataFrame,
+    max_lags: int = 5,
+    ic: str = 'aic'
+) -> Tuple[Any, int]:
+    """
+    Fit Vector Autoregression (VAR) model to returns data.
+    
+    Args:
+        returns_df: DataFrame of stationary returns for multiple assets
+        max_lags: Maximum number of lags to consider
+        ic: Information criterion for lag selection ('aic', 'bic', 'hqic', 'fpe')
+        
+    Returns:
+        Tuple of (fitted VAR model, selected lag order)
+        
+    Example:
+        >>> returns = pd.DataFrame({'AAPL': [0.01, -0.02], 'MSFT': [0.015, -0.01]})
+        >>> model, lag = fit_var_model(returns, max_lags=3)
+        >>> print(f"Selected lag order: {lag}")
+    """
+    logger.info(f"Fitting VAR model with max_lags={max_lags}, ic={ic}")
+    
+    # Remove any NaN values
+    clean_data = returns_df.dropna()
+    
+    if len(clean_data) < max_lags + 10:
+        raise ValueError(f"Insufficient data: need at least {max_lags + 10} observations, got {len(clean_data)}")
+    
+    # Initialize VAR model
+    var_model = VAR(clean_data)
+    
+    # Try automatic lag selection first
+    try:
+        fitted_model = var_model.fit(maxlags=max_lags, ic=ic)
+        selected_lag = fitted_model.k_ar
+        
+        # If lag selection returns 0, force at least 1 lag for FEVD to work
+        if selected_lag == 0:
+            logger.warning("VAR lag selection returned 0 lags, forcing lag=1 for spillover analysis")
+            fitted_model = var_model.fit(maxlags=1, ic=None)
+            selected_lag = 1
+            
+    except Exception as e:
+        logger.warning(f"VAR automatic lag selection failed: {e}, trying fixed lag=1")
+        fitted_model = var_model.fit(maxlags=1, ic=None)
+        selected_lag = 1
+    
+    logger.info(f"VAR model fitted with {selected_lag} lags")
+    
+    return fitted_model, selected_lag
+
+
+def calculate_fevd(
+    var_model: Any,
+    horizon: int = 10,
+    normalize: bool = True
+) -> np.ndarray:
+    """
+    Calculate Forecast Error Variance Decomposition (FEVD) from fitted VAR model.
+    
+    Args:
+        var_model: Fitted VAR model from statsmodels
+        horizon: Forecast horizon for variance decomposition
+        normalize: Whether to normalize FEVD to sum to 100% (recommended: True)
+        
+    Returns:
+        FEVD matrix of shape (n_variables, n_variables) where entry (i,j) represents
+        the percentage of forecast error variance of variable i explained by shocks to variable j
+        
+    Example:
+        >>> # After fitting VAR model
+        >>> fevd_matrix = calculate_fevd(fitted_var, horizon=10)
+        >>> print(f"FEVD shape: {fevd_matrix.shape}")
+        >>> print(f"Row sums: {fevd_matrix.sum(axis=1)}")  # Should be ~100 if normalized
+    """
+    logger.info(f"Calculating FEVD with horizon={horizon}")
+    
+    # Calculate FEVD using statsmodels
+    fevd_result = var_model.fevd(horizon)
+    
+    # Extract the FEVD matrix for the final horizon
+    # fevd_result.decomp has shape (n_variables, n_variables, horizon)
+    # We want the final horizon (index -1)
+    fevd_matrix = fevd_result.decomp[:, :, -1]  # Take the final horizon
+    
+    # Ensure the matrix is square (n_variables x n_variables)
+    n_vars = len(var_model.names)
+    if fevd_matrix.shape != (n_vars, n_vars):
+        logger.error(f"FEVD matrix shape mismatch: got {fevd_matrix.shape}, expected ({n_vars}, {n_vars})")
+        # If there's a shape issue, take only the square portion
+        fevd_matrix = fevd_matrix[:n_vars, :n_vars]
+    
+    if normalize:
+        # Ensure each row sums to 100% (sometimes there are small numerical errors)
+        row_sums = fevd_matrix.sum(axis=1, keepdims=True)
+        # Avoid division by zero
+        row_sums = np.where(row_sums == 0, 1, row_sums)
+        fevd_matrix = (fevd_matrix / row_sums) * 100
+    
+    logger.info(f"FEVD matrix calculated, shape: {fevd_matrix.shape}")
+    
+    return fevd_matrix
+
+
+def calculate_spillover_index(
+    fevd_matrix: np.ndarray,
+    variable_names: list
+) -> Dict[str, Any]:
+    """
+    Calculate Diebold-Yilmaz spillover indices from FEVD matrix.
+    
+    Args:
+        fevd_matrix: FEVD matrix from calculate_fevd()
+        variable_names: Names of the variables (assets)
+        
+    Returns:
+        Dictionary containing:
+        - total_spillover_index: Total Connectedness Index (TCI) in percentage
+        - directional_spillovers: Dict with 'to' and 'from' spillovers for each variable
+        - net_spillovers: Net spillover for each variable (to - from)
+        - pairwise_spillovers: Matrix of pairwise spillovers
+        - fevd_table: FEVD table as DataFrame for inspection
+        
+    Example:
+        >>> fevd = np.array([[80, 15, 5], [10, 75, 15], [5, 20, 75]])
+        >>> names = ['AAPL', 'MSFT', 'TSLA']
+        >>> spillovers = calculate_spillover_index(fevd, names)
+        >>> print(f"Total spillover: {spillovers['total_spillover_index']:.1f}%")
+    """
+    logger.info("Calculating Diebold-Yilmaz spillover indices")
+    
+    n_vars = len(variable_names)
+    
+    # Create FEVD DataFrame for easier interpretation
+    fevd_df = pd.DataFrame(
+        fevd_matrix, 
+        index=variable_names, 
+        columns=variable_names
+    )
+    
+    # 1. Total Connectedness Index (TCI)
+    # Sum of off-diagonal elements divided by total sum, times 100
+    off_diagonal_sum = fevd_matrix.sum() - np.trace(fevd_matrix)
+    total_sum = fevd_matrix.sum()
+    total_spillover_index = (off_diagonal_sum / total_sum) * 100
+    
+    # 2. Directional Spillovers
+    directional_spillovers = {}
+    
+    for i, var_name in enumerate(variable_names):
+        # "To" spillover: how much this variable contributes to others' variance
+        # Sum of column i, excluding diagonal element
+        to_spillover = (fevd_matrix[:, i].sum() - fevd_matrix[i, i]) / total_sum * 100
+        
+        # "From" spillover: how much this variable receives from others
+        # Sum of row i, excluding diagonal element  
+        from_spillover = (fevd_matrix[i, :].sum() - fevd_matrix[i, i]) / total_sum * 100
+        
+        directional_spillovers[var_name] = {
+            'to': to_spillover,
+            'from': from_spillover
+        }
+    
+    # 3. Net Spillovers (To - From)
+    net_spillovers = {}
+    for var_name in variable_names:
+        net_spillovers[var_name] = (
+            directional_spillovers[var_name]['to'] - 
+            directional_spillovers[var_name]['from']
+        )
+    
+    # 4. Pairwise Spillovers (off-diagonal elements as percentages of total)
+    pairwise_spillovers = pd.DataFrame(
+        fevd_matrix / total_sum * 100,
+        index=variable_names,
+        columns=variable_names
+    )
+    # Zero out diagonal for pairwise interpretation
+    np.fill_diagonal(pairwise_spillovers.values, 0)
+    
+    results = {
+        'total_spillover_index': total_spillover_index,
+        'directional_spillovers': directional_spillovers,
+        'net_spillovers': net_spillovers,
+        'pairwise_spillovers': pairwise_spillovers,
+        'fevd_table': fevd_df
+    }
+    
+    logger.info(f"Spillover analysis complete. TCI: {total_spillover_index:.2f}%")
+    
+    return results
 
 
 def test_granger_causality(
@@ -46,195 +239,188 @@ def test_granger_causality(
 ) -> Dict[str, Any]:
     """
     Test if series1 Granger-causes series2.
-
-    Granger causality tests if past values of series1 help predict future values of series2
-    beyond what past values of series2 alone can predict.
-
+    
+    This is a supplementary analysis to the main Diebold-Yilmaz methodology.
+    Now includes multi-level significance testing (1% and 5%) like stationarity tests.
+    
     Args:
-        series1 (pd.Series): Potential cause series
-        series2 (pd.Series): Potential effect series
-        max_lag (int): Maximum number of lags to test (will test lags 1 to max_lag)
-        significance_level (float): p-value threshold for determining significance
-
+        series1: Potential cause series
+        series2: Potential effect series  
+        max_lag: Maximum number of lags to test
+        significance_level: p-value threshold for significance (kept for backward compatibility)
+        
     Returns:
-        Dict[str, Any]: Dictionary with the following keys:
-            - 'causality' (bool): True if series1 Granger-causes series2 at any tested lag
-            - 'p_values' (Dict[int, float]): Dictionary mapping each lag to its p-value
-            - 'optimal_lag' (int or None): Lag with the smallest p-value if causality exists,
-              None otherwise
-
-    Example:
-        >>> # Test if returns of Market A cause returns of Market B
-        >>> market_a = pd.Series([0.01, -0.015, 0.02, -0.01, 0.015])
-        >>> market_b = pd.Series([0.005, -0.01, 0.015, -0.005, 0.01])
-        >>> result = test_granger_causality(market_a, market_b, max_lag=2)
-        >>> print(f"Causality exists: {result['causality']}")
-        >>> print(f"P-values by lag: {result['p_values']}")
-        >>> print(f"Best lag: {result['optimal_lag']}")
+        Dictionary with causality test results including multi-level significance
     """
-    from statsmodels.tsa.stattools import grangercausalitytests
-
-    # Convert DataFrames with Date column to Series with Date index if needed
-    if isinstance(series1, pd.DataFrame) and "Date" in series1.columns:
-        series1 = series1.set_index("Date")[series1.columns[1]]
-    if isinstance(series2, pd.DataFrame) and "Date" in series2.columns:
-        series2 = series2.set_index("Date")[series2.columns[1]]
-
-    # Combine series into a DataFrame
-    data = pd.concat([series1, series2], axis=1)
-    data.columns = ["series1", "series2"]
+    # Combine series into DataFrame
+    data = pd.concat([series2, series1], axis=1)  # Note: order matters for grangercausalitytests
+    data.columns = ['target', 'cause']
     data = data.dropna()
-
-    # Run Granger causality tests
-    results = grangercausalitytests(data, maxlag=max_lag, verbose=False)
-
-    # Extract key results
-    p_values = {lag: results[lag][0]["ssr_ftest"][1] for lag in range(1, max_lag + 1)}
-    causality = any(p < significance_level for p in p_values.values())
-    optimal_lag = min(p_values, key=p_values.get) if causality else None
-
-    return {"causality": causality, "p_values": p_values, "optimal_lag": optimal_lag}
-
-
-def analyze_shock_spillover(
-    residuals1: pd.Series, volatility2: pd.Series, max_lag: int = 5
-) -> Dict[str, Union[List[int], float]]:
-    """
-    Simplified analysis of how shocks in one market affect volatility in another.
-
-    Args:
-        residuals1: Residuals from the first market
-        volatility2: Volatility of the second market
-        max_lag: Maximum lag to consider
-
-    Returns:
-        Dictionary with basic spillover metrics
-    """
-
-    # Convert DataFrames with Date column to Series with Date index if needed
-    if isinstance(residuals1, pd.DataFrame) and "Date" in residuals1.columns:
-        residuals1 = residuals1.set_index("Date")[residuals1.columns[1]]
-    if isinstance(volatility2, pd.DataFrame) and "Date" in volatility2.columns:
-        volatility2 = volatility2.set_index("Date")[volatility2.columns[1]]
-
-    # Create a simple model using correlation with lags
-    significant_lags = []
-    correlations = {}
-
-    # Check correlation at different lags
-    for lag in range(1, max_lag + 1):
-        # Squared residuals represent shock magnitude
-        shock = residuals1**2
-        lagged_shock = shock.shift(lag).dropna()
-
-        # Match with corresponding volatility
-        aligned_vol = volatility2.loc[lagged_shock.index]
-
-        # Calculate correlation
-        if len(lagged_shock) > 10:  # Ensure enough data
-            corr = lagged_shock.corr(aligned_vol)
-            correlations[lag] = corr
-
-            # Simple significance threshold
-            if abs(corr) > 0.3:
-                significant_lags.append(lag)
-
-    # Calculate simple r-squared as max squared correlation
-    r_squared = max([corr**2 for corr in correlations.values()]) if correlations else 0
-
-    return {"significant_lags": significant_lags, "r_squared": r_squared}
+    
+    if len(data) < max_lag + 10:
+        return {
+            'causality': False,
+            'causality_1pct': False,
+            'causality_5pct': False,
+            'p_values': {},
+            'optimal_lag': None,
+            'optimal_lag_1pct': None,
+            'optimal_lag_5pct': None,
+            'error': 'Insufficient data for Granger causality test'
+        }
+    
+    try:
+        # Run Granger causality tests
+        results = grangercausalitytests(data, maxlag=max_lag, verbose=False)
+        
+        # Extract p-values
+        p_values = {lag: results[lag][0]['ssr_ftest'][1] for lag in range(1, max_lag + 1)}
+        
+        # Multi-level significance testing (like stationarity tests)
+        causality_1pct = any(p < 0.01 for p in p_values.values())  # 1% significance
+        causality_5pct = any(p < 0.05 for p in p_values.values())  # 5% significance
+        
+        # Optimal lags for each significance level
+        optimal_lag_1pct = min((lag for lag, p in p_values.items() if p < 0.01), default=None)
+        optimal_lag_5pct = min((lag for lag, p in p_values.items() if p < 0.05), default=None)
+        
+        return {
+            'causality_1pct': causality_1pct,
+            'causality_5pct': causality_5pct,
+            'p_values': p_values,
+            'optimal_lag_1pct': optimal_lag_1pct,
+            'optimal_lag_5pct': optimal_lag_5pct,
+            'significance_summary': {
+                'significant_at_1pct': causality_1pct,
+                'significant_at_5pct': causality_5pct,
+                'min_p_value': min(p_values.values()) if p_values else 1.0
+            }
+        }
+        
+    except Exception as e:
+        logger.warning(f"Granger causality test failed: {e}")
+        return {
+            'causality': False,
+            'causality_1pct': False,
+            'causality_5pct': False,
+            'p_values': {},
+            'optimal_lag': None,
+            'optimal_lag_1pct': None,
+            'optimal_lag_5pct': None,
+            'error': str(e)
+        }
 
 
-def run_spillover_analysis(
-    df_stationary: pd.DataFrame,
-    arima_fits: Optional[Dict[str, Any]] = None,
-    garch_fits: Optional[Dict[str, Any]] = None,
-    lambda_val: float = 0.95,
-    max_lag: int = 5,
-    significance_level: float = 0.05,
+def run_diebold_yilmaz_analysis(
+    returns_df: pd.DataFrame,
+    horizon: int = 10,
+    max_lags: int = 5,
+    ic: str = 'aic',
+    include_granger: bool = True,
+    significance_level: float = 0.05
 ) -> Dict[str, Any]:
     """
-    Analyzes spillover effects between markets using multivariate GARCH and Granger causality.
-
+    Complete Diebold-Yilmaz spillover analysis.
+    
+    This is the main function that implements the standard Diebold-Yilmaz methodology:
+    1. Fit VAR model to returns
+    2. Calculate FEVD
+    3. Compute spillover indices
+    4. Optionally include Granger causality tests
+    
     Args:
-        df_stationary (pd.DataFrame): DataFrame of stationary returns for multiple markets
-        arima_fits (dict, optional): Pre-fitted ARIMA models
-        garch_fits (dict, optional): Pre-fitted GARCH models
-        lambda_val (float): EWMA decay factor for dynamic correlation calculation
-        max_lag (int): Maximum lag for Granger causality tests
-        significance_level (float): Significance threshold for statistical tests
-
+        returns_df: DataFrame of stationary returns for multiple assets
+        horizon: Forecast horizon for FEVD calculation  
+        max_lags: Maximum lags for VAR model selection
+        ic: Information criterion for VAR lag selection
+        include_granger: Whether to include Granger causality tests
+        significance_level: Significance level for Granger tests
+        
     Returns:
-        Dict[str, Any]: Dictionary with analysis results containing:
-            - Standard multivariate GARCH results (see run_multivariate_garch)
-            - 'spillover_analysis': Dictionary with the following keys:
-                - 'granger_causality': Results from Granger causality tests between markets
-                - 'shock_spillover': Results from shock spillover analysis
-                - 'spillover_magnitude': Information about the strength of spillover effects
-                - 'impulse_response': Impulse response function results
-
+        Dictionary containing complete spillover analysis results:
+        - var_model: Fitted VAR model
+        - var_lag: Selected VAR lag order
+        - fevd_matrix: FEVD matrix
+        - spillover_results: All spillover indices and measures
+        - granger_causality: Granger causality test results (if requested)
+        
     Example:
-        >>> # Create returns data for two markets
         >>> returns = pd.DataFrame({
-        ...     'US': [0.01, -0.02, 0.015, -0.01, 0.02],
-        ...     'EU': [0.015, -0.01, 0.02, -0.015, 0.01]
+        ...     'AAPL': np.random.normal(0, 0.02, 100),
+        ...     'MSFT': np.random.normal(0, 0.02, 100),
+        ...     'TSLA': np.random.normal(0, 0.03, 100)
         ... })
-        >>> # Run spillover analysis
-        >>> results = run_spillover_analysis(returns, max_lag=3)
-        >>> # Check if US returns Granger-cause EU returns
-        >>> us_to_eu = results['spillover_analysis']['granger_causality']['US_to_EU']
-        >>> print(f"US Granger-causes EU: {us_to_eu['causality']}")
+        >>> results = run_diebold_yilmaz_analysis(returns, horizon=10)
+        >>> print(f"Total spillover: {results['spillover_results']['total_spillover_index']:.1f}%")
     """
-    import itertools
-
-    # Run multivariate GARCH
-    mvgarch_results = run_multivariate_garch(
-        df_stationary=df_stationary,
-        arima_fits=arima_fits,
-        garch_fits=garch_fits,
-        lambda_val=lambda_val,
-    )
-
-    # Extract key components
-    arima_residuals = mvgarch_results["arima_residuals"]
-    cond_vol_df = mvgarch_results["conditional_volatilities"]
-
-    # Initialize spillover results
-    results = {"granger_causality": {}, "shock_spillover": {}}
-
-    # Get list of markets
-    markets = df_stationary.columns.tolist()
-
-    # Granger causality tests
-    for market_i, market_j in itertools.permutations(markets, 2):
-        pair_key = f"{market_i}_to_{market_j}"
-
-        # Test returns -> returns causality
-        results["granger_causality"][pair_key] = test_granger_causality(
-            df_stationary[market_i],
-            df_stationary[market_j],
-            max_lag=max_lag,
-            significance_level=significance_level,
-        )
-
-        # Test residual -> volatility spillover
-        results["shock_spillover"][pair_key] = analyze_shock_spillover(
-            arima_residuals[market_i], cond_vol_df[market_j], max_lag=max_lag
-        )
-
-    # Provide minimal placeholders for compatibility
-    results["spillover_magnitude"] = {
-        "spillover_indices": pd.DataFrame(index=df_stationary.index[-10:]),
-        "markets": markets,
+    logger.info("Starting Diebold-Yilmaz spillover analysis")
+    
+    # Validate input
+    if returns_df.empty:
+        raise ValueError("Empty returns DataFrame provided")
+    
+    if len(returns_df.columns) < 2:
+        raise ValueError("Need at least 2 assets for spillover analysis")
+    
+    # Step 1: Fit VAR model
+    try:
+        var_model, selected_lag = fit_var_model(returns_df, max_lags=max_lags, ic=ic)
+    except Exception as e:
+        raise RuntimeError(f"Failed to fit VAR model: {e}")
+    
+    # Step 2: Calculate FEVD
+    try:
+        fevd_matrix = calculate_fevd(var_model, horizon=horizon)
+    except Exception as e:
+        raise RuntimeError(f"Failed to calculate FEVD: {e}")
+    
+    # Step 3: Calculate spillover indices
+    try:
+        spillover_results = calculate_spillover_index(fevd_matrix, returns_df.columns.tolist())
+    except Exception as e:
+        raise RuntimeError(f"Failed to calculate spillover indices: {e}")
+    
+    # Step 4: Granger causality tests (optional)
+    granger_results = {}
+    if include_granger:
+        logger.info("Performing Granger causality tests")
+        asset_names = returns_df.columns.tolist()
+        
+        for i, asset_i in enumerate(asset_names):
+            for j, asset_j in enumerate(asset_names):
+                if i != j:  # Skip self-causality
+                    pair_key = f"{asset_i}_to_{asset_j}"
+                    try:
+                        granger_results[pair_key] = test_granger_causality(
+                            returns_df[asset_i],
+                            returns_df[asset_j],
+                            max_lag=max_lags,
+                            significance_level=significance_level
+                        )
+                    except Exception as e:
+                        logger.warning(f"Granger test failed for {pair_key}: {e}")
+                        granger_results[pair_key] = {
+                            'causality': False,
+                            'error': str(e)
+                        }
+    
+    # Compile final results
+    final_results = {
+        'var_model': var_model,
+        'var_lag': selected_lag,
+        'fevd_matrix': fevd_matrix,
+        'spillover_results': spillover_results,
+        'granger_causality': granger_results if include_granger else {},
+        'metadata': {
+            'horizon': horizon,
+            'max_lags': max_lags,
+            'ic': ic,
+            'n_assets': len(returns_df.columns),
+            'n_observations': len(returns_df),
+            'asset_names': returns_df.columns.tolist()
+        }
     }
-
-    results["impulse_response"] = {
-        "irfs": {},
-        "periods": np.arange(min(10, len(markets))),
-        "markets": markets,
-    }
-
-    # Combine with GARCH results
-    combined_results = {**mvgarch_results, "spillover_analysis": results}
-
-    return combined_results
+    
+    logger.info("Diebold-Yilmaz analysis completed successfully")
+    
+    return final_results

@@ -165,23 +165,24 @@ docker run -it --entrypoint /bin/bash timeseries-compute:latest
 
 ```text
 timeseries_compute/......................
-├── __init__.py                         # Package initialization
-├── data_generator.py                   # For creating synthetic price data with random walks and specific statistical properties
-├── data_processor.py                   # For handling missing data, scaling, stationarizing, and testing time series stationarity
-├── export_util.py                      # For writing intermediate output to track data lineage
-├── stats_model.py                      # For implementing ARIMA, GARCH, and multivariate GARCH models with factory pattern
-├── spillover_processor.py              # For analyzing market interactions, shock transmission, and volatility spillovers between markets
+├── __init__.py                         # Package initialization and public API
+├── data_generator.py                   # Synthetic price data generation with random walks and statistical properties
+├── data_processor.py                   # Data transformation, missing value handling, scaling, and stationarity testing
+├── export_util.py                      # Data export utilities for tracking analysis lineage
+├── spillover_processor.py              # Diebold-Yilmaz spillover analysis and Granger causality testing
+├── stats_model.py                      # ARIMA, GARCH, and multivariate GARCH model implementations
 ├── examples/............................
 │   ├── __init__.py                     # Makes examples importable as a module
-│   ├── example_multivariate_garch.py   # For demonstrating correlation analysis between multiple markets with CC-GARCH and DCC-GARCH
-│   └── example_univariate_garch.py     # For showing basic usage of ARIMA and GARCH for single-series forecasting
+│   ├── example_multivariate_garch.py   # Correlation analysis between multiple markets with CC-GARCH and DCC-GARCH
+│   └── example_univariate_garch.py     # Basic ARIMA and GARCH modeling for single-series forecasting
 └── tests/...............................
-    ├── __init__.py                     # Makes tests discoverable
-    ├── test_data_generator_advanced.py # test advanced features like customization and statistical properties
-    ├── test_data_generator.py          # test basic price generation functionality
-    ├── test_data_processor.py          # test data transformation, scaling, and stationarity testing
-    ├── test_stats_model_arima.py       # test ARIMA modeling separately with specialized fixtures
-    └── test_stats_model_garch.py       # test GARCH volatility modeling with different distributions
+    ├── __init__.py                     # Makes tests discoverable by pytest
+    ├── test_data_generator_advanced.py # Advanced data generation features and statistical property testing
+    ├── test_data_generator.py          # Basic price generation functionality testing
+    ├── test_data_processor.py          # Data transformation, scaling, and stationarity testing
+    ├── test_spillover_processor.py     # Spillover analysis and Granger causality testing
+    ├── test_stats_model_arima.py       # ARIMA modeling with specialized fixtures and edge cases
+    └── test_stats_model_garch.py       # GARCH volatility modeling with different distributions
 ```
 
 ### Architectural Diagrams
