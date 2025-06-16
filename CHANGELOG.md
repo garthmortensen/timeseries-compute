@@ -1,3 +1,50 @@
+## v0.6.0 (2025-06-15)
+
+### BREAKING CHANGE
+
+- config.yml remade to support changes
+
+### Feat
+
+- **spillover**: corrected spillover methodology
+
+## v0.5.0 (2025-06-15)
+
+### Features
+
+- Refactored dependencies to pyproject.toml and added uv.lock for reproducible builds
+- Enhanced spillover analysis functionality
+
+### Fixes
+
+- Simplified commitizen configuration to use pep621 provider only
+- Configured explicit version_files for reliable version bumps
+- Replaced source with . in Dockerfile for sh compatibility
+- Fixed various CI/CD pipeline issues with uv integration
+- Added tabulate dependency
+- Removed .venv from flake8 scan
+
+### Documentation
+
+- Improved build system documentation
+
+## v0.4.0 (2025-06-14)
+
+### Features
+
+- Introduced uv package manager for faster CI/CD pipeline
+- Enhanced build system with modern Python packaging
+
+### Fixes
+
+- Improved Docker build process
+- Fixed CI/CD pipeline configuration
+
+### Documentation
+
+- Documented all previous release descriptions
+- Updated build and installation instructions
+
 ## v0.3.0 (2025-06-14)
 
 ### BREAKING CHANGE
