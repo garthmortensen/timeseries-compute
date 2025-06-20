@@ -205,6 +205,7 @@ flowchart TB
         PythonPackage["Python Package<br>[Library]<br>Core functions for analysis"]:::container
         Dockerized["Docker Container<br>[Linux]<br>Containerized deployment"]:::container
         ExampleScripts["Example Scripts<br>[Python]<br>Demonstration use cases"]:::container
+        TestSuite["Test Suite<br>[pytest]<br>Validates package functionality"]:::container
         CIpipeline["CI/CD Pipeline<br>[GitHub Actions]<br>Automates testing/deployment"]:::container
         Documentation["Documentation<br>[ReadTheDocs]<br>API and usage docs"]:::container
     end
@@ -220,8 +221,10 @@ flowchart TB
     User -- "Runs [CLI]" --> ExampleScripts
     User -- "Reads [Web]" --> Documentation
     ExampleScripts -- "Uses" --> PythonPackage
+    TestSuite -- "Tests" --> PythonPackage
     PythonPackage -- "Packaged into" --> Dockerized
     CIpipeline -- "Builds and tests" --> Dockerized
+    CIpipeline -- "Runs" --> TestSuite
     CIpipeline -- "Publishes" --> PyPI
     CIpipeline -- "Publishes" --> DockerHub
     CIpipeline -- "Updates" --> Documentation
@@ -260,7 +263,6 @@ flowchart TB
         ExampleScripts --> StatsModels
         ExampleScripts --> SpilloverProcessor
         ExampleScripts --> ExportUtil
-        DataProcessor --> DataGenerator
         StatsModels --> DataProcessor
         SpilloverProcessor --> StatsModels
         SpilloverProcessor --> DataProcessor
@@ -268,6 +270,7 @@ flowchart TB
         TestSuite --> DataProcessor
         TestSuite --> StatsModels
         TestSuite --> SpilloverProcessor
+        TestSuite --> ExportUtil
     end
 
     %% External Components
@@ -294,13 +297,13 @@ flowchart TB
 
 ```mermaid
 classDiagram
-    %% Main Classes
+    %% Main Classes (actual)
     class PriceSeriesGenerator {
         +start_date: str
         +end_date: str
         +dates: pd.DatetimeIndex
         +__init__(start_date, end_date)
-        +generate_correlated_prices(anchor_prices): Dict[str, list]
+        +generate_correlated_prices(anchor_prices, correlation_matrix): Dict[str, list]
     }
     
     class MissingDataHandler {
@@ -329,7 +332,7 @@ classDiagram
         +__init__(data, order, steps)
         +fit(): Dict[str, ARIMA]
         +summary(): Dict[str, str]
-        +forecast(): Dict[str, float]
+        +forecast(): Dict[str, Union[float, list]]
     }
     
     class ModelGARCH {
@@ -351,25 +354,27 @@ classDiagram
         +q: int
         +model_type: str
         +fits: Dict
+        +cc_results: Dict
+        +dcc_results: Dict
         +__init__(data, p, q, model_type)
         +fit_cc_garch(): Dict[str, Any]
         +fit_dcc_garch(lambda_val): Dict[str, Any]
     }
     
+    %% Factory Classes
     class ModelFactory {
         <<static>>
-        +create_model(model_type, data, **kwargs): Model
+        +create_model(model_type, data, order, steps, p, q, dist, mv_model_type): Union[ModelARIMA, ModelGARCH, ModelMultivariateGARCH]
     }
     
-    %% Factory Classes
     class MissingDataHandlerFactory {
         <<static>>
-        +create_handler(strategy): Callable
+        +create_handler(strategy): Callable[[pd.DataFrame], pd.DataFrame]
     }
     
     class DataScalerFactory {
         <<static>>
-        +create_handler(strategy): Callable
+        +create_handler(strategy): Callable[[pd.DataFrame], pd.DataFrame]
     }
     
     class StationaryReturnsProcessorFactory {
@@ -377,18 +382,18 @@ classDiagram
         +create_handler(strategy): StationaryReturnsProcessor
     }
     
-    %% Functions from data_generator
-    class DataGeneratorFunctions {
-        <<static>>
+    %% Module-level Functions (actual implementation structure)
+    class DataGeneratorModule {
+        <<module>>
         +set_random_seed(seed): None
-        +generate_price_series(start_date, end_date, anchor_prices, random_seed): Tuple[Dict, pd.DataFrame]
+        +generate_price_series(start_date, end_date, anchor_prices, random_seed, correlations): Tuple[Dict, pd.DataFrame]
     }
     
-    %% Functions from data_processor
-    class DataProcessorFunctions {
-        <<static>>
+    class DataProcessorModule {
+        <<module>>
         +fill_data(df, strategy): pd.DataFrame
         +scale_data(df, method): pd.DataFrame
+        +scale_for_garch(df, target_scale): pd.DataFrame
         +stationarize_data(df, method): pd.DataFrame
         +test_stationarity(df, method): Dict
         +log_stationarity(adf_results, p_value_threshold): None
@@ -396,12 +401,10 @@ classDiagram
         +prepare_timeseries_data(df): pd.DataFrame
         +calculate_ewma_covariance(series1, series2, lambda_val): pd.Series
         +calculate_ewma_volatility(series, lambda_val): pd.Series
-        +scale_for_garch(df, target_scale): pd.DataFrame
     }
     
-    %% Functions from stats_model
-    class StatsModelFunctions {
-        <<static>>
+    class StatsModelModule {
+        <<module>>
         +run_arima(df_stationary, p, d, q, forecast_steps): Tuple[Dict, Dict]
         +run_garch(df_stationary, p, q, dist, forecast_steps): Tuple[Dict, Dict]
         +run_multivariate_garch(df_stationary, arima_fits, garch_fits, lambda_val): Dict
@@ -412,62 +415,66 @@ classDiagram
         +calculate_stats(series): Dict
     }
 
-    %% Functions from spillover_processor
-    class SpilloverProcessorFunctions {
-        <<static>>
+    class SpilloverProcessorModule {
+        <<module>>
         +test_granger_causality(series1, series2, max_lag, significance_level): Dict
         +analyze_shock_spillover(residuals1, volatility2, max_lag): Dict
         +run_spillover_analysis(df_stationary, arima_fits, garch_fits, lambda_val, max_lag, significance_level): Dict
     }
     
-    %% Functions from export_util
-    class ExportUtilFunctions {
-        <<static>>
+    class ExportUtilModule {
+        <<module>>
         +export_data(data, folder, name): Any
     }
     
     %% Example Scripts
     class ExampleUnivariateGARCH {
-        <<static>>
+        <<script>>
         +main(): None
     }
     
     class ExampleMultivariateGARCH {
-        <<static>>
+        <<script>>
         +main(): None
     }
     
-    %% Relationships - more accurate dependencies
-    DataProcessorFunctions --> MissingDataHandler: uses
-    DataProcessorFunctions --> DataScaler: uses
-    DataProcessorFunctions --> StationaryReturnsProcessor: uses
-    DataProcessorFunctions --> MissingDataHandlerFactory: uses
-    DataProcessorFunctions --> DataScalerFactory: uses
-    DataProcessorFunctions --> StationaryReturnsProcessorFactory: uses
-    
-    StatsModelFunctions --> ModelARIMA: uses
-    StatsModelFunctions --> ModelGARCH: uses
-    StatsModelFunctions --> ModelMultivariateGARCH: uses
-    StatsModelFunctions --> ModelFactory: uses
-    StatsModelFunctions --> DataProcessorFunctions: uses
-    
-    SpilloverProcessorFunctions --> StatsModelFunctions: uses
-    
-    ExampleUnivariateGARCH --> DataGeneratorFunctions: uses
-    ExampleUnivariateGARCH --> DataProcessorFunctions: uses
-    ExampleUnivariateGARCH --> StatsModelFunctions: uses
-    
-    ExampleMultivariateGARCH --> DataGeneratorFunctions: uses
-    ExampleMultivariateGARCH --> DataProcessorFunctions: uses
-    ExampleMultivariateGARCH --> StatsModelFunctions: uses
-    ExampleMultivariateGARCH --> ExportUtilFunctions: uses
-    
+    %% Relationships - Factory patterns
     MissingDataHandlerFactory --> MissingDataHandler: creates
     DataScalerFactory --> DataScaler: creates
     StationaryReturnsProcessorFactory --> StationaryReturnsProcessor: creates
     ModelFactory --> ModelARIMA: creates
     ModelFactory --> ModelGARCH: creates
     ModelFactory --> ModelMultivariateGARCH: creates
+    
+    %% Module dependencies
+    DataProcessorModule --> MissingDataHandler: uses
+    DataProcessorModule --> DataScaler: uses
+    DataProcessorModule --> StationaryReturnsProcessor: uses
+    DataProcessorModule --> MissingDataHandlerFactory: uses
+    DataProcessorModule --> DataScalerFactory: uses
+    DataProcessorModule --> StationaryReturnsProcessorFactory: uses
+    
+    StatsModelModule --> ModelARIMA: uses
+    StatsModelModule --> ModelGARCH: uses
+    StatsModelModule --> ModelMultivariateGARCH: uses
+    StatsModelModule --> ModelFactory: uses
+    StatsModelModule --> DataProcessorModule: uses
+    
+    SpilloverProcessorModule --> StatsModelModule: uses
+    SpilloverProcessorModule --> DataProcessorModule: uses
+    
+    %% Example script dependencies
+    ExampleUnivariateGARCH --> DataGeneratorModule: uses
+    ExampleUnivariateGARCH --> DataProcessorModule: uses
+    ExampleUnivariateGARCH --> StatsModelModule: uses
+    
+    ExampleMultivariateGARCH --> DataGeneratorModule: uses
+    ExampleMultivariateGARCH --> DataProcessorModule: uses
+    ExampleMultivariateGARCH --> StatsModelModule: uses
+    ExampleMultivariateGARCH --> ExportUtilModule: uses
+    
+    %% Core class usage
+    DataGeneratorModule --> PriceSeriesGenerator: uses
 ```
 
 #### CI/CD Process
