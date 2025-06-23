@@ -1,3 +1,10 @@
+## v0.7.0 (2025-06-22)
+
+### Feat
+
+- **methodology**: complete overhaul of stats methodology
+- **arima-garch**: ensure independence between them, taking returns each
+
 ## v0.6.1 (2025-06-19)
 
 ## v0.6.0 (2025-06-15)
