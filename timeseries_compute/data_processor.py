@@ -67,7 +67,7 @@ class MissingDataHandler:
         """
         l.info("Dropping rows with missing values")
         l.info("df filled:")
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5).values, headers=list(data.columns), tablefmt="fancy_grid"))
         return data.dropna()
 
     def forward_fill(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -82,8 +82,8 @@ class MissingDataHandler:
         """
         l.info("Filling missing values with forward fill")
         l.info("df filled:")
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
-        return data.fillna(method="ffill")
+        l.info("\n" + tabulate(data.head(5).values, headers=list(data.columns), tablefmt="fancy_grid"))
+        return data.ffill()
 
 
 class MissingDataHandlerFactory:
@@ -163,7 +163,7 @@ class DataScaler:
             data[column] = (data[column] - data[column].mean()) / data[column].std()
         l.info("Scaling data using standardization")
         l.info("df scaled:")
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5).values, headers=list(data.columns), tablefmt="fancy_grid"))
         return data
 
     def scale_data_minmax(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -188,7 +188,7 @@ class DataScaler:
             )
         l.info("Scaling data using minmax")
         l.info("df scaled:")
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5).values, headers=list(data.columns), tablefmt="fancy_grid"))
         return data
 
 
@@ -335,7 +335,7 @@ class StationaryReturnsProcessor:
         else:
             raise ValueError(f"Unknown make_stationary method: {method}")
 
-        l.info("\n" + tabulate(data.head(5), headers="keys", tablefmt="fancy_grid"))
+        l.info("\n" + tabulate(data.head(5).values, headers=list(data.columns), tablefmt="fancy_grid"))
         return data
 
     def test_stationarity(
@@ -417,8 +417,9 @@ def price_to_returns(prices: pd.DataFrame) -> pd.DataFrame:
         DataFrame of log returns with Date as index
     """
     price_df = prices.copy()
-    # Calculate returns
-    returns_df = np.log(price_df / price_df.shift(1)).dropna()
+    # Calculate returns - keep it all within pandas operations
+    price_ratios = price_df / price_df.shift(1)
+    returns_df = price_ratios.apply(np.log).dropna()
     return returns_df
 
 
@@ -588,24 +589,19 @@ def calculate_ewma_covariance(
     return cov_series
 
 
-def calculate_ewma_volatility(series: pd.Series, lambda_val: float = 0.95) -> pd.Series:
+def calculate_ewma_volatility(
+    returns_series: pd.Series, lambda_val: float = 0.94
+) -> pd.Series:
     """
-    Calculate Exponentially Weighted Moving Average volatility for a series.
+    Calculate exponentially weighted moving average (EWMA) volatility.
 
     Args:
-        series: Time series
-        lambda_val: Decay factor
+        returns_series: Time series of returns
+        lambda_val: EWMA decay factor (0 < lambda < 1)
 
     Returns:
         Series of EWMA volatilities
     """
-    # Square the returns
-    squared_returns = series**2
-
-    # Calculate EWMA variance
-    ewma_variance = squared_returns.ewm(alpha=1 - lambda_val, adjust=False).mean()
-
-    # Convert variance to volatility
+    ewma_variance = calculate_ewma_covariance(returns_series, returns_series, lambda_val)
     ewma_volatility = np.sqrt(ewma_variance)
-
-    return ewma_volatility
+    return pd.Series(ewma_volatility, index=returns_series.index)

@@ -616,6 +616,120 @@ git tag v0.2.41
 git push && git push --tags
 ```
 
-## Documentation
+## Methodology
 
-Full documentation is available at [timeseries-compute.readthedocs.io](https://timeseries-compute.readthedocs.io/en/latest/).
+This section illustrates the statistical workflows and logic for the key implementations in the package.
+
+### Spillover Analysis (Diebold-Yilmaz)
+
+```mermaid
+graph TD
+    A[Multivariate Returns] --> B[Fit VAR Model]
+    B --> C[Calculate FEVD Matrix]
+    C --> D[Extract Spillover Indices]
+    D --> E[Total Connectedness Index]
+    D --> F[Directional Spillovers]
+    D --> G[Net Spillovers]
+    
+    style A fill:#e1f5fe
+    style E fill:#c8e6c9
+    style F fill:#c8e6c9
+    style G fill:#c8e6c9
+```
+
+### ARIMA Modeling Logic
+
+```mermaid
+graph TD
+    A[Stationary Returns] --> B["Fit ARIMA(p,d,q)"]
+    B --> C[Extract Residuals]
+    B --> D[Generate Forecasts]
+    C --> E[Filter Conditional Mean]
+    
+    style A fill:#e1f5fe
+    style D fill:#c8e6c9
+    style E fill:#fff3e0
+```
+
+### GARCH Modeling Logic
+
+```mermaid
+graph TD
+    A[Stationary Returns] --> B["Fit GARCH(p,q)"]
+    B --> C[Extract Conditional Volatility]
+    B --> D[Generate Volatility Forecasts]
+    C --> E[Calculate Standardized Residuals]
+    
+    style A fill:#e1f5fe
+    style D fill:#c8e6c9
+    style C fill:#f3e5f5
+    style E fill:#e8f5e8
+```
+
+### Multivariate GARCH Logic
+
+```mermaid
+graph TD
+    A[Multiple Return Series] --> B[Filter Conditional Means]
+    B --> C[Model Individual Volatilities]
+    C --> D[Extract Standardized Residuals]
+    
+    D --> E[Constant Correlation]
+    D --> F[Dynamic Correlation]
+    
+    E --> G[CCC Covariance Matrix]
+    F --> H[DCC Correlation Series]
+    
+    style A fill:#e1f5fe
+    style G fill:#c8e6c9
+    style H fill:#c8e6c9
+```
+
+### Data Processing Logic
+
+```mermaid
+graph TD
+    A[Raw Prices] --> B[Handle Missing Data]
+    B --> C[Calculate Log Returns]
+    C --> D[Test Stationarity]
+    D --> E{Stationary?}
+    E -->|No| F[Apply Transformation]
+    E -->|Yes| G[Scale Data]
+    F --> G
+    G --> H[Analysis-Ready Returns]
+    
+    style A fill:#ffebee
+    style H fill:#c8e6c9
+    style E fill:#fff3e0
+```
+
+### Portfolio Risk Logic
+
+```mermaid
+graph TD
+    A[Individual Volatilities] --> B[Correlation Matrix]
+    B --> C[Covariance Matrix]
+    C --> D[Portfolio Weights]
+    D --> E[Portfolio Variance]
+    E --> F[Portfolio Volatility]
+    
+    style A fill:#f3e5f5
+    style B fill:#fff3e0
+    style F fill:#c8e6c9
+```
+
+### Complete Statistical Workflow
+
+```mermaid
+graph TD
+    A[Financial Data] --> B[Data Preprocessing]
+    B --> C[Stationarity Testing]
+    C --> D[Mean Modeling]
+    D --> E[Volatility Modeling]
+    E --> F[Correlation Analysis]
+    F --> G[Risk Assessment]
+    
+    style A fill:#ffebee
+    style G fill:#c8e6c9
+```
+

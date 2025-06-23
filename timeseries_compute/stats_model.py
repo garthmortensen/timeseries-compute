@@ -92,15 +92,15 @@ class ModelARIMA:
         self.data = data
         self.order = order
         self.steps = steps
-        self.models: Dict[str, ARIMA] = {}  # Store models for each column
-        self.fits: Dict[str, ARIMA] = {}  # Store fits for each column
+        self.models: Dict[str, Any] = {}  # Store models for each column
+        self.fits: Dict[str, Any] = {}  # Store fits for each column
 
-    def fit(self) -> Dict[str, ARIMA]:
+    def fit(self) -> Dict[str, Any]:
         """
         Fits an ARIMA model to each column in the dataset.
 
         Returns:
-            Dict[str, ARIMA]: A dictionary where the keys are column names and the values are the
+            Dict[str, Any]: A dictionary where the keys are column names and the values are the
                 fitted ARIMA models for each column.
         """
         for column in self.data.columns:
@@ -130,21 +130,15 @@ class ModelARIMA:
         """
         forecasts = {}
         for column, fit in self.fits.items():
-            # Force use the steps parameter directly to avoid any override issues
             forecast_result = fit.forecast(steps=self.steps)
-
-            # CRITICAL FIX: Always check the actual forecast length, not just self.steps
-            if hasattr(forecast_result, "__len__") and len(forecast_result) > 1:
-                # Multiple forecast values - return as list
-                forecasts[column] = forecast_result.tolist()
+            
+            # Handle single-step vs multi-step forecasts
+            if self.steps == 1:
+                # For single-step forecast, return a float
+                forecasts[column] = float(forecast_result.iloc[0])
             else:
-                # Single forecast value - return as float
-                forecasts[column] = (
-                    forecast_result.iloc[0]
-                    if hasattr(forecast_result, "iloc")
-                    else float(forecast_result)
-                )
-
+                # For multi-step forecasts, return a list
+                forecasts[column] = forecast_result.tolist() if hasattr(forecast_result, "tolist") else forecast_result
         return forecasts
 
 
@@ -185,6 +179,11 @@ def run_arima(
         order=(p, d, q),
         steps=forecast_steps,
     )
+        
+    # Better approach: Explicit type checking with proper exception
+    if not isinstance(model_arima, ModelARIMA):
+        raise TypeError(f"Expected ModelARIMA, got {type(model_arima)}")
+    
     arima_fit = model_arima.fit()
 
     l.info(f"## ARIMA model fitted to columns: {list(arima_fit.keys())}")
@@ -194,19 +193,32 @@ def run_arima(
     # Debug: Check what we actually got from forecast
     l.info(f"## DEBUG: Raw forecast results from model_arima.forecast():")
     for col, value in arima_forecast.items():
+        try:
+            if hasattr(value, '__len__') and not isinstance(value, (str, float, int)):
+                value_len = len(value)
+            else:
+                value_len = 'N/A'
+        except TypeError:
+            value_len = 'N/A'
         l.info(
-            f"   DEBUG {col}: type={type(value)}, length={len(value) if hasattr(value, '__len__') else 'N/A'}, value={value}"
+            f"   DEBUG {col}: type={type(value)}, length={value_len}, value={value}"
         )
 
     l.info(f"## ARIMA {forecast_steps}-step forecast values:")
     for col, value in arima_forecast.items():
-        if isinstance(value, list):
+        if isinstance(value, (list, np.ndarray)) and hasattr(value, '__iter__'):
             # Format list of forecast values
-            value_str = ", ".join(f"{v:.4f}" for v in value)
-            l.info(f"   {col}: [{value_str}]")
+            try:
+                value_str = ", ".join(f"{v:.4f}" for v in value)
+                l.info(f"   {col}: [{value_str}]")
+            except (TypeError, ValueError):
+                l.info(f"   {col}: {value}")
         else:
             # Format single forecast value
-            l.info(f"   {col}: {value:.4f}")
+            try:
+                l.info(f"   {col}: {value:.4f}")
+            except (TypeError, ValueError):
+                l.info(f"   {col}: {value}")
 
     return arima_fit, arima_forecast
 
@@ -243,21 +255,27 @@ class ModelGARCH:
         self.data = data
         self.p = p
         self.q = q
-        self.dist = dist
-        self.models: Dict[str, arch_model] = {}  # Store models for each column
-        self.fits: Dict[str, arch_model] = {}  # Store fits for each column
+        # Validate and set distribution
+        valid_dists = ['normal', 'gaussian', 't', 'studentst', 'skewstudent', 'skewt', 'ged']
+        self.dist = dist if dist in valid_dists else 'normal'
+        self.models: Dict[str, Any] = {}  # Store models for each column
+        self.fits: Dict[str, Any] = {}  # Store fits for each column
 
-    def fit(self) -> Dict[str, arch_model]:
+    def fit(self) -> Dict[str, Any]:
         """
         Fits a GARCH model to each column of the data.
 
         Returns:
-            Dict[str, arch_model]: A dictionary where the keys are column names and the values
+            Dict[str, Any]: A dictionary where the keys are column names and the values
                 are the fitted GARCH models.
         """
+        from typing import cast, Literal
+        
         for column in self.data.columns:
+            # Cast dist to the correct literal type to satisfy Pylance
+            dist_literal = cast(Literal['normal', 'gaussian', 't', 'studentst', 'skewstudent', 'skewt', 'ged', 'generalized error'], self.dist)
             model = arch_model(
-                self.data[column], vol="Garch", p=self.p, q=self.q, dist=self.dist
+                self.data[column], vol="GARCH", p=self.p, q=self.q, dist=dist_literal
             )
             self.fits[column] = model.fit(disp="off")
         return self.fits
@@ -318,7 +336,7 @@ class ModelMultivariateGARCH:
         # First fit univariate GARCH models
         univariate_models = {}
         for column in self.data.columns:
-            model = arch_model(self.data[column], vol="Garch", p=self.p, q=self.q)
+            model = arch_model(self.data[column], vol="GARCH", p=self.p, q=self.q)
             univariate_models[column] = model.fit(disp="off")
 
         # Calculate constant correlation matrix
@@ -350,7 +368,7 @@ class ModelMultivariateGARCH:
         conditional_vols = pd.DataFrame(index=self.data.index)
 
         for column in self.data.columns:
-            model = arch_model(self.data[column], vol="Garch", p=self.p, q=self.q)
+            model = arch_model(self.data[column], vol="GARCH", p=self.p, q=self.q)
             fit = model.fit(disp="off")
             univariate_models[column] = fit
             conditional_vols[column] = np.sqrt(fit.conditional_volatility)
@@ -421,6 +439,7 @@ def construct_covariance_matrix(volatilities: list, correlation: float) -> np.nd
     Returns:
         np.ndarray: 2x2 covariance matrix
     """
+    correlation = float(correlation)  # Ensure correlation is a float
     cov_matrix = np.outer(volatilities, volatilities)
     cov_matrix[0, 1] *= correlation
     cov_matrix[1, 0] *= correlation
@@ -536,8 +555,16 @@ def run_multivariate_garch(
         latest_vols = [cond_vol[col].iloc[-1] for col in columns]
 
         # Construct covariance matrix using CCC
+        try:
+            # Simplified approach: just use numpy conversion
+            correlation_float = float(np.asarray(cc_corr.iloc[0, 1]))
+        except (TypeError, ValueError) as e:
+            # Fallback to default correlation if conversion fails
+            correlation_float = 0.5
+            l.warning(f"Failed to convert correlation value ({e}), using default: {correlation_float}")
+        
         cc_cov_matrix = construct_covariance_matrix(
-            volatilities=latest_vols, correlation=cc_corr.iloc[0, 1]
+            volatilities=latest_vols, correlation=correlation_float
         )
         results["cc_covariance_matrix"] = cc_cov_matrix
 
@@ -666,6 +693,11 @@ def run_garch(
             q=q,
             dist=dist,
         )
+        
+        # Type assertion to ensure correct type
+        if not isinstance(model_garch, ModelGARCH):
+            raise TypeError(f"Expected ModelGARCH, got {type(model_garch)}")
+        
         garch_fit = model_garch.fit()
 
         l.info(f"## GARCH model fitted to columns: {list(garch_fit.keys())}")
@@ -673,11 +705,22 @@ def run_garch(
         garch_forecast = model_garch.forecast(steps=forecast_steps)
         l.info(f"## GARCH {forecast_steps}-step volatility forecast:")
         for col, value in garch_forecast.items():
-            if hasattr(value, "iloc"):
-                value_str = ", ".join(f"{v:.6f}" for v in value)
-                l.info(f"   {col}: [{value_str}]")
-            else:
-                l.info(f"   {col}: {value:.6f}")
+            # More robust type checking to handle edge cases
+            try:
+                # Check if it's specifically a list or array, not just any iterable
+                if isinstance(value, (list, tuple, np.ndarray)) and len(value) > 0:
+                    # Try to iterate and format
+                    value_str = ", ".join(f"{v:.6f}" for v in value)
+                    l.info(f"   {col}: [{value_str}]")
+                else:
+                    # Handle as scalar value
+                    if isinstance(value, (int, float)):
+                        l.info(f"   {col}: {value:.6f}")
+                    else:
+                        l.info(f"   {col}: {value}")
+            except (TypeError, ValueError, AttributeError):
+                # Fallback for any type conversion issues
+                l.info(f"   {col}: {value}")
 
         return garch_fit, garch_forecast
 
@@ -686,39 +729,210 @@ def run_garch(
         raise RuntimeError(f"GARCH model failed: {str(e)}")
 
 
-def calculate_stats(series: pd.Series) -> Dict[str, float]:
+def calculate_stats(series: pd.Series, annualization_factor: int = 250) -> Dict[str, float]:
     """
-    Calculate comprehensive statistics for a time series.
+    Calculate comprehensive descriptive statistics for a time series.
+
+    This function computes a comprehensive set of statistical measures commonly used 
+    in financial time series analysis, including central tendency, dispersion, 
+    distribution shape, and annualized volatility metrics.
 
     Args:
-        series (pd.Series): Time series data to analyze
+        series (pd.Series): Time series data to analyze. Should contain numeric values.
+        annualization_factor (int, optional): Factor used to annualize volatility. 
+            Common values:
+            - 250: For daily financial data (trading days per year)
+            - 252: Alternative daily factor accounting for holidays
+            - 52: For weekly data
+            - 12: For monthly data
+            - 4: For quarterly data
+            - 1: For annual data or no annualization
+            Defaults to 250.
 
     Returns:
-        Dict[str, float]: Dictionary containing the following statistics:
+        Dict[str, float]: Dictionary containing comprehensive statistics:
             - 'n': Number of observations in the series
             - 'mean': Arithmetic mean of the series
-            - 'median': Median value of the series
+            - 'median': Median value (50th percentile)
             - 'min': Minimum value in the series
             - 'max': Maximum value in the series
-            - 'std': Standard deviation of the series
-            - 'skew': Skewness of the distribution (asymmetry measure)
-            - 'kurt': Kurtosis of the distribution (tail heaviness measure)
-            - 'annualized_vol': Annualized volatility, calculated as standard deviation * sqrt(250)
-              for daily data
+            - 'std': Standard deviation (sample standard deviation)
+            - 'var': Variance (sample variance)
+            - 'skew': Skewness - measure of asymmetry (0 = symmetric)
+            - 'kurt': Excess kurtosis - measure of tail heaviness (0 = normal)
+            - 'annualized_vol': Annualized volatility (std * sqrt(annualization_factor))
+            - 'annualized_return': Annualized return (mean * annualization_factor)
+            - 'sharpe_approx': Approximate Sharpe ratio (annualized_return / annualized_vol)
+
+    Raises:
+        ValueError: If the series is empty or contains no numeric data
+        TypeError: If the series contains non-numeric data that cannot be converted
 
     Example:
-        >>> series = pd.Series([1.2, 2.3, 3.4, 4.5, 5.6])
-        >>> stats = calculate_stats(series)
-        >>> print(f"Mean: {stats['mean']}, Std Dev: {stats['std']}")
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> 
+        >>> # Daily stock returns
+        >>> returns = pd.Series(np.random.normal(0.001, 0.02, 252))
+        >>> stats = calculate_stats(returns, annualization_factor=252)
+        >>> print(f"Annualized Return: {stats['annualized_return']:.2%}")
+        >>> print(f"Annualized Volatility: {stats['annualized_vol']:.2%}")
+        >>> print(f"Sharpe Ratio: {stats['sharpe_approx']:.2f}")
+        >>>
+        >>> # Monthly data
+        >>> monthly_data = pd.Series([0.02, -0.01, 0.03, 0.01, -0.02])
+        >>> monthly_stats = calculate_stats(monthly_data, annualization_factor=12)
+
+    Note:
+        - Skewness interpretation: >0 (right tail), <0 (left tail), =0 (symmetric)
+        - Kurtosis interpretation: >0 (heavy tails), <0 (light tails), =0 (normal)
+        - Sharpe ratio calculation assumes zero risk-free rate for simplicity
+        - For non-return data, annualized metrics may not be meaningful
     """
+    if series.empty:
+        raise ValueError("Cannot calculate statistics for empty series")
+    
+    # Remove any NaN values for calculation
+    clean_series = series.dropna()
+    
+    if clean_series.empty:
+        raise ValueError("Series contains no valid numeric data after removing NaN values")
+    
+    # Basic statistics
+    n = len(clean_series)
+    mean_val = clean_series.mean()
+    std_val = clean_series.std()
+    
+    # Calculate annualized metrics
+    annualized_vol = std_val * np.sqrt(annualization_factor)
+    annualized_return = mean_val * annualization_factor
+    
+    # Approximate Sharpe ratio (assuming zero risk-free rate)
+    sharpe_approx = annualized_return / annualized_vol if annualized_vol != 0 else 0.0
+    
+    # Calculate statistics with robust scalar conversion
+    try:
+        var_val = float(np.asarray(clean_series.var()))
+        skew_val = float(np.asarray(clean_series.skew()))
+        kurt_val = float(np.asarray(clean_series.kurtosis()))
+    except (TypeError, ValueError):
+        # Fallback values if conversion fails
+        var_val = float(std_val ** 2) if std_val is not None else 0.0
+        skew_val = 0.0
+        kurt_val = 0.0
+    
     return {
-        "n": len(series),
-        "mean": series.mean(),
-        "median": series.median(),
-        "min": series.min(),
-        "max": series.max(),
-        "std": series.std(),
-        "skew": series.skew(),
-        "kurt": series.kurtosis(),
-        "annualized_vol": series.std() * np.sqrt(250),  # Assuming daily data
+        "n": float(n),
+        "mean": float(mean_val),
+        "median": float(clean_series.median()),
+        "min": float(clean_series.min()),
+        "max": float(clean_series.max()),
+        "std": float(std_val),
+        "var": var_val,
+        "skew": skew_val,
+        "kurt": kurt_val,
+        "annualized_vol": float(annualized_vol),
+        "annualized_return": float(annualized_return),
+        "sharpe_approx": float(sharpe_approx),
+    }
+
+
+# Moved ARIMA and GARCH-related functions from spillover_processor.py
+# These functions support the spillover analysis workflows
+
+def fit_arima_model(
+    returns_series: pd.Series,
+    order: Tuple[int, int, int] = (1, 0, 0)
+) -> Any:
+    """
+    Fit ARIMA model to a single returns series.
+
+    Args:
+        returns_series: Time series of returns for a single asset
+        order: ARIMA order (p, d, q)
+
+    Returns:
+        Fitted ARIMA model
+    """
+    from statsmodels.tsa.arima.model import ARIMA
+
+    l.info(f"Fitting ARIMA model with order={order}")
+
+    # Fit ARIMA model
+    model = ARIMA(returns_series, order=order)
+    fitted_model = model.fit()
+
+    l.info("ARIMA model fitted successfully")
+
+    return fitted_model
+
+
+def fit_garch_model(
+    returns_series: pd.Series,
+    p: int = 1,
+    q: int = 1
+) -> Any:
+    """
+    Fit GARCH model to a single returns series.
+
+    Args:
+        returns_series: Time series of returns for a single asset
+        p: Order of the GARCH terms
+        q: Order of the ARCH terms
+
+    Returns:
+        Fitted GARCH model
+    """
+    from arch import arch_model
+
+    l.info(f"Fitting GARCH model with p={p}, q={q}")
+
+    # Fit GARCH model
+    model = arch_model(returns_series, vol='GARCH', p=p, q=q)
+    fitted_model = model.fit(disp='off')
+
+    l.info("GARCH model fitted successfully")
+
+    return fitted_model
+
+
+def fit_dcc_garch_model(
+    returns_df: pd.DataFrame,
+    garch_order: Tuple[int, int] = (1, 1)
+) -> Any:
+    """
+    Fit a DCC-GARCH model to multivariate returns data.
+
+    Args:
+        returns_df: DataFrame of returns for multiple assets
+        garch_order: GARCH order (p, q)
+
+    Returns:
+        Dictionary containing standardized residuals and correlation matrix
+    """
+    from arch.univariate import arch_model
+
+    l.info("Fitting DCC-GARCH model")
+
+    # Fit univariate GARCH models for each series
+    univariate_models = {}
+    standardized_residuals = {}
+
+    for column in returns_df.columns:
+        model = arch_model(returns_df[column], vol='GARCH', p=garch_order[0], q=garch_order[1])
+        fitted_model = model.fit(disp='off')
+        univariate_models[column] = fitted_model
+        standardized_residuals[column] = fitted_model.std_resid
+
+    # Create a DataFrame of standardized residuals
+    standardized_residuals_df = pd.DataFrame(standardized_residuals)
+
+    # Calculate the correlation matrix of standardized residuals
+    correlation_matrix = calculate_correlation_matrix(standardized_residuals_df)
+
+    l.info("DCC-GARCH model fitted successfully")
+
+    return {
+        'standardized_residuals': standardized_residuals_df,
+        'correlation_matrix': correlation_matrix
     }

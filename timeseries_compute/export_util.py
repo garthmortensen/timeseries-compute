@@ -5,7 +5,7 @@ import os
 import re
 import json
 import numpy as np
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 # Global step counter and debugging flag
 export_data_mode = False  # Default to False, can be changed at runtime
@@ -48,39 +48,19 @@ def export_data(data: Any, folder: str = "outputs", name: Optional[str] = None) 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Get caller information
-    frame = inspect.currentframe().f_back
-    script_name = os.path.basename(frame.f_code.co_filename).replace(".py", "")
-    line_number = frame.f_lineno
-
-    # Try to determine variable name from context if not provided
-    variable_name = name if name is not None else "unnamed_data"
-    if name is None:
-        try:
-            context_lines = inspect.getframeinfo(frame).code_context
-            if context_lines:
-                line = context_lines[0].strip()
-
-                # Look for assignment patterns
-                match = re.match(r"(\w+)\s*=", line)
-                if match:
-                    variable_name = match.group(1)
-                else:
-                    # Look for function call patterns
-                    match = re.search(r"export_data\((\w+)", line)
-                    if match:
-                        variable_name = match.group(1)
-        except Exception:
-            pass
+    script_name, line_number, variable_name = get_caller_info()
 
     # Determine file format based on data type
     if isinstance(data, pd.DataFrame):
         file_format = "csv"
-    elif isinstance(data, (dict, list)) or (
-        hasattr(data, "tolist") and callable(data.tolist)
-    ):
+    elif isinstance(data, (dict, list)):
         file_format = "json"
     elif isinstance(data, np.ndarray):
         file_format = "npy"
+    elif isinstance(data, pd.Series):
+        file_format = "json"
+    elif hasattr(data, "tolist") and callable(getattr(data, "tolist", None)):
+        file_format = "json"
     else:
         file_format = "txt"
 
@@ -99,7 +79,7 @@ def export_data(data: Any, folder: str = "outputs", name: Optional[str] = None) 
 
     # Save the data in the appropriate format
     try:
-        if file_format == "csv":
+        if file_format == "csv" and isinstance(data, pd.DataFrame):
             data.to_csv(full_path)
 
         elif file_format == "json":
@@ -112,16 +92,23 @@ def export_data(data: Any, folder: str = "outputs", name: Optional[str] = None) 
                 else:
                     # Try to convert to dict or list if possible
                     try:
-                        if hasattr(data, "to_dict"):
+                        if hasattr(data, "to_dict") and callable(getattr(data, "to_dict")) and not isinstance(data, np.ndarray):
                             json.dump(data.to_dict(), f, indent=2, default=str)
-                        elif hasattr(data, "tolist") and callable(data.tolist):
+                        elif isinstance(data, pd.Series):
+                            # Handle pandas Series specifically
+                            json.dump(list(data), f, indent=2, default=str)
+                        elif isinstance(data, np.ndarray):
+                            # Handle numpy arrays specifically
+                            json.dump(data.tolist(), f, indent=2, default=str)
+                        elif hasattr(data, "tolist") and callable(getattr(data, "tolist", None)) and not isinstance(data, (pd.Series, pd.DataFrame)):
+                            # For other objects with callable tolist method (excluding pandas objects)
                             json.dump(data.tolist(), f, indent=2, default=str)
                         else:
                             json.dump(str(data), f, indent=2)
-                    except:
+                    except Exception:
                         json.dump(str(data), f, indent=2)
 
-        elif file_format == "npy":
+        elif file_format == "npy" and isinstance(data, np.ndarray):
             np.save(full_path, data)
 
         else:  # txt or other formats
@@ -140,7 +127,53 @@ def export_data(data: Any, folder: str = "outputs", name: Optional[str] = None) 
     return data
 
 
-# Only add the method to DataFrame, which is mutable
-pd.DataFrame.export_data = lambda self, folder="outputs", name=None: export_data(
-    self, folder, name
-)
+def get_caller_info() -> Tuple[str, int, Optional[str]]:
+    """
+    Extract information about the calling context.
+
+    Returns:
+        Tuple of (script_name, line_number, variable_name)
+    """
+    frame = inspect.currentframe()
+    if frame is None:
+        return "unknown_script", 0, None
+
+    caller_frame = frame.f_back
+    if caller_frame is None:
+        return "unknown_script", 0, None
+
+    script_name = os.path.basename(caller_frame.f_code.co_filename).replace(".py", "")
+    line_number = caller_frame.f_lineno
+
+    # Try to extract variable name from code context
+    variable_name = None
+    try:
+        frame_info = inspect.getframeinfo(caller_frame)
+        if frame_info.code_context:
+            context_lines = frame_info.code_context
+            if context_lines and len(context_lines) > 0:
+                # Look for variable assignment patterns
+                line = context_lines[0].strip()
+                if "export_data(" in line:
+                    # Extract variable name before export_data call
+                    if "=" in line and "export_data(" in line:
+                        var_part = line.split("export_data(")[0]
+                        if "=" in var_part:
+                            variable_name = var_part.split("=")[-1].strip()
+                        else:
+                            variable_name = var_part.strip()
+    except Exception:
+        # If we can't extract variable name, continue without it
+        pass
+
+    return script_name, line_number, variable_name
+
+
+# Monkey patch DataFrame to add export_data method
+# Note: This approach avoids Pylance warnings about attribute assignment
+def _export_data_method(self, folder: str = "outputs", name: Optional[str] = None) -> pd.DataFrame:
+    """Export DataFrame data using the export_data function."""
+    return export_data(self, folder, name)
+
+# Use setattr to avoid Pylance warnings about unknown attributes
+setattr(pd.DataFrame, 'export_data', _export_data_method)
