@@ -685,39 +685,6 @@ graph TD
     style H fill:#c8e6c9
 ```
 
-### Data Processing Logic
-
-```mermaid
-graph TD
-    A[Raw Prices] --> B[Handle Missing Data]
-    B --> C[Calculate Log Returns]
-    C --> D[Test Stationarity]
-    D --> E{Stationary?}
-    E -->|No| F[Apply Transformation]
-    E -->|Yes| G[Scale Data]
-    F --> G
-    G --> H[Analysis-Ready Returns]
-    
-    style A fill:#ffebee
-    style H fill:#c8e6c9
-    style E fill:#fff3e0
-```
-
-### Portfolio Risk Logic
-
-```mermaid
-graph TD
-    A[Individual Volatilities] --> B[Correlation Matrix]
-    B --> C[Covariance Matrix]
-    C --> D[Portfolio Weights]
-    D --> E[Portfolio Variance]
-    E --> F[Portfolio Volatility]
-    
-    style A fill:#f3e5f5
-    style B fill:#fff3e0
-    style F fill:#c8e6c9
-```
-
 ### Complete Statistical Workflow
 
 ```mermaid
