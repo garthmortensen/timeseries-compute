@@ -1,7 +1,7 @@
 # project metadata
 [project]
 name = "timeseries_compute"
-version = "0.7.0"
+version = "0.8.0"
 # Reintroduced the `version` key to allow Commitizen to track the current version.
 authors = [
     { name="Garth Mortensen", email="mortensengarth@hotmail.com" }

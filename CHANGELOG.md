@@ -1,3 +1,9 @@
+## v0.8.0 (2025-06-23)
+
+### Feat
+
+- **README**: reduce methodology details
+
 ## v0.7.0 (2025-06-22)
 
 ### Feat
